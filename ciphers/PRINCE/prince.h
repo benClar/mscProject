@@ -1,71 +1,71 @@
 typedef struct head *Head;
 typedef struct node *Node;
 
-#define KEY_SEED0 0
-#define KEY_SEED1 1
-#define KEY_SEED2 2
-#define KEY_SEED3 3
-#define KEY_SEED4 4
-#define KEY_SEED5 5
-#define KEY_SEED6 6
-#define KEY_SEED7 7
-#define KEY_SEED8 8
-#define KEY_SEED9 9
-#define KEY_SEED10 10
-#define KEY_SEED11 11
-#define KEY_SEED12 12
-#define KEY_SEED13 13
-#define KEY_SEED14 14
-#define KEY_SEED15 15
-#define KEY_SEED16 16
-#define KEY_SEED17 17
-#define KEY_SEED18 18
-#define KEY_SEED19 19
-#define KEY_SEED20 20
-#define KEY_SEED21 21
-#define KEY_SEED22 22
-#define KEY_SEED23 23
-#define KEY_SEED24 24
-#define KEY_SEED25 25
-#define KEY_SEED26 26
-#define KEY_SEED27 27
-#define KEY_SEED28 28
-#define KEY_SEED29 29
-#define KEY_SEED30 30
-#define KEY_SEED31 31
-#define KEY_SEED32 32
-#define KEY_SEED33 33
-#define KEY_SEED34 34
-#define KEY_SEED35 35
-#define KEY_SEED36 36
-#define KEY_SEED37 37
-#define KEY_SEED38 38
-#define KEY_SEED39 39
-#define KEY_SEED40 40
-#define KEY_SEED41 41
-#define KEY_SEED42 42
-#define KEY_SEED43 43
-#define KEY_SEED44 44
-#define KEY_SEED45 45
-#define KEY_SEED46 46
-#define KEY_SEED47 47
-#define KEY_SEED48 48
-#define KEY_SEED49 49
-#define KEY_SEED50 50
-#define KEY_SEED51 51
-#define KEY_SEED52 52
-#define KEY_SEED53 53
-#define KEY_SEED54 54
-#define KEY_SEED55 55
-#define KEY_SEED56 56
-#define KEY_SEED57 57
-#define KEY_SEED58 58
-#define KEY_SEED59 59
-#define KEY_SEED60 60
-#define KEY_SEED61 61
-#define KEY_SEED62 62
-#define KEY_SEED63 63
-#define KEY_SEED64 64
+#define KEY_SEED0 (0x0)
+#define KEY_SEED1 (0x0)
+#define KEY_SEED2 (0x0)
+#define KEY_SEED3 (0x0)
+#define KEY_SEED4 (0x0)
+#define KEY_SEED5 (0x0)
+#define KEY_SEED6 (0x0)
+#define KEY_SEED7 (0x0)
+#define KEY_SEED8 (0x0)
+#define KEY_SEED9 (0x0)
+#define KEY_SEED10 (0x0)
+#define KEY_SEED11 (0x0)
+#define KEY_SEED12 (0x0)
+#define KEY_SEED13 (0x0)
+#define KEY_SEED14 (0x0)
+#define KEY_SEED15 (0x0)
+#define KEY_SEED16 (0x0)
+#define KEY_SEED17 (0x0)
+#define KEY_SEED18 (0x0)
+#define KEY_SEED19 (0x0)
+#define KEY_SEED20 (0x0)
+#define KEY_SEED21 (0x0)
+#define KEY_SEED22 (0x0)
+#define KEY_SEED23 (0x0)
+#define KEY_SEED24 (0x0)
+#define KEY_SEED25 (0x0)
+#define KEY_SEED26 (0x0)
+#define KEY_SEED27 (0x0)
+#define KEY_SEED28 (0x0)
+#define KEY_SEED29 (0x0)
+#define KEY_SEED30 (0x0)
+#define KEY_SEED31 (0x0)
+#define KEY_SEED32 (0x0)
+#define KEY_SEED33 (0x0)
+#define KEY_SEED34 (0x0)
+#define KEY_SEED35 (0x0)
+#define KEY_SEED36 (0x0)
+#define KEY_SEED37 (0x0)
+#define KEY_SEED38 (0x0)
+#define KEY_SEED39 (0x0)
+#define KEY_SEED40 (0x0)
+#define KEY_SEED41 (0x0)
+#define KEY_SEED42 (0x0)
+#define KEY_SEED43 (0x0)
+#define KEY_SEED44 (0x0)
+#define KEY_SEED45 (0x0)
+#define KEY_SEED46 (0x0)
+#define KEY_SEED47 (0x0)
+#define KEY_SEED48 (0x0)
+#define KEY_SEED49 (0x0)
+#define KEY_SEED50 (0x0)
+#define KEY_SEED51 (0x0)
+#define KEY_SEED52 (0x0)
+#define KEY_SEED53 (0x0)
+#define KEY_SEED54 (0x0)
+#define KEY_SEED55 (0x0)
+#define KEY_SEED56 (0x0)
+#define KEY_SEED57 (0x0)
+#define KEY_SEED58 (0x0)
+#define KEY_SEED59 (0x0)
+#define KEY_SEED60 (0x0)
+#define KEY_SEED61 (0x0)
+#define KEY_SEED62 (0x0)
+#define KEY_SEED63 (0x0)
+#define KEY_SEED64 (0x0)
 #define KEY_SEED65 0x0
 #define KEY_SEED66 0x0
 #define KEY_SEED67 0x0
@@ -200,7 +200,6 @@ uint8_t** key_init();
 void key_table_init();
 Node new_bs_node();
 Head new_bs_var(int size, uint8_t *seed_table);
-Head rotate(Head var, int shift, int size);
 Head reverse(Head var, int start, int end);
 void generate_not_key(uint8_t **key);
 int array_size(uint8_t *array);
@@ -212,6 +211,17 @@ void swap_nodes(Head h, Node a, Node b);
 void print_var(Head h);
 Node get(Head var, int n);
 int var_size(Head var);
-Head rotate_right(Head var, int shift, int size);
-Head rotate_left(Head var, int shift, int size);
+Head rotate_right(Head var, int shift);
+Head rotate_left(Head var, int shift);
 Head cut(Head var, int start, int end);
+Head right_shift(Head var, int shift_size);
+Head left_shift(Head var, int shift_size);
+void add(Head var, Node n, char *end);
+Head shift(Head var, int shift_size, char *shift_type);
+Head XOR(Head a, Head b);
+uint8_t sbox_1(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
+uint8_t sbox_2(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
+uint8_t sbox_3(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
+uint8_t sbox_4(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
+Head sbox(Head var);
+Head k_add(Head sub_key, Head state);

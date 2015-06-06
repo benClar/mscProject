@@ -12,6 +12,6 @@ int main(int argc, char *argv[])	{
 	char *word = argv[3];
 	int i;
 	for(i = 0; i < number; i++, start++)	{
-		printf("#define %s%d %d\n",word,start,start);
+		printf("STATE_SEED[%d] = STATE_SEED%d \n",i,i);
 	}
 }

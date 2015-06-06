@@ -17,40 +17,87 @@ struct node	{
 };
 
 uint8_t **KEY_SEED = NULL;
+uint8_t *STATE_SEED;
 
 int main()	{
 	KEY_SEED = (uint8_t**) malloc(2*sizeof(uint8_t*));
 	KEY_SEED[0] = malloc(64*sizeof(uint8_t));
 	KEY_SEED[1] = malloc(64*sizeof(uint8_t));
-
-	uint8_t seed[10] = {1,2,3,4,5,6,7,8,9,10};
+	STATE_SEED = malloc(64*sizeof(uint8_t));
+	key_table_init();
+	// uint8_t seed[10] = {1,2,3,4,5,6,7,8,9,10};
 
 	Head *key = malloc(3*sizeof(key));
-	key_table_init();
-	key[0] = new_bs_var(64,KEY_SEED[0]);
-	key[1] = new_bs_var(64,KEY_SEED[1]);
-
-	Head cloned_key = clone(key[0]);
-	print_var(cloned_key);
-	cut(cloned_key,0,63);
-	print_var(cloned_key);
-	// swap_nodes(cloned_key,cloned_key->start,cloned_key->end);
-	// swap_nodes(cloned_key,cloned_key->start->next,cloned_key->end->prev);
-	// swap_nodes(cloned_key,cloned_key->start->next->next,cloned_key->end->prev->prev);
-	// print_var(cloned_key);
-	// size(cloned_key);
-	// printf("===\n");
-	// reverse(cloned_key,0,63);
-	// reverse(cloned_key,5,10);
-	// reverse(cloned_key,0,64);
-	// Head testVar = new_bs_var(10,seed);
-	// print_var(testVar);
-	// rotate_right(testVar,1,9);
-
+	key[0] = new_bs_var(64,KEY_SEED[0]); //k0
+	key[1] = XOR(rotate_right(key[0],1),left_shift(key[0],63)); //k0'
+	key[2] = new_bs_var(64,KEY_SEED[1]); //k1
+	Head state = new_bs_var(64,STATE_SEED);
+	k_add(key[2],state);
+	print_var(state);
+	sbox(state);
+	print_var(state);
 	return 0;
 }
 
-Head rotate_left(Head var, int shift, int size)    {
+Head k_add(Head sub_key, Head state)	{
+	return XOR(sub_key,state);
+}
+
+Head sbox(Head var)	{
+	int nibble;
+	int bit;
+	int node;
+	int bits[4];
+	Node nodes[4];
+	for(nibble = 0; nibble < 16; nibble++)	{
+		for( bit = 0; bit < 4; bit++)	{
+			node = 4 * nibble + bit;
+			nodes[bit] = get(var,node);
+			bits[bit] = nodes[bit]->bit;
+		}
+		nodes[0]->bit = sbox_1(bits[0], bits[1], bits[2],bits[3]);
+		nodes[1]->bit = sbox_2(bits[0], bits[1], bits[2],bits[3]);
+		nodes[2]->bit = sbox_3(bits[0], bits[1], bits[2],bits[3]);
+		nodes[3]->bit = sbox_4(bits[0], bits[1], bits[2],bits[3]);
+	}
+	return var;
+}
+
+uint8_t sbox_1(uint8_t a, uint8_t b, uint8_t c, uint8_t d)	{
+	return (((~a & ~c) | (b & ~d) | (a & c & ~d)) & 1);
+}
+
+uint8_t sbox_2(uint8_t a, uint8_t b, uint8_t c, uint8_t d)	{
+	return (((a & b) | (~c & d) | (a & ~c)) & 1);
+}
+
+uint8_t sbox_3(uint8_t a, uint8_t b, uint8_t c, uint8_t d)	{
+	return (((~a & ~b) | (~c & ~d) |(~a & ~d) | (~b & ~c)) & 1);
+}
+
+uint8_t sbox_4(uint8_t a, uint8_t b, uint8_t c, uint8_t d)	{
+	return (((b & c) | (a & ~c & d) | (~a & ~b & ~c) | (~a & ~b & ~d)) & 1);
+}
+
+
+Head XOR(Head a, Head b)	{
+	Head c = new_bs_var(var_size(a),NULL);
+	Node a_curr = a->start;
+	Node b_curr = b->start;
+	Node c_curr = c->start;
+
+	while(a_curr != NULL && b_curr != NULL)	{
+		c_curr->bit = a_curr->bit ^ b_curr->bit;
+	 	a_curr = a_curr->next;
+		b_curr = b_curr->next;
+	 	c_curr = c_curr->next;
+	}
+	return c;
+
+}
+
+Head rotate_left(Head var, int shift)    {
+	int size = var_size(var);
 	Head cloned_var = clone(var);
 	reverse(cloned_var, 0, size);
 	reverse(cloned_var, 0, size - shift);
@@ -58,15 +105,17 @@ Head rotate_left(Head var, int shift, int size)    {
     return cloned_var;
 }
 
-Head rotate_right(Head var, int shift, int size)    {
+Head rotate_right(Head var, int shift)    {
+	int size = var_size(var);
 	Head cloned_var = clone(var);
-	reverse(cloned_var, 0, shift);
-	reverse(cloned_var, shift + 1, size);
+	reverse(cloned_var, 0, size - 1);
+	reverse(cloned_var,shift, size - 1);
+	reverse(cloned_var, 0, shift -1);
     return cloned_var;
 }
 
 Head reverse(Head var, int start, int end)	{
-		printf("%d \n",start);
+		// printf("%d \n",start);
 		if(start >= end)	{
 			return var;
 		}
@@ -115,11 +164,17 @@ Head new_bs_var(int size, uint8_t *seed_table)	{
 	Head h = new_bs_head();
 	for(node_count = 0; node_count < size; node_count++)	{
 		if(h->start == NULL)	{
-			h->end = h->start = new_bs_node();
-			h->start->bit = seed_table[node_count];
+			if(seed_table == NULL)	{
+				h->end = h->start = new_bs_node(0);
+			} else {
+				h->end = h->start = new_bs_node(seed_table[node_count]);
+			}
 		} else {
-			h->end->next = new_bs_node();
-			h->end->next->bit = seed_table[node_count];
+			if(seed_table == NULL)	{
+				h->end->next = new_bs_node(0);
+			} else {
+				h->end->next = new_bs_node(seed_table[node_count]);
+			}
 			h->end->next->prev = h->end;
 			h->end = h->end->next;
 		}
@@ -136,10 +191,28 @@ void print_var(Head h)	{
 	printf("\n");
 }
 
-Node new_bs_node()	{
+void add(Head var, Node n, char *end)	{
+	if(var->start == NULL)	{
+		var->start = var->end = n;
+	}
+	if(!strcmp(end,"MSB"))	{
+		n->next = var->start;
+		n->next->prev = n;
+		var->start = n;
+		n->prev = NULL;
+	} else if(!strcmp(end,"LSB"))	{
+		n->prev = var->end;
+		n->prev->next = n;
+		var->end = n;
+		n->next = NULL;
+	}
+}
+
+Node new_bs_node(int val)	{
 	Node n = (Node) malloc(sizeof(*n));
 	n->next = NULL;
 	n->prev = NULL;
+	n->bit = val;
 	return n;
 }
 
@@ -220,14 +293,33 @@ Node clone_node(Node n)	{
 }
 
 Head shift(Head var, int shift_size, char *shift_type)	{
-	return 0;
+	Head cloned_var  = clone(var);
+	if(!strcmp(shift_type,"left"))	{
+		left_shift(cloned_var,shift_size);
+	} else if(!strcmp(shift_type,"right"))	{
+		right_shift(cloned_var,shift_size);
+	}
+	return cloned_var;
+}
+
+Head right_shift(Head var, int shift_size)	{
+	int size = var_size(var);
+	int i;
+	cut(var,size - shift_size, size - 1);
+	for(i = 0; i < shift_size; i++)	{
+		add(var,new_bs_node(0),"MSB");
+	}
+	return NULL;
 }
 
 Head left_shift(Head var, int shift_size)	{
-	Head cloned_var  = clone(var);
-	int size = var_size(cloned_var);
-	get(var, size - shift_size);
-	return cloned_var;
+	int size = var_size(var);
+	int i;
+	cut(var,0,shift_size - 1);
+	for(i = 0; i < shift_size; i++)	{
+		add(var,new_bs_node(0),"LSB");
+	}
+	return var;
 }
 
 Head cut(Head var, int start, int end)	{
@@ -252,9 +344,6 @@ Head cut(Head var, int start, int end)	{
 	return var;
 }
 
-Head right_shift(Head var, int shift_size)	{
-	return NULL;
-}
 
 void key_table_init()	{
 
@@ -388,8 +477,71 @@ void key_table_init()	{
 	KEY_SEED[1][61] = KEY_SEED125;
 	KEY_SEED[1][62] = KEY_SEED126;
 	KEY_SEED[1][63] = KEY_SEED127;
+
+	STATE_SEED[0] = STATE_SEED0;
+	STATE_SEED[1] = STATE_SEED1;
+	STATE_SEED[2] = STATE_SEED2;
+	STATE_SEED[3] = STATE_SEED3;
+	STATE_SEED[4] = STATE_SEED4;
+	STATE_SEED[5] = STATE_SEED5;
+	STATE_SEED[6] = STATE_SEED6;
+	STATE_SEED[7] = STATE_SEED7;
+	STATE_SEED[8] = STATE_SEED8;
+	STATE_SEED[9] = STATE_SEED9;
+	STATE_SEED[10] = STATE_SEED10;
+	STATE_SEED[11] = STATE_SEED11;
+	STATE_SEED[12] = STATE_SEED12;
+	STATE_SEED[13] = STATE_SEED13;
+	STATE_SEED[14] = STATE_SEED14;
+	STATE_SEED[15] = STATE_SEED15;
+	STATE_SEED[16] = STATE_SEED16;
+	STATE_SEED[17] = STATE_SEED17;
+	STATE_SEED[18] = STATE_SEED18;
+	STATE_SEED[19] = STATE_SEED19;
+	STATE_SEED[20] = STATE_SEED20;
+	STATE_SEED[21] = STATE_SEED21;
+	STATE_SEED[22] = STATE_SEED22;
+	STATE_SEED[23] = STATE_SEED23;
+	STATE_SEED[24] = STATE_SEED24;
+	STATE_SEED[25] = STATE_SEED25;
+	STATE_SEED[26] = STATE_SEED26;
+	STATE_SEED[27] = STATE_SEED27;
+	STATE_SEED[28] = STATE_SEED28;
+	STATE_SEED[29] = STATE_SEED29;
+	STATE_SEED[30] = STATE_SEED30;
+	STATE_SEED[31] = STATE_SEED31;
+	STATE_SEED[32] = STATE_SEED32;
+	STATE_SEED[33] = STATE_SEED33;
+	STATE_SEED[34] = STATE_SEED34;
+	STATE_SEED[35] = STATE_SEED35;
+	STATE_SEED[36] = STATE_SEED36;
+	STATE_SEED[37] = STATE_SEED37;
+	STATE_SEED[38] = STATE_SEED38;
+	STATE_SEED[39] = STATE_SEED39;
+	STATE_SEED[40] = STATE_SEED40;
+	STATE_SEED[41] = STATE_SEED41;
+	STATE_SEED[42] = STATE_SEED42;
+	STATE_SEED[43] = STATE_SEED43;
+	STATE_SEED[44] = STATE_SEED44;
+	STATE_SEED[45] = STATE_SEED45;
+	STATE_SEED[46] = STATE_SEED46;
+	STATE_SEED[47] = STATE_SEED47;
+	STATE_SEED[48] = STATE_SEED48;
+	STATE_SEED[49] = STATE_SEED49;
+	STATE_SEED[50] = STATE_SEED50;
+	STATE_SEED[51] = STATE_SEED51;
+	STATE_SEED[52] = STATE_SEED52;
+	STATE_SEED[53] = STATE_SEED53;
+	STATE_SEED[54] = STATE_SEED54;
+	STATE_SEED[55] = STATE_SEED55;
+	STATE_SEED[56] = STATE_SEED56;
+	STATE_SEED[57] = STATE_SEED57;
+	STATE_SEED[58] = STATE_SEED58;
+	STATE_SEED[59] = STATE_SEED59;
+	STATE_SEED[60] = STATE_SEED60;
+	STATE_SEED[61] = STATE_SEED61;
+	STATE_SEED[62] = STATE_SEED62;
+	STATE_SEED[63] = STATE_SEED63;
+
 	// KEY_SEED[1][64] = END;
 }
-// void generate_not_key(uint8_t **key)	{
-// 	key[3] = rotate(KEY_SEED[0],1,64);
-// }

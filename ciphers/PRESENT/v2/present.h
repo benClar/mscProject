@@ -2,6 +2,14 @@
 
 
 /*----------Symbolic Constants-----------*/
+#define KEY_SIZE	80
+#define ROUND_KEY_SIZE 64
+#define LEFT_SHIFT 61
+#define STATE_SIZE 64
+#define A 	0	
+#define B 	1
+#define C 	2
+#define D 	3
 
 #define KEY_SEED0 (0x0)
 #define KEY_SEED1 (0x0)
@@ -154,4 +162,9 @@
 
 
 /*----------Function Prototypes-----------*/
-
+void print_array(uint8_t *array,int size);
+uint8_t* sBox(uint8_t a,uint8_t b,uint8_t c,uint8_t d);
+uint8_t sbox_1(uint8_t *input);
+uint8_t sbox_2(uint8_t *input);
+uint8_t sbox_3(uint8_t *input);
+uint8_t sbox_4(uint8_t *input);
