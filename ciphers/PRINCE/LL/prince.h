@@ -1,6 +1,95 @@
 typedef struct head *Head;
 typedef struct node *Node;
 
+#define PERM_SIZE 4
+#define M64_SIZE 4
+
+//m0
+#define M0_0 0x0
+#define M0_1 0x0
+#define M0_2 0x0
+#define M0_3 0x0
+
+#define M0_4 0x0
+#define M0_5 0x1
+#define M0_6 0x0
+#define M0_7 0x0
+
+#define M0_8 0x0
+#define M0_9 0x0
+#define M0_10 0x1
+#define M0_11 0x0
+
+#define M0_12 0x0
+#define M0_13 0x0
+#define M0_14 0x0
+#define M0_15 0x1
+
+//m1
+#define M1_0 0x1
+#define M1_1 0x0
+#define M1_2 0x0
+#define M1_3 0x0
+
+#define M1_4 0x0
+#define M1_5 0x0
+#define M1_6 0x0
+#define M1_7 0x0
+
+#define M1_8 0x0
+#define M1_9 0x0
+#define M1_10 0x1
+#define M1_11 0x0
+
+#define M1_12 0x0
+#define M1_13 0x0
+#define M1_14 0x0
+#define M1_15 0x1
+
+//m2
+#define M2_0 0x1
+#define M2_1 0x0
+#define M2_2 0x0
+#define M2_3 0x0
+
+#define M2_4 0x0
+#define M2_5 0x1
+#define M2_6 0x0
+#define M2_7 0x0
+
+#define M2_8 0x0
+#define M2_9 0x0
+#define M2_10 0x0
+#define M2_11 0x0
+
+#define M2_12 0x0
+#define M2_13 0x0
+#define M2_14 0x0
+#define M2_15 0x1
+
+//m3
+#define M3_0 0x1
+#define M3_1 0x0
+#define M3_2 0x0
+#define M3_3 0x0
+
+#define M3_4 0x0
+#define M3_5 0x1
+#define M3_6 0x0
+#define M3_7 0x0
+
+#define M3_8 0x0
+#define M3_9 0x0
+#define M3_10 0x1
+#define M3_11 0x0
+
+#define M3_12 0x0
+#define M3_13 0x0
+#define M3_14 0x0
+#define M3_15 0x0
+
+#define ZERO_SEED 0x0
+
 #define KEY_SEED0 (0x0)
 #define KEY_SEED1 (0x0)
 #define KEY_SEED2 (0x0)
@@ -196,6 +285,20 @@ typedef struct node *Node;
 #define STATE_SEED63 (0x0)
 #define END '\0'
 
+
+#define RC_0 (0x0000000000000000)
+#define RC_1 (0x13198a2e03707344)
+#define RC_2 (0xa4093822299f31d0)
+#define RC_3 (0x082efa98ec4e6c89)
+#define RC_4 (0x452821e638d01377)
+#define RC_5 (0xbe5466cf34e90c6c)
+#define RC_6 (0x7ef84f78fd955cb1)
+#define RC_7 (0x85840851f1ac43aa)
+#define RC_8 (0xc882d32f25323c54)
+#define RC_9 (0x64a51195e0e3610d)
+#define RC_10 (0xd3b5a399ca0c2399)
+#define RC_11 (0xc0ac29b7c97c50dd)
+
 uint8_t** key_init();
 void key_table_init();
 Node new_bs_node();
@@ -225,3 +328,10 @@ uint8_t sbox_3(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
 uint8_t sbox_4(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
 Head sbox(Head var);
 Head k_add(Head sub_key, Head state);
+uint8_t* bs_hex(uint64_t hex);
+void print_array(uint8_t *array,int size);
+void RC_add(Head rc, Head state);
+Head *generate_M16_permutation(int start, Head* M_block);
+Head **generate_M64_diagonal_matrix(Head *m0, Head *m1, Head *zero);
+Head *clone_matrix(Head *m, int size);
+

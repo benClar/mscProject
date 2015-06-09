@@ -7,11 +7,13 @@
 
 int main(int argc, char *argv[])	{
 
-	int number = atoi(argv[1]);
-	int start = atoi(argv[2]);
-	char *word = argv[3];
-	int i;
-	for(i = 0; i < number; i++, start++)	{
-		printf("STATE_SEED[%d] = STATE_SEED%d \n",i,i);
+	int start = atoi(argv[1]);
+	int end = atoi(argv[2]);
+	int i, print;
+	for(i = 0, print = end; i < end; i++, print++)	{
+		printf("M0_%d, ",i);
+		if (!(i % 4) && i != 0)	{
+			printf("\n");
+		}
 	}
 }

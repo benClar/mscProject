@@ -18,26 +18,133 @@ struct node	{
 
 uint8_t **KEY_SEED = NULL;
 uint8_t *STATE_SEED;
-
+uint8_t **RC_SEED;
+uint8_t **M_BLOCK_SEED;
+uint8_t *ZERO_BLOCK_SEED;
 int main()	{
+	int rc, round, var;
+
 	KEY_SEED = (uint8_t**) malloc(2*sizeof(uint8_t*));
 	KEY_SEED[0] = malloc(64*sizeof(uint8_t));
 	KEY_SEED[1] = malloc(64*sizeof(uint8_t));
 	STATE_SEED = malloc(64*sizeof(uint8_t));
+	RC_SEED = malloc(12 * sizeof(uint8_t*));
+	M_BLOCK_SEED = malloc(4 * sizeof(uint8_t*));
+	M_BLOCK_SEED[0] = malloc(16 * sizeof(uint8_t));
+	M_BLOCK_SEED[1] = malloc(16 * sizeof(uint8_t));
+	M_BLOCK_SEED[2] = malloc(16 * sizeof(uint8_t));
+	M_BLOCK_SEED[3] = malloc(16 * sizeof(uint8_t));
+
 	key_table_init();
-	// uint8_t seed[10] = {1,2,3,4,5,6,7,8,9,10};
 
 	Head *key = malloc(3*sizeof(key));
+	Head *RC = malloc(12 * sizeof(RC));
+
+	//Generating M and M'
+	Head *M_block = malloc(4*sizeof(M_block));
+	M_block[0] = new_bs_var(16,M_BLOCK_SEED[0]);
+	M_block[1] = new_bs_var(16,M_BLOCK_SEED[1]);
+	M_block[2] = new_bs_var(16,M_BLOCK_SEED[2]);
+	M_block[3] = new_bs_var(16,M_BLOCK_SEED[3]);
+	Head zero_var = new_bs_var(16,ZERO_BLOCK_SEED);
+	Head *zero_block = malloc(16 * sizeof(Head));
+	for(var = 0; var < 16; var++)	{
+		zero_block[var] = clone(zero_var);
+	}
+	Head *M_16_0 = generate_M16_permutation(0,M_block);
+	Head *M_16_1 = generate_M16_permutation(1,M_block);
+
+	generate_M64_diagonal_matrix(M_16_0,M_16_1,zero_block);
+
 	key[0] = new_bs_var(64,KEY_SEED[0]); //k0
 	key[1] = XOR(rotate_right(key[0],1),left_shift(key[0],63)); //k0'
 	key[2] = new_bs_var(64,KEY_SEED[1]); //k1
+
 	Head state = new_bs_var(64,STATE_SEED);
+	for(rc = 0; rc < 11; rc++)	{
+		RC[rc] = new_bs_var(64,RC_SEED[rc]);
+ 	}
+
 	k_add(key[2],state);
-	print_var(state);
-	sbox(state);
-	print_var(state);
+	RC_add(RC[0],state);
+
+	
+	// for(round = 1; round < 13; round++)	{
+	// 	sbox(state);
+	// 	RC_add(RC[round],state);
+	// }
+
+
 	return 0;
 }
+
+Head **generate_M64_diagonal_matrix(Head *m0, Head *m1, Head *zero)	{
+	Head **M_64 = malloc(16 * sizeof(m0));
+	int row, col;
+	for(row = 0; row < M64_SIZE; row++)	{
+		for(col = 0; col < M64_SIZE; col++)	{
+			if(col == row)	{
+				if(row == 0 || row == 3)	{
+					M_64[(row * M64_SIZE) + col] = clone_matrix(m0,16);
+				} else if (row == 1 || row == 2)	{
+					M_64[(row * M64_SIZE) + col] = clone_matrix(m1,16);
+				}
+			} else	{
+				M_64[(row* M64_SIZE) + col] = clone_matrix(zero,16);
+			}
+		}
+	}
+
+	return M_64;
+}
+
+Head *clone_matrix(Head *m, int size)	{
+	int i;
+	Head *new_m = malloc(size * sizeof(*new_m));
+	for(i = 0;i < size; i++)	{
+		new_m[i] = clone(m[i]);
+ 	}
+ 	return new_m;
+}
+
+Head *generate_M16_permutation(int start, Head *M_block)	{
+	Head *m_perm = malloc(16 * sizeof(Head));
+	int row, col, m = start;
+	for(row = 0; row < PERM_SIZE; row++)	{
+		for(col = 0; col < PERM_SIZE; col++)	{
+			m_perm[(row * PERM_SIZE) + col] = clone(M_block[m]);
+			m = (m + 1) % PERM_SIZE;
+		}
+		m = (m + 1) % PERM_SIZE;
+	}
+	return m_perm;
+}
+
+void RC_add(Head rc, Head state)	{
+	state = XOR(rc,state);
+}
+
+
+
+
+void print_array(uint8_t *array,int size)	{
+	int ele;
+	for(ele = 0; ele < size; ele++)	{
+		printf("%d", array[ele]);
+	}
+	printf("\n");
+}
+
+uint8_t* bs_hex(uint64_t hex)	{
+	uint8_t* bs = malloc(64 * sizeof(uint8_t));
+	int bit;
+	for(bit = 0; bit < 64; bit++)	{
+		bs[63 - bit] = ((hex >> bit) & 1);
+	}
+	return bs;
+}
+
+
 
 Head k_add(Head sub_key, Head state)	{
 	return XOR(sub_key,state);
@@ -544,4 +651,103 @@ void key_table_init()	{
 	STATE_SEED[63] = STATE_SEED63;
 
 	// KEY_SEED[1][64] = END;
+
+	RC_SEED[0] = bs_hex(RC_0);
+	RC_SEED[1] = bs_hex(RC_1);
+	RC_SEED[2] = bs_hex(RC_2);
+	RC_SEED[3] = bs_hex(RC_3);
+	RC_SEED[4] = bs_hex(RC_4);
+	RC_SEED[5] = bs_hex(RC_5);
+	RC_SEED[6] = bs_hex(RC_6);
+	RC_SEED[7] = bs_hex(RC_7);
+	RC_SEED[8] = bs_hex(RC_8);
+	RC_SEED[9] = bs_hex(RC_9);
+	RC_SEED[10] = bs_hex(RC_10);
+	RC_SEED[11] = bs_hex(RC_11);
+
+	M_BLOCK_SEED[0][0] = M0_15;
+	M_BLOCK_SEED[0][1] = M0_14;
+	M_BLOCK_SEED[0][2] = M0_13;
+	M_BLOCK_SEED[0][3] = M0_12;
+	M_BLOCK_SEED[0][4] = M0_11;
+	M_BLOCK_SEED[0][5] = M0_10;
+	M_BLOCK_SEED[0][6] = M0_9;
+	M_BLOCK_SEED[0][7] = M0_8;
+	M_BLOCK_SEED[0][8] = M0_7;
+	M_BLOCK_SEED[0][9] = M0_6;
+	M_BLOCK_SEED[0][10] = M0_5;
+	M_BLOCK_SEED[0][11] = M0_4;
+	M_BLOCK_SEED[0][12] = M0_3;
+	M_BLOCK_SEED[0][13] = M0_2;
+	M_BLOCK_SEED[0][14] = M0_1;
+	M_BLOCK_SEED[0][15] = M0_0;
+
+	M_BLOCK_SEED[1][0] = M1_15;
+	M_BLOCK_SEED[1][1] = M1_14;
+	M_BLOCK_SEED[1][2] = M1_13;
+	M_BLOCK_SEED[1][3] = M1_12;
+	M_BLOCK_SEED[1][4] = M1_11;
+	M_BLOCK_SEED[1][5] = M1_10;
+	M_BLOCK_SEED[1][6] = M1_9;
+	M_BLOCK_SEED[1][7] = M1_8;
+	M_BLOCK_SEED[1][8] = M1_7;
+	M_BLOCK_SEED[1][9] = M1_6;
+	M_BLOCK_SEED[1][10] = M1_5;
+	M_BLOCK_SEED[1][11] = M1_4;
+	M_BLOCK_SEED[1][12] = M1_3;
+	M_BLOCK_SEED[1][13] = M1_2;
+	M_BLOCK_SEED[1][14] = M1_1;
+	M_BLOCK_SEED[1][15] = M1_0;
+
+	M_BLOCK_SEED[2][0] = M2_15;
+	M_BLOCK_SEED[2][1] = M2_14;
+	M_BLOCK_SEED[2][2] = M2_13;
+	M_BLOCK_SEED[2][3] = M2_12;
+	M_BLOCK_SEED[2][4] = M2_11;
+	M_BLOCK_SEED[2][5] = M2_10;
+	M_BLOCK_SEED[2][6] = M2_9;
+	M_BLOCK_SEED[2][7] = M2_8;
+	M_BLOCK_SEED[2][8] = M2_7;
+	M_BLOCK_SEED[2][9] = M2_6;
+	M_BLOCK_SEED[2][10] = M2_5;
+	M_BLOCK_SEED[2][11] = M2_4;
+	M_BLOCK_SEED[2][12] = M2_3;
+	M_BLOCK_SEED[2][13] = M2_2;
+	M_BLOCK_SEED[2][14] = M2_1;
+	M_BLOCK_SEED[2][15] = M2_0;
+
+	M_BLOCK_SEED[3][0] = M3_15;
+	M_BLOCK_SEED[3][1] = M3_14;
+	M_BLOCK_SEED[3][2] = M3_13;
+	M_BLOCK_SEED[3][3] = M3_12;
+	M_BLOCK_SEED[3][4] = M3_11;
+	M_BLOCK_SEED[3][5] = M3_10;
+	M_BLOCK_SEED[3][6] = M3_9;
+	M_BLOCK_SEED[3][7] = M3_8;
+	M_BLOCK_SEED[3][8] = M3_7;
+	M_BLOCK_SEED[3][9] = M3_6;
+	M_BLOCK_SEED[3][10] = M3_5;
+	M_BLOCK_SEED[3][11] = M3_4;
+	M_BLOCK_SEED[3][12] = M3_3;
+	M_BLOCK_SEED[3][13] = M3_2;
+	M_BLOCK_SEED[3][14] = M3_1;
+	M_BLOCK_SEED[3][15] = M3_0;
+
+	ZERO_BLOCK_SEED[0] = ZERO_SEED;
+	ZERO_BLOCK_SEED[1] = ZERO_SEED;
+	ZERO_BLOCK_SEED[2] = ZERO_SEED;
+	ZERO_BLOCK_SEED[3] = ZERO_SEED;
+	ZERO_BLOCK_SEED[4] = ZERO_SEED;
+	ZERO_BLOCK_SEED[5] = ZERO_SEED;
+	ZERO_BLOCK_SEED[6] = ZERO_SEED;
+	ZERO_BLOCK_SEED[7] = ZERO_SEED;
+	ZERO_BLOCK_SEED[8] = ZERO_SEED;
+	ZERO_BLOCK_SEED[9] = ZERO_SEED;
+	ZERO_BLOCK_SEED[10] = ZERO_SEED;
+	ZERO_BLOCK_SEED[11] = ZERO_SEED;
+	ZERO_BLOCK_SEED[12] = ZERO_SEED;
+	ZERO_BLOCK_SEED[13] = ZERO_SEED;
+	ZERO_BLOCK_SEED[14] = ZERO_SEED;
+	ZERO_BLOCK_SEED[15] = ZERO_SEED;
+
 }

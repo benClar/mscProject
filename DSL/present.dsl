@@ -43,8 +43,8 @@ generate_round_keys(Sequence key, Sequence sBox)	{
 	for(int round = 0; round < 32; round = round + 1)	{
 		Sequence round_keys.add(Sequence(key[0:64]));
 		key = key <<< 61;
-		key[0:3].set(sBox.sBox(key[0:3]));
-		key[-19 : -15] ^ round;
+		key[0:3] = sBox.sBox(key[0:3]);
+		key[-19 : -15] ^= round;
 	}
 
 	return round_keys;
