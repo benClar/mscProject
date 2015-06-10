@@ -136,39 +136,43 @@ uint8_t **gen_basic_blocks(uint8_t **M)	{
 }
 
 uint8_t *gen_diagonal_matrix(uint8_t *M_block_0, uint8_t *M_block_1, uint8_t *zero)	{
-	int ele, col,row;
+	int row;
+	int ele, col, matrix, m_row;
 	uint8_t *M_64 = malloc((64 * 64) * sizeof(uint8_t**));
-	for(ele = 0,row = 0; row < 4;row++)	{
-		for(col = 0; col < 4; col++,ele+=256)	{
-			if(col == row)	{
-				if(row == 0 || row == 3)	{
-					memcpy(&(M_64[ele]),M_block_0,256);
-				} else if (row == 1 || row == 2)	{
-					memcpy(&(M_64[ele]),M_block_1,256);
+
+	for(row = 0, ele = 0; row < 4; row++)	{
+		for(m_row = 0; m_row < 16; m_row++)	{
+			for(col = 0; col < 4; col++, ele+=16){	
+				if(col == row)	{
+					if(col == 0 || col == 3)	{
+						memcpy(M_64 + ele,&(M_block_0[m_row * 16]),16 * sizeof(uint8_t));
+					} else if (col == 1 || col == 2)	{
+						memcpy(M_64 + ele,&(M_block_1[m_row * 16]),16 * sizeof(uint8_t));
+					}
+				} else	{
+					memcpy(M_64 + ele,&(zero[m_row * 16]),16 * sizeof(uint8_t));
 				}
-			} else	{
-				memcpy(&(M_64[ele]),zero,256);
 			}
 		}
 	}
+	
 	return M_64;	
 }
 
 uint8_t *gen_block_matrix(uint8_t **m_blocks, int start) {
-	int ele, col, m = start;
+	int ele, col, matrix, m_row, m = start;
 	uint8_t *output = calloc((16 * 16),sizeof(uint8_t*));
 
-	for(ele = 0; ele < 256;)	{
-		for(col = 0; col < 4; col++,ele+=16){
-		// print_array(m_blocks[m],16);
-		// printf("%d ",ele);
-		memcpy(output + ele,m_blocks[m],16 * sizeof(uint8_t));
-			m = (m + 1) % BASIC_BLOCK_NUM;
+	for(matrix = 0, ele = 0; matrix < 16; matrix++)	{
+		for(m_row = 0; m_row < 4; m_row++)	{
+			for(col = 0; col < 4; col++,ele+=4){
+				memcpy(output + ele,&(m_blocks[m][m_row * 4]),4 * sizeof(uint8_t));
+				m = (m + 1) % BASIC_BLOCK_NUM;
+			}
 		}
 		m = (m + 1) % BASIC_BLOCK_NUM;
-		// printf("\n");
 	}
-	// print_array(output,256);
+
 	return output;
 }
 
@@ -178,6 +182,22 @@ uint8_t* sBox(uint8_t *input)	{
 	output[1] = sbox_2(input);
 	output[2] = sbox_3(input);
 	output[3] = sbox_4(input);
+	return output;
+}
+
+uint8_t *shift_rows(uint8_t *input)	{
+	uint8_t *output = malloc((64 * 64) * sizeof(uint8_t));
+	int nibble,target,row, shift = 12;
+	for(row = 0, target = 0; row < 64; row++)	{
+		for(nibble = 1; nibble < 16; nibble++)	{
+			target = ((nibble + shift) % 16) * 4;
+			// printf("%d shift by  %d to %d\n",(row * 64) + (nibble * 4),shift,(row * 64) + target);
+			shift = (shift + 12) % 16;
+			memcpy(&(output[(row * 64) + target]),&(input[(row * 64) + (nibble * 4)]),4*sizeof(uint8_t));
+
+		}
+	}
+	free(input);
 	return output;
 }
 

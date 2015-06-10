@@ -26,7 +26,7 @@ void run_tests()	{
 void test_gen_block_matrix()	{
 	uint8_t **M = malloc(4 * sizeof(uint8_t*));
 	M = gen_basic_blocks(M);
-	int ele;
+	int ele,row,col, matrix;
 	sput_fail_unless(test_for_basic_m0(M[0]) == 1,"basic M blocks test");
 	sput_fail_unless(test_for_basic_m1(M[1]) == 1,"basic M blocks test");
 	sput_fail_unless(test_for_basic_m2(M[2]) == 1,"basic M blocks test");
@@ -35,25 +35,26 @@ void test_gen_block_matrix()	{
 
 	uint8_t *M_block_0 = gen_block_matrix(M,0);
 	uint8_t *M_block_1 = gen_block_matrix(M,1);
-	block_m_tester(M_block_0,0);
-	block_m_tester(M_block_1,1);
 
 	uint8_t *z_block = malloc(16 * 16 * sizeof(uint8_t*));
 	for(ele = 0; ele < 256; ele++)	{
 		z_block[ele] = 0;
 	}
-	uint8_t *test_block = malloc(16 * 16 * sizeof(uint8_t*));
-	uint8_t *dia_matrix = gen_diagonal_matrix(M_block_0,M_block_1,z_block);
-	memcpy(test_block,dia_matrix,256 * sizeof(uint8_t));
-	block_m_tester(test_block,0);
-	memcpy(test_block,&(dia_matrix[1280]),256 * sizeof(uint8_t));
-	block_m_tester(test_block,1);
-	memcpy(test_block,&(dia_matrix[2560]),256 * sizeof(uint8_t));
-	block_m_tester(test_block,1);
-	memcpy(test_block,&(dia_matrix[3840]),256 * sizeof(uint8_t));
-	block_m_tester(test_block,0);
+	uint8_t *dia_m_prime = gen_diagonal_matrix(M_block_0,M_block_1,z_block);
+
+	uint8_t *dia__m = shift_rows(dia_m_prime);
+	// for(ele = 0; ele < 64 * 64;){
+	// 	for(matrix = 0; matrix < 4; matrix++)	{
+	// 		for(col = 0; col < 16; col++,ele++)	{
+	// 			printf("%d", dia_matrix[ele]);
+	// 		}
+	// 		printf(" ");
+	// 	}
+	// 	printf("\n");
+	// }
 }
 
+/*Doesnt work with new blocks*/
 void block_m_tester(uint8_t *M_block, int start)	{
 	int ele, col, m = start;
 	uint8_t *test_M = malloc(16 * sizeof(uint8_t));
