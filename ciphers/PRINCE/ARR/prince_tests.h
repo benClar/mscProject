@@ -12,5 +12,6 @@ int test_for_basic_m0(uint8_t *m);
 int test_for_basic_m1(uint8_t *m);
 int test_for_basic_m2(uint8_t *m);
 int test_for_basic_m3(uint8_t *m);
-void block_m_tester(uint8_t **M_block, int m);
+void block_m_tester(uint8_t *M_block, int start);
+
 #endif

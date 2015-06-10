@@ -26,56 +26,57 @@ void run_tests()	{
 void test_gen_block_matrix()	{
 	uint8_t **M = malloc(4 * sizeof(uint8_t*));
 	M = gen_basic_blocks(M);
-	int row, col;
+	int ele;
 	sput_fail_unless(test_for_basic_m0(M[0]) == 1,"basic M blocks test");
 	sput_fail_unless(test_for_basic_m1(M[1]) == 1,"basic M blocks test");
 	sput_fail_unless(test_for_basic_m2(M[2]) == 1,"basic M blocks test");
 	sput_fail_unless(test_for_basic_m3(M[3]) == 1,"basic M blocks test");
 	sput_fail_unless(test_for_basic_m3(M[2]) == 0,"basic M blocks test");
-	uint8_t **M_block_0 = gen_block_matrix(M,0);
-	uint8_t **M_block_1 = gen_block_matrix(M,1);
-	// block_m_tester(M_block_0,0);
-	// block_m_tester(M_block_1,1);
 
-	uint8_t **z_blocks = malloc(4 * sizeof(uint8_t*));
-	uint8_t z_var[4] = {0,0,0,0};
-	for(row = 0; row < 4; row++)	{
-		for(col = 0; col < 4; col++)	{
-			z_blocks[row] = clone(z_var,4);
-		}
+	uint8_t *M_block_0 = gen_block_matrix(M,0);
+	uint8_t *M_block_1 = gen_block_matrix(M,1);
+	block_m_tester(M_block_0,0);
+	block_m_tester(M_block_1,1);
+
+	uint8_t *z_block = malloc(16 * 16 * sizeof(uint8_t*));
+	for(ele = 0; ele < 256; ele++)	{
+		z_block[ele] = 0;
 	}
-	
-
-	uint8_t **Z_block = gen_block_matrix(z_blocks,0);
-	uint8_t ***dia_matrix = gen_diagonal_matrix(M_block_0,M_block_1,Z_block);
-	block_m_tester(dia_matrix[0],0);
-	block_m_tester(dia_matrix[5],1);
-	block_m_tester(dia_matrix[10],1);
-	block_m_tester(dia_matrix[15],0);
-	// print_sq_matrix(dia_matrix[0],16);
+	uint8_t *test_block = malloc(16 * 16 * sizeof(uint8_t*));
+	uint8_t *dia_matrix = gen_diagonal_matrix(M_block_0,M_block_1,z_block);
+	memcpy(test_block,dia_matrix,256 * sizeof(uint8_t));
+	block_m_tester(test_block,0);
+	memcpy(test_block,&(dia_matrix[1280]),256 * sizeof(uint8_t));
+	block_m_tester(test_block,1);
+	memcpy(test_block,&(dia_matrix[2560]),256 * sizeof(uint8_t));
+	block_m_tester(test_block,1);
+	memcpy(test_block,&(dia_matrix[3840]),256 * sizeof(uint8_t));
+	block_m_tester(test_block,0);
 }
 
-void block_m_tester(uint8_t **M_block, int start)	{
-	int row, col, m = start;
-	for(row = 0; row < BLOCK_M_SIZE; row++)	{
-		for(col = 0; col < BLOCK_M_SIZE; col++)	{
+void block_m_tester(uint8_t *M_block, int start)	{
+	int ele, col, m = start;
+	uint8_t *test_M = malloc(16 * sizeof(uint8_t));
+	for(ele = 0; ele < 256;)	{
+		for(col = 0; col < 4; col++,ele+=16){
+			memcpy(test_M,&(M_block[ele]),16 * sizeof(uint8_t));
 			switch(m)	{
 				case 0:
-					sput_fail_unless(test_for_basic_m0(M_block[(row * BLOCK_M_SIZE) + col]) == 1,"basic M blocks test");
+					sput_fail_unless(test_for_basic_m0(test_M) == 1,"M block test");
 					break;
 				case 1:
-					sput_fail_unless(test_for_basic_m1(M_block[(row * BLOCK_M_SIZE) + col]) == 1,"basic M blocks test");
+					sput_fail_unless(test_for_basic_m1(test_M) == 1,"M block test");
 					break;
 				case 2:
-					sput_fail_unless(test_for_basic_m2(M_block[(row * BLOCK_M_SIZE) + col]) == 1,"basic M blocks test");
+					sput_fail_unless(test_for_basic_m2(test_M) == 1,"M block test");
 					break;
 				case 3:
-					sput_fail_unless(test_for_basic_m3(M_block[(row * BLOCK_M_SIZE) + col]) == 1,"basic M blocks test");
+					sput_fail_unless(test_for_basic_m3(test_M) == 1,"M block test");
 					break;
 			}
-			m = (m + 1) % BLOCK_M_SIZE;
+			m = (m + 1) % BASIC_BLOCK_NUM;
 		}
-		m = (m + 1) % BLOCK_M_SIZE;
+		m = (m + 1) % BASIC_BLOCK_NUM;
 	}
 }
 

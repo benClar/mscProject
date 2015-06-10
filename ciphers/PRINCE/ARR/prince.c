@@ -135,37 +135,40 @@ uint8_t **gen_basic_blocks(uint8_t **M)	{
 	return M;
 }
 
-uint8_t*** gen_diagonal_matrix(uint8_t **M_block_0, uint8_t **M_block_1, uint8_t **zero)	{
-	int row, col;
-	uint8_t ***M_64 = malloc(M64_AREA * sizeof(uint8_t**));
-	for(row = 0; row < M64_LNGTH; row++)	{
-		for(col = 0; col < M64_WIDTH; col++)	{
+uint8_t *gen_diagonal_matrix(uint8_t *M_block_0, uint8_t *M_block_1, uint8_t *zero)	{
+	int ele, col,row;
+	uint8_t *M_64 = malloc((64 * 64) * sizeof(uint8_t**));
+	for(ele = 0,row = 0; row < 4;row++)	{
+		for(col = 0; col < 4; col++,ele+=256)	{
 			if(col == row)	{
 				if(row == 0 || row == 3)	{
-					M_64[(row * M64_WIDTH) + col] = clone_square_matrix(M_block_0,BLOCK_M_SIZE,BASIC_BLOCK_ELE);
+					memcpy(&(M_64[ele]),M_block_0,256);
 				} else if (row == 1 || row == 2)	{
-					M_64[(row * M64_WIDTH) + col] = clone_square_matrix(M_block_1,BLOCK_M_SIZE,BASIC_BLOCK_ELE);
+					memcpy(&(M_64[ele]),M_block_1,256);
 				}
 			} else	{
-				M_64[(row* M64_WIDTH) + col] = clone_square_matrix(zero,BLOCK_M_SIZE,BASIC_BLOCK_ELE);
+				memcpy(&(M_64[ele]),zero,256);
 			}
 		}
 	}
 	return M_64;	
 }
 
-uint8_t** gen_block_matrix(uint8_t **m_blocks, int start) {
-	int row, col, m = start;
-	uint8_t **output = malloc(16 * sizeof(uint8_t*));
-	for(row = 0; row < BLOCK_M_SIZE; row++)	{
-		for(col = 0; col < BLOCK_M_SIZE; col++)	{
-			// print_array(m_blocks[m],16);
-			output[(row * BLOCK_M_SIZE) + col] = clone(m_blocks[m],16);
-			m = (m + 1) % BLOCK_M_SIZE;
+uint8_t *gen_block_matrix(uint8_t **m_blocks, int start) {
+	int ele, col, m = start;
+	uint8_t *output = calloc((16 * 16),sizeof(uint8_t*));
+
+	for(ele = 0; ele < 256;)	{
+		for(col = 0; col < 4; col++,ele+=16){
+		// print_array(m_blocks[m],16);
+		// printf("%d ",ele);
+		memcpy(output + ele,m_blocks[m],16 * sizeof(uint8_t));
+			m = (m + 1) % BASIC_BLOCK_NUM;
 		}
-		m = (m + 1) % BLOCK_M_SIZE;
+		m = (m + 1) % BASIC_BLOCK_NUM;
 		// printf("\n");
 	}
+	// print_array(output,256);
 	return output;
 }
 

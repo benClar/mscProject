@@ -112,7 +112,7 @@ uint8_t *XOR(uint8_t *a, uint8_t *b, int size)	{
 void print_array(uint8_t *array,int size)	{
 	int ele;
 	for(ele = 0; ele < size; ele++)	{
-		printf("%d", array[ele]);
+		printf("%d ", array[ele]);
 	}
 	printf("\n");
 }

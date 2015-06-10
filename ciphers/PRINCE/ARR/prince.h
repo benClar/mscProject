@@ -10,7 +10,8 @@
 #define C 2
 #define D 3
 
-#define BLOCK_M_SIZE 4
+#define BLOCK_M_SIZE 16
+#define BASIC_BLOCK_NUM 4
 #define M64_WIDTH 4
 #define M64_LNGTH 4
 #define M64_AREA M64_WIDTH * M64_LNGTH
@@ -254,9 +255,9 @@ uint8_t sbox_1(uint8_t *input);
 uint8_t sbox_2(uint8_t *input);
 uint8_t sbox_3(uint8_t *input);
 uint8_t sbox_4(uint8_t *input);
-uint8_t** gen_block_matrix(uint8_t **m_blocks, int start);
 uint8_t **gen_basic_blocks();
-uint8_t*** gen_diagonal_matrix(uint8_t **M_block_0, uint8_t **M_block_1, uint8_t **zero);
+uint8_t *gen_diagonal_matrix(uint8_t *M_block_0, uint8_t *M_block_1, uint8_t *zero);
+uint8_t *gen_block_matrix(uint8_t **m_blocks, int start);
 
 #endif
 
