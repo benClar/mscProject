@@ -17,7 +17,7 @@
 #define M64_AREA M64_WIDTH * M64_LNGTH
 #define BASIC_BLOCK_ELE 16
 #define M_BLOCK_ELE 16
-
+#define BASIC_BLOCK_WIDTH 4
 //m0
 #define M0_0 0x0
 #define M0_1 0x0
