@@ -72,29 +72,15 @@ void run()	{
 	state = sBox(state, 0);
 
 	state = mprime(state);
-	// printf("AFTER MID\n");
-	// hex_print(state,16,64);
 
 	state = sBox(state, 1);
 
 
 	for(r = 6; r < 11; r++)	{
 		state = XOR(state,XOR(key_1,RC[r],64),64);
-		// printf("AFTER RC\n");
-		// hex_print(state,16,64);
-
 		state = shift_rows(state,1);
-		// printf("AFTER SHIFT ROWS\n");
-		// hex_print(state,16,64);
-
 		state = mprime(state);
-		// printf("AFTER MPRIME\n");
-		// hex_print(state,16,64);
-
 		state = sBox(state,1);
-		// printf("AFTER SBOX\n");
-		// hex_print(state,16,64);
-
 	}
 
 
@@ -313,31 +299,12 @@ uint8_t* sBox_nibble(uint8_t *current,int invert)	{
 		return output;	
 }
 
-// uint8_t *shift_rows(uint8_t *input)	{
-// 	uint8_t *output = malloc((64 * 64) * sizeof(uint8_t));
-// 	int nibble,target,row, shift = 12;
-// 	for(row = 0, target = 0; row < 64; row++)	{
-// 		for(nibble = 1; nibble < 16; nibble++)	{
-// 			target = ((nibble + shift) % 16) * 4;
-// 			shift = (shift + 12) % 16;
-// 			memcpy(&(output[(row * 64) + target]),&(input[(row * 64) + (nibble * 4)]),4*sizeof(uint8_t));
-
-// 		}
-// 	}
-// 	free(input);
-// 	return output;
-// }
-
 uint8_t *shift_rows(uint8_t *input, int inverse)	{
 	uint8_t *output = calloc(64,sizeof(uint8_t));
 	int target = 0, nibble;
 	for(nibble = 0; nibble < 16;  nibble++)	{
 		memcpy(&(output[target * 4]),&(input[nibble * 4]),4*sizeof(uint8_t));
 		if(inverse)	{
-			// hex_print(output,16,64);
-			// printf("\n");
-			// print_array(&(input[nibble * 4]),4);
-			// printf("%d -> %d\n",nibble,target);
 			target = (target + 5) % 16;
 		} else	{
 			target = (target + 13) % 16;
