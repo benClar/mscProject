@@ -11,6 +11,6 @@ int main(int argc, char *argv[])	{
 	int end = atoi(argv[2]);
 	int i, print;
 	for(i = 0, print = end; i < 64; i++, print++)	{
-		printf("#define STATE_SEED%d %d \n ",i,i);
+		printf("output[%d] = STATE_SEED%d\n",i,63 - i);
 	}
 }

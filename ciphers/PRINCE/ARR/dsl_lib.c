@@ -117,6 +117,49 @@ void print_array(uint8_t *array,int size)	{
 	printf("\n");
 }
 
+int array_position(int curr_row, int curr_col, int row_width)	{
+	return ((row_width * curr_row) + curr_col);
+}
+
+
+void hex_print(uint8_t *state, int row_width, int area)	{
+
+	char hex_lookup[16] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+	int row, nibble, lookup = 0,bit;
+	for(row = 0; row < area/row_width; row++)	{
+		for(nibble = 0; nibble < row_width / 4; nibble++)	{
+			for(bit = 0; bit < 4; bit++)	{
+				lookup = (lookup << 1) ^ state[array_position(row,(nibble * 4) + bit, row_width)];
+
+			}
+			printf("%c ",hex_lookup[lookup]);
+			lookup = 0;
+		}
+		printf("\n");
+	}
+
+}
+
+uint8_t *sub_array(uint8_t *input, int start, int finish)	{
+	int size = (finish - start) + 1;
+	uint8_t *output = malloc(size * sizeof(uint8_t));
+	memcpy(output,&(input[start]),size * sizeof(uint8_t));
+	return output;
+}
+
+void test_sub_array()	{
+	uint8_t arr[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+	uint8_t *res;
+	res = sub_array(arr,1,6);
+	sput_fail_unless(res[0] = 1,"test sub array");
+	sput_fail_unless(res[1] = 2,"test sub array");
+	sput_fail_unless(res[2] = 3,"test sub array");
+	sput_fail_unless(res[3] = 4,"test sub array");
+	sput_fail_unless(res[4] = 5,"test sub array");
+	sput_fail_unless(res[5] = 6,"test sub array");
+
+}
+
 
 /*testing*/
 void run_lib_tests()	{
@@ -129,6 +172,8 @@ void run_lib_tests()	{
 	sput_run_test(test_bitslice);
 	sput_enter_suite("Test Matrix Clone");
 	sput_run_test(test_sq_matrix_clone);
+	sput_enter_suite("Test Sub Array");
+	sput_run_test(test_sub_array);
 	sput_finish_testing();
 }
 

@@ -18,6 +18,8 @@
 #define BASIC_BLOCK_ELE 16
 #define M_BLOCK_ELE 16
 #define BASIC_BLOCK_WIDTH 4
+
+#define STATE_SIZE 64
 //m0
 #define M0_0 0x0
 #define M0_1 0x0
@@ -233,6 +235,71 @@
 #define KEY_SEED126 0x0
 #define KEY_SEED127 0x0
 
+#define STATE_SEED0 (0x0)
+#define STATE_SEED1 (0x0)
+#define STATE_SEED2 (0x0)
+#define STATE_SEED3 (0x0)
+#define STATE_SEED4 (0x0)
+#define STATE_SEED5 (0x0)
+#define STATE_SEED6 (0x0)
+#define STATE_SEED7 (0x0)
+#define STATE_SEED8 (0x0)
+#define STATE_SEED9 (0x0)
+#define STATE_SEED10 (0x0)
+#define STATE_SEED11 (0x0)
+#define STATE_SEED12 (0x0)
+#define STATE_SEED13 (0x0)
+#define STATE_SEED14 (0x0)
+#define STATE_SEED15 (0x0)
+#define STATE_SEED16 (0x0)
+#define STATE_SEED17 (0x0)
+#define STATE_SEED18 (0x0)
+#define STATE_SEED19 (0x0)
+#define STATE_SEED20 (0x0)
+#define STATE_SEED21 (0x0)
+#define STATE_SEED22 (0x0)
+#define STATE_SEED23 (0x0)
+#define STATE_SEED24 (0x0)
+#define STATE_SEED25 (0x0)
+#define STATE_SEED26 (0x0)
+#define STATE_SEED27 (0x0)
+#define STATE_SEED28 (0x0)
+#define STATE_SEED29 (0x0)
+#define STATE_SEED30 (0x0)
+#define STATE_SEED31 (0x0)
+#define STATE_SEED32 (0x0)
+#define STATE_SEED33 (0x0)
+#define STATE_SEED34 (0x0)
+#define STATE_SEED35 (0x0)
+#define STATE_SEED36 (0x0)
+#define STATE_SEED37 (0x0)
+#define STATE_SEED38 (0x0)
+#define STATE_SEED39 (0x0)
+#define STATE_SEED40 (0x0)
+#define STATE_SEED41 (0x0)
+#define STATE_SEED42 (0x0)
+#define STATE_SEED43 (0x0)
+#define STATE_SEED44 (0x0)
+#define STATE_SEED45 (0x0)
+#define STATE_SEED46 (0x0)
+#define STATE_SEED47 (0x0)
+#define STATE_SEED48 (0x0)
+#define STATE_SEED49 (0x0)
+#define STATE_SEED50 (0x0)
+#define STATE_SEED51 (0x0)
+#define STATE_SEED52 (0x0)
+#define STATE_SEED53 (0x0)
+#define STATE_SEED54 (0x0)
+#define STATE_SEED55 (0x0)
+#define STATE_SEED56 (0x0)
+#define STATE_SEED57 (0x0)
+#define STATE_SEED58 (0x0)
+#define STATE_SEED59 (0x0)
+#define STATE_SEED60 (0x0)
+#define STATE_SEED61 (0x0)
+#define STATE_SEED62 (0x0)
+#define STATE_SEED63 (0x0)
+
 
 #define RC_0 (0x0000000000000000)
 #define RC_1 (0x13198a2e03707344)
@@ -250,15 +317,24 @@
 
 
 void run();
-uint8_t* sBox(uint8_t *input);
+uint8_t* sBox(uint8_t *input, int invert);
 uint8_t sbox_1(uint8_t *input);
 uint8_t sbox_2(uint8_t *input);
 uint8_t sbox_3(uint8_t *input);
 uint8_t sbox_4(uint8_t *input);
+uint8_t inv_sbox_1(uint8_t *input);
+uint8_t inv_sbox_2(uint8_t *input);
+uint8_t inv_sbox_3(uint8_t *input);
+uint8_t inv_sbox_4(uint8_t *input);
 uint8_t **gen_basic_blocks();
 uint8_t *gen_diagonal_matrix(uint8_t *M_block_0, uint8_t *M_block_1, uint8_t *zero);
 uint8_t *gen_block_matrix(uint8_t **m_blocks, int start);
-
+uint8_t *m0(uint8_t *data);
+uint8_t *m1(uint8_t *data);
+uint8_t *mprime(uint8_t *state);
+uint8_t *shift_rows(uint8_t *input, int inverse);
+uint8_t *init_state();
+uint8_t* sBox_nibble(uint8_t *current,int invert);
 #endif
 
 
