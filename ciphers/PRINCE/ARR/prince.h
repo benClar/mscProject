@@ -170,7 +170,7 @@
 #define KEY_SEED61 (0x1)
 #define KEY_SEED62 (0x1)
 #define KEY_SEED63 (0x1)
-#define KEY_SEED64 (0x1)
+#define KEY_SEED64 (0x0)
 #define KEY_SEED65 0x0
 #define KEY_SEED66 0x0
 #define KEY_SEED67 0x0

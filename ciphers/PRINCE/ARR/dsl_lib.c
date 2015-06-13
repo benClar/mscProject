@@ -102,7 +102,7 @@ uint8_t *reverse(uint8_t *array, int start, int end)	{
 uint8_t *XOR(uint8_t *a, uint8_t *b, int size)	{
 	int bit;
 	uint8_t *output = calloc(size,sizeof(uint8_t));
-	for(bit = 0; bit < size; bit++)	{
+	for(bit = size - 1; bit >= 0; bit--)	{
 		output[bit] = a[bit] ^ b[bit];
 	}
 	return output;

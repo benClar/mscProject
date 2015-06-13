@@ -22,12 +22,12 @@ void run()	{
 
 	uint8_t *state = init_state();
 
-	uint8_t key_0[64] = {KEY_SEED64, KEY_SEED63, KEY_SEED62, KEY_SEED61, KEY_SEED60, KEY_SEED59, KEY_SEED58, KEY_SEED57, KEY_SEED56, KEY_SEED55, KEY_SEED54, KEY_SEED53, KEY_SEED52,
+	uint8_t key_0[64] = { KEY_SEED63, KEY_SEED62, KEY_SEED61, KEY_SEED60, KEY_SEED59, KEY_SEED58, KEY_SEED57, KEY_SEED56, KEY_SEED55, KEY_SEED54, KEY_SEED53, KEY_SEED52,
 				KEY_SEED51, KEY_SEED50, KEY_SEED49, KEY_SEED48, KEY_SEED47, KEY_SEED46, KEY_SEED45, KEY_SEED44, KEY_SEED43, KEY_SEED42, KEY_SEED41, KEY_SEED40,
 				KEY_SEED39, KEY_SEED38, KEY_SEED37, KEY_SEED36, KEY_SEED35, KEY_SEED34, KEY_SEED33, KEY_SEED32, KEY_SEED31, KEY_SEED30, KEY_SEED29, KEY_SEED28,
 				KEY_SEED27, KEY_SEED26, KEY_SEED25, KEY_SEED24, KEY_SEED23, KEY_SEED22, KEY_SEED21, KEY_SEED20, KEY_SEED19, KEY_SEED18, KEY_SEED17, KEY_SEED16,
 				KEY_SEED15, KEY_SEED14, KEY_SEED13, KEY_SEED12, KEY_SEED11, KEY_SEED10, KEY_SEED9, KEY_SEED8, KEY_SEED7, KEY_SEED6, KEY_SEED5, KEY_SEED4,
-				KEY_SEED3, KEY_SEED2, KEY_SEED0};
+				KEY_SEED3, KEY_SEED2, KEY_SEED1, KEY_SEED0 };
 
 	uint8_t key_1[64] = {KEY_SEED127, KEY_SEED126, KEY_SEED125, KEY_SEED124, KEY_SEED123, KEY_SEED122, KEY_SEED121, KEY_SEED120, KEY_SEED119, KEY_SEED118, KEY_SEED117, KEY_SEED116,
 				KEY_SEED115, KEY_SEED114, KEY_SEED113, KEY_SEED112, KEY_SEED111, KEY_SEED110, KEY_SEED109, KEY_SEED108, KEY_SEED107, KEY_SEED106, KEY_SEED105, KEY_SEED104,
@@ -53,28 +53,20 @@ void run()	{
 	RC[11] = bitslice(RC_11,64);
 
 	int r;
+	state = XOR(key_0,state,64);
 
-	state = XOR(state,key_0,64);
 	state = XOR(state,XOR(key_1,RC[0],64),64);
-	hex_print(state,16,64);
+
 	for(r = 1; r < 6; r++)	{
 		state = sBox(state,0);
-
-
 		state = mprime(state);
-
 		state = shift_rows(state,0);
-
 		state = XOR(state,XOR(key_1,RC[r],64),64); 
 	}
 
-
 	state = sBox(state, 0);
-
 	state = mprime(state);
-
 	state = sBox(state, 1);
-
 
 	for(r = 6; r < 11; r++)	{
 		state = XOR(state,XOR(key_1,RC[r],64),64);
@@ -83,13 +75,9 @@ void run()	{
 		state = sBox(state,1);
 	}
 
-
 	state = XOR(state,XOR(key_1,RC[11],64),64);
 	state = XOR(state,key_0_not,64);
-
 	hex_print(state,16,64);
-	// uint8_t **M = gen_basic_blocks();
-
 }
 
 uint8_t **gen_basic_blocks(uint8_t **M)	{
@@ -273,11 +261,7 @@ uint8_t* sBox(uint8_t *input, int invert)	{
 	int nibble;
 	for(nibble = 0; nibble < 16; nibble++)	{
 		memcpy(current,&(input[nibble * 4]),4*sizeof(uint8_t));
-		// printf("PRE SBOX\n");
-		// print_array(current,4);
 		current = sBox_nibble(current,invert);
-		// printf("AFTER SBOX\n");
-		// print_array(current,4);
 		memcpy(&(output[nibble * 4]),current,4 * sizeof(uint8_t));
 	}
 	return output;
