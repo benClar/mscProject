@@ -143,9 +143,7 @@ uint8_t* shiftRow(uint8_t *curr_state)   {
     int curr_row;
     for(curr_row = 0; curr_row < 4; curr_row++)    {
         memcpy(row,&(curr_state[array_position(curr_row,0,16)]),16);
-        // print_array(row,16);
         row = rotate_left(row,16,curr_row * 4);
-        // print_array(row,16);
         memcpy(&(curr_state[curr_row * 16]),row,16);
 
     }

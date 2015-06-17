@@ -1,10 +1,10 @@
 main()	{
-	Sequence key = (false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+	Bit[64] key = (false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
 					false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
 					false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
 					false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true);
 
-	Sequence state = (false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
+	Bit[64] state = (false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
 						false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
 						false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
 						false,false,false,false);
@@ -34,7 +34,7 @@ pLayer(Sequence state)	{
 	}
 }
 
-sBox_layer(Sequence state, Sequence sBox)	{
+sBox_layer(Bit[] state, Bit[] sBox)	{
 	state = sBox.sBox(state);
 }
 
@@ -46,6 +46,5 @@ generate_round_keys(Sequence key, Sequence sBox)	{
 		key[0:3] = sBox.sBox(key[0:3]);
 		key[-19 : -15] ^= round;
 	}
-
 	return round_keys;
 }
