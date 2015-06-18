@@ -9,6 +9,8 @@ int main(int argc, char *argv[])	{
 
 	int start = atoi(argv[1]);
 	int end = atoi(argv[2]);
+	int k;
+	k = k + 10;
 	int i, print;
 	for(i = 0, print = end; i < 64; i++, print++)	{
 		printf("output[%d] = STATE_SEED%d\n",i,63 - i);
