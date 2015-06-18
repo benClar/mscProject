@@ -15,14 +15,14 @@ class Symbol_Table(object):
 
     def add_int_id(self, scope, ID, id_value=None, id_constraints=None):
         self.add_id(scope, ID, "Int", id_value)
-        self.table[scope][ID]["bit_cnst"] = id_constraints
+        self.table[scope][ID[0]]["bit_cnst"] = id_constraints
 
     def add_id(self, scope, ID, id_type, id_value=None):
         if scope in self.table:
             if ID not in self.table[scope]:
-                self.table[scope][ID] = {}
-                self.table[scope][ID]["type"] = id_type
-                self.table[scope][ID]["value"] = id_value
+                self.table[scope][ID[0]] = {}
+                self.table[scope][ID[0]]["type"] = id_type
+                self.table[scope][ID[0]]["value"] = id_value
             else:
                 raise ValueError("Redeclaration of symbol")
         else:
@@ -37,11 +37,8 @@ class Symbol_Table(object):
     def id_in(self, scope, ID):
         """Returns true if ID exists in symbol table"""
         if ID in self.table[scope]:
-            print("SYMBOL FOUND IN TAB")
             return True
         else:
-            # print(">>>>" + self.table[scope])
-            print("SYMBOL NOT FOUND IN TAB")
             return False
 
 
