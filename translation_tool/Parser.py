@@ -1,6 +1,6 @@
 from pyparsing import Literal, Word, nums, ParseException, Forward, alphas,\
     Suppress, Group, ZeroOrMore, Keyword, alphanums, NotAny, CharsNotIn, \
-    OneOrMore, Optional, delimitedList, StringEnd, oneOf
+    OneOrMore, Optional, delimitedList, StringEnd, oneOf, srange, Combine
 import unittest
 from Symbol_Table import Symbol_Table
 from Stack import Stack
@@ -34,16 +34,8 @@ class Semantic_analyser(object):
     def call_stack(self):
         return self._call_stack
 
-    def analyse_constraints(self, value, constraints):
-        if int(value).bit_length() > int(constraints):
-            return False
-        else:
-            return True
-
     def is_already_declared(self, ID):
         """Returns False if ID has not been declared yet"""
-        print("CHECKING ID:")
-        print(ID[0])
         if self.sym_table.id_in(self.call_stack.peek(), ID[0]) == True:  # NOQA
             return True
         else:
@@ -53,6 +45,7 @@ class Semantic_analyser(object):
         token = tokens[0]
         if self.is_already_declared(token("ID")) is True:
             if Semantic_analyser.TESTING == 1:
+                print("ID Already declared")
                 return False
             else:
                 raise ParseException("Unknown Value")
@@ -68,12 +61,15 @@ class Semantic_analyser(object):
             return True
         if id_type is "Int" and self.is_int(value) is True:
             return True
+        print("Incorrect Value assigned to type")
         return False
 
     def is_int(self, value):
         try:
-            int(value)
+            self.convert_base(value)
+            # int(value)
         except ValueError:
+            print("Cannot assign non-integer to Int")
             return False
         return True
 
@@ -83,10 +79,25 @@ class Semantic_analyser(object):
         else:
             return False
 
+    def convert_base(self, val):
+        if len(val) > 1 and val[1] == 'x':
+            return int(val, 16)
+        elif len(val) > 1 and val[1] == 'b':
+            return int(val, 2)
+        else:
+            return int(val)
+
+    def analyse_constraints(self, value, constraints):
+        val = self.convert_base(value)
+        if val.bit_length() > int(constraints):
+            return False
+        else:
+            return True
+
     def analyse_int_decl(self, tokens):
         token = tokens[0]
-        print(token.dump())
         for decl in token["value"]:
+            print(decl.dump())
             try:
                 if self.analyse_constraints(decl["value"], token["constraints"]) is False:  # NOQA
                     raise ParseException("Value bigger than bit constraints")
@@ -98,6 +109,7 @@ class Semantic_analyser(object):
                     return False
                 else:
                     raise ParseException("Value bigger than bit constraints")
+
             if self.is_already_declared(decl["ID"]) is True:
                 try:
                     raise ParseException("Duplicate Symbol")
@@ -113,7 +125,6 @@ class Semantic_analyser(object):
         self.IR.add(Seq_node())
         if "constraints" in token:
             if "value" in decl:
-                print("HERE")
                 self.sym_table.add_int_id(self.call_stack.peek(),
                                           decl["ID"],
                                           decl["value"],
@@ -160,25 +171,39 @@ class Parser(object):
         self.circ_r_shift_ = Keyword('>>>')
         self.bit_val = self.false_ ^ self.true_
         self.ID = NotAny(self.int_ ^ self.bit_) + Word(alphas + '_', alphanums + '_')  # NOQA
+        self.if_ = Keyword('if')
+        self.for_ = Keyword('for')
         # Other Tokens
         self.stmt = Forward()
         self.l_bracket = Literal(')')
         self.r_bracket = Literal('(')
         self.eq_set = Literal('=')("set")
         self.term_st = Literal(';')
-        # self.int_not_constrained = Literal("Int ")
-        # self.int_constrained = Word("Int") + Suppress(Literal("(")) + Word(nums) + \
-        #     Suppress(Literal(")"))
+        self.b_2_num = Combine(Literal("0b") + Word("01"))
+        self.b_16_num = Combine(Literal("0x") + Word(srange("[0-9a-fA-F]")))
+        self.b_10_num = Word(nums)
+        self.bit_and = Keyword('&')
+        self.bit_or = Keyword('|')
+        self.bit_xor = Keyword('^')
+        self.bit_not = Keyword('~')
+        self.eq_compare = Keyword('==')
+        self.l_brace = Keyword('{')
+        self.r_brace = Keyword('}')
+        self.bin_add = Keyword('+')
+        self.bin_mult = Keyword('*')
+        self.bin_sub = Keyword('-')
+        self.bin_mod = Keyword('%')
+        self.bin_div = Keyword('/')
         # Grammar
         self.var = self.ID ^ Word(nums)
-
-        self.id_set = self.ID + self.eq_set + (Word(nums)("value") ^ self.bit_val) + Suppress(self.term_st)  # NOQA
-        # id_set.setParseAction(semantic_analyser.analyse_id_set)
+        self.int_value = self.b_2_num ^ self.b_16_num ^ self.b_10_num
+        self.id_set = Group(self.ID("target") + self.eq_set + (self.int_value ^ self.bit_val)("value")) + Suppress(self.term_st)  # NOQA
+        # id_set.setParseAction(semantic_analyser.analyse_id_set)  # NOQA # Remeber ID must be ID[0]!
 
         self.int_decl = Group(self.int_("decl") + Optional(Suppress(self.r_bracket) + Word(nums)("constraints") +  # NOQA
-            Suppress(self.l_bracket)) + delimitedList(Group(self.ID("ID")) ^ Group(self.ID("ID") + self.eq_set + Word(nums)("value")))("value")) + Suppress(self.term_st)  # NOQA
+            Suppress(self.l_bracket)) + delimitedList(Group(self.ID("ID")) ^ Group(self.ID("ID") + self.eq_set + self.int_value("value")))("value")) + Suppress(self.term_st)  # NOQA
         self.int_decl.setParseAction(self.semantic_analyser.analyse_int_decl)
-        self.shift = Group(self.var("target") + (self.l_shift_ ^ self.r_shift_ ^ self.circ_l_shift_ ^ self.circ_r_shift_)("shift_op") + self.var) + Suppress(self.term_st)  # NOQA
+        self.shift = Group(self.var("target") + (self.l_shift_ ^ self.r_shift_ ^ self.circ_l_shift_ ^ self.circ_r_shift_)("shift_op") + self.var("operand")) + Suppress(self.term_st)  # NOQA
 
         self.bit_decl = Group(self.bit_("decl") + delimitedList(Group(self.ID) ^ Group(self.ID + self.eq_set + self.bit_val("value")))("value")) + Suppress(self.term_st)  # NOQA
 
@@ -191,7 +216,8 @@ class Parser(object):
         except ParseException as details:
             print(details)
             return False
-        # print(res[0].dump())
+        if type(res[0]) is not bool:
+            print(res[0].dump())
         return [res, True]
 
     def parse_test(self, data_in):
@@ -238,15 +264,6 @@ class TestParser(unittest.TestCase):
         self.assertEqual(par.parse_test_unit("aa; bb; cc;"), False)
         self.assertEqual(par.parse_test_unit("Int dd = 10;")[1], True)
 
-    def test_set_parsing(self):
-        par = Parser()
-        self.assertNotEqual(par.parse_test_unit("b = 2;"), False)
-        self.assertEqual(par.parse_test_unit("Int = 2;"), False)
-        self.assertEqual(par.parse_test_unit("d = False;")[1], True)
-        self.assertEqual(par.parse_test_unit("e = True;")[1], True)
-        self.assertEqual(par.parse_test_unit("e = blah;"), False)
-        self.assertEqual(par.parse_test_unit("e = True True;"), False)
-
     def test_int_decl_semantics(self):
         sem_a = Semantic_analyser()
         par = Parser()
@@ -258,9 +275,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(par.parse_test_unit("Int d = 10, b = 10, c = 20;")[1], True)  # NOQA
         self.assertEqual(par.parse_test_unit("Int(3) e = 10, f = 10, g = 20;")[0][0], False)  # NOQA
         self.assertEqual(par.parse_test_unit("Int(4) h = 10, h = 10, i = 20;")[0][0], False)  # NOQA
-        print(par.semantic_analyser.sym_table.table)
         self.assertEqual(par.parse_test_unit("Int(4) z = 10;")[1], True)
-        print(par.semantic_analyser.sym_table.table)
         self.assertEqual(par.parse_test_unit("Int(4) z = 10;")[0][0], False)
         self.assertEqual(par.parse_test_unit("Int(4) k;")[1], True)
         self.assertEqual(par.parse_test_unit("Int(4) k;")[0][0], False)
@@ -270,10 +285,6 @@ class TestParser(unittest.TestCase):
         self.assertEqual(par.parse_test_unit("Bit a = True;")[1], True)
         self.assertEqual(par.parse_test_unit("Bit b, c, d = True;")[1], True)
         self.assertEqual(par.parse_test_unit("Bit Bit, c, d = True;"), False)
-
-    def test_shift_op(self):
-        par = Parser()
-        self.assertEqual(par.parse_test_unit("a << 3;")[1], True)
 
     def test_id_set_semantics(self):
         sem_a = Semantic_analyser()
@@ -285,7 +296,6 @@ class TestParser(unittest.TestCase):
         par = Parser()
         self.assertEqual(par.semantic_analyser.IR.root, None)
         self.assertEqual(par.parse_test_unit("Int(4) a= 10;")[1], True)  # NOQA
-        print(par.semantic_analyser.IR.output())
         self.assertEqual(par.semantic_analyser.IR.root.type, Tree.SEQ)
         self.assertEqual(par.semantic_analyser.IR.root.left.type, Tree.VAR_DECL)  # NOQA
         self.assertEqual(par.semantic_analyser.IR.root.left.translate(), "uint8_t a[4]={1,0,1,0};")  # NOQA
@@ -312,6 +322,36 @@ class TestParser(unittest.TestCase):
         self.assertEqual(par.semantic_analyser.IR.root.right.left.translate(), "uint8_t b[10]={0,0,0,0,0,0,0,1,0,1};")  # NOQA
         self.assertEqual(par.semantic_analyser.IR.root.right.right.type, Tree.SEQ)  # NOQA
         self.assertEqual(par.semantic_analyser.IR.root.right.right.left.translate(), "uint8_t c[10]={0,0,0,0,0,0,0,0,0,0};")  # NOQA
+
+    def test_shift_op(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("a << 3;")[1], True)
+        self.assertEqual(par.parse_test_unit("a >> 3;")[1], True)
+        self.assertEqual(par.parse_test_unit("a <<< 3;")[1], True)
+        self.assertEqual(par.parse_test_unit("a >>> 3;")[1], True)
+        self.assertEqual(par.parse_test_unit("a > 3;"), False)
+        self.assertEqual(par.parse_test_unit("10 >> 4;")[1], True)
+        self.assertEqual(par.parse_test_unit("10 >> 4; a >> 4;")[1], True)
+        print(par.parse_test_unit("z >> 4;")[0][0]["operand"])
+
+    def test_set_parsing(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("b = 2;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int = 2;"), False)
+        self.assertEqual(par.parse_test_unit("d = False;")[1], True)
+        self.assertEqual(par.parse_test_unit("e = True;")[1], True)
+        self.assertEqual(par.parse_test_unit("e = blah;"), False)
+        self.assertEqual(par.parse_test_unit("e = True True;"), False)
+
+    def test_int_bases(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("b = 0b010101010;")[1], True)
+        self.assertEqual(par.parse_test_unit("b = 0x345;")[1], True)
+        self.assertEqual(par.parse_test_unit("b = 0x3b;")[1], True)
+        self.assertEqual(par.parse_test_unit("b = 0x3D45ef3456a;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int b = 0x3aab;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(4) b = 0x11;")[0][0], False)
+
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestParser)
