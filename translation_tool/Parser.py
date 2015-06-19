@@ -453,6 +453,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(par.parse_test_unit("(Int) a;")[1], True)
         self.assertEqual(par.parse_test_unit("(Bit) a;")[1], True)
         self.assertEqual(par.parse_test_unit("(Int[4]) 10;")[1], True)
+        self.assertEqual(par.parse_test_unit("(Int[4]) Bit[10];"), False)
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestParser)
