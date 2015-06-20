@@ -17,6 +17,17 @@ class Symbol_Table(object):
         self.add_id(scope, ID, "Int", id_value)
         self.table[scope][ID[0]]["bit_cnst"] = id_constraints
 
+    def add_seq_id(self, scope, ID, id_type, id_value=None):
+        # print(id_value)
+        self.add_id(scope, ID, "Seq", id_value)
+        self.table[scope][ID[0]]["seq_type"] = id_type["type"]
+        seq = []
+        for i in id_type["seq_size"]:
+            seq.append(i)
+
+        print(seq)
+        self.table[scope][ID[0]]["dimension"] = seq
+
     def add_id(self, scope, ID, id_type, id_value=None):
         if scope in self.table:
             if ID not in self.table[scope]:
@@ -34,12 +45,16 @@ class Symbol_Table(object):
     def id_type(self, scope, ID):
         return self.table[scope][ID]["type"]
 
+    def id_details(self, scope, ID):
+        return self.table[scope][ID]
+
     def id_in(self, scope, ID):
         """Returns true if ID exists in symbol table"""
         if ID in self.table[scope]:
             return True
         else:
             return False
+
 
 
 class TestSymbolTable(unittest.TestCase):
