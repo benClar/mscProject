@@ -43,7 +43,10 @@ class Symbol_Table(object):
         self.table[scope][ID]["value"] = value
 
     def id_type(self, scope, ID):
-        return self.table[scope][ID]["type"]
+        try:
+            return self.table[scope][ID]["type"]
+        except KeyError:
+            return None
 
     def id_details(self, scope, ID):
         return self.table[scope][ID]
@@ -54,7 +57,6 @@ class Symbol_Table(object):
             return True
         else:
             return False
-
 
 
 class TestSymbolTable(unittest.TestCase):
