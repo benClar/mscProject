@@ -1,5 +1,6 @@
-import unittest
 from AST_TYPE import AST_TYPE
+from pyparsing import ParseException
+
 
 class AST(object):
 
@@ -22,25 +23,41 @@ class AST(object):
         token = tokens[0]
         for decl in token['value']:
             if 'set_value' in decl:
-                self.add_node(Bit_decl_ast(decl['ID'][1], decl['set_value']))
+                self.add_node(Bit_decl_ast(decl['ID'][0], decl['set_value']))
             else:
-                self.add_node(Bit_decl_ast(decl['ID']))
+                self.add_node(Bit_decl_ast(decl['ID'][0]))
 
     def int_decl(self, tokens):
         token = tokens[0]
-        print(token.dump())
+        # print(token.dump())
         for decl in token['value']:
             if 'set_value' in decl:
-                print(decl['ID_'])
-                print(token['constraints'])
-                print(decl['set_value'])
-                # self.add_node(Int_decl_ast(decl['ID']), token['constraints'], decl['set_value'])
-            else:                
-                print(decl['ID_'])
-                print(token['constraints'])
-                # self.add_node(Int_decl_ast(decl['ID']), token['constraints'])
+                self.add_node(Int_decl_ast(decl['ID'][0], token['constraints'], decl['set_value']))
+            else:
+                self.add_node(Int_decl_ast(decl['ID'][0], token['constraints']))
+
+    def seq_decl(self, tokens):
+        token = tokens[0]
+        print(token.dump())
+        if 'value' in token:
+            self.add_node(Seq_decl_ast(token['ID'][1], token['seq_size'], token['type'] ))
+            ## TODO: Create Bit and Seq decl. functions.
+
+
+class Seq_decl_ast(object):
+
+    node_type = AST_TYPE.SEQ_DECL
+
+    def __init__(self, seq_id, seq_type, size, value=None, constraints=None):
+        self._id = ID_ast(seq_id)
+        self._type = seq_type
+        self._size = Expr_ast(size)
+        for v in value:
+            print(v)
 
 class Int_decl_ast(object):
+
+    node_type = AST_TYPE.INT_DECL
 
     def __init__(self, ID, bit_constraints, expr=None):
         self._ID = ID_ast(ID)
@@ -141,6 +158,14 @@ class Expr_ast(object):
             self.expressions.append(cast_ast(token[1], token[2]))
         elif operand_type == AST_TYPE.ID:
             self.expressions.append(ID_ast(token[1]))
+        elif operand_type == AST_TYPE.FUNCTION_CALL:
+            print(token)
+            if len(token) == 4:
+                self.expressions.append(Func_call_ast(token[2], token[3]))
+            elif len(token) == 3:
+                self.expressions.append(Func_call_ast(token[2]))
+            else:
+                raise ParseException("Function Token not as expected")
 
     def is_operator(self, token):
         try:
@@ -162,11 +187,39 @@ class Expr_ast(object):
         self.expressions.append(expr)
 
 
+class Func_call_ast(object):
+
+    def __init__(self, ID, parameters=None):
+        self._ID = ID_ast(ID)
+        if parameters is not None:
+            self._parameters = []
+            for p in parameters:
+                self._parameters.append(Expr_ast(p))
+        else:
+            self._parameters = None
+
+    @property
+    def ID(self):
+        return self._ID
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+
 class Operator_ast(object):
 
     def __init__(self, op, op_type):
-        self.operator = op
+        self._operator = op
         self._type = op_type
+
+    @property
+    def operator(self):
+        return self._operator
+
+    @property
+    def type(self):
+        return self._type
 
 
 class Int_val_ast(object):
@@ -183,9 +236,15 @@ class Int_val_ast(object):
 
 class cast_ast(object):
 
+    node_type = AST_TYPE.CAST
+
     def __init__(self, cast_type, expr):
-        self.type = cast_type
-        self.expr = Expr_ast(expr)
+        self._cast_operation = cast_type
+        self._target = Expr_ast(expr)
+
+    @property
+    def target(self):
+        return self._target
 
 
 class ID_ast(object):
@@ -195,3 +254,6 @@ class ID_ast(object):
     def __init__(self, ID):
         self._ID = ID
 
+    @property
+    def ID(self):
+        return self._ID
