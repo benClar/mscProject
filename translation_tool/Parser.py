@@ -1,10 +1,10 @@
 from pyparsing import Literal, Word, nums, ParseException, Forward, alphas,\
     Suppress, Group, ZeroOrMore, Keyword, alphanums, NotAny, CharsNotIn, \
     OneOrMore, Optional, delimitedList, StringEnd, oneOf, srange, Combine, \
-    infixNotation, opAssoc, White, ParserElement
+    infixNotation, opAssoc, White, ParserElement, operatorPrecedence
 import unittest
 from Semantic_analyser import Semantic_analyser
-from AST import AST
+from AST import *
 ParserElement.enablePackrat()
 
 
@@ -29,6 +29,7 @@ class Parser(object):
         self.for_ = Keyword('for')
         self.return_ = Keyword('return')
         self.ID = NotAny(self.int_ ^ self.bit_ ^ self.false_ ^ self.true_ ^ self.if_ ^ self.for_ ^ self.sbox_) + Word(alphas + '_', alphanums + '_')  # NOQA
+        self.ID_ = NotAny(self.int_ ^ self.bit_ ^ self.false_ ^ self.true_ ^ self.if_ ^ self.for_ ^ self.sbox_) + Word(alphas + '_', alphanums + '_')
         # Other Tokens
         self.l_bracket = Literal('(')
         self.r_bracket = Literal(')')
@@ -107,11 +108,13 @@ class Parser(object):
 
         # self.expr = self.arith_expr | self.bitwise_expr | self.seq_val("seq") | self.bit_val("bit")
 
-        self.expr = infixNotation(Group(self.operand), [(self.bitwise_op, 2, opAssoc.LEFT),
-                                                 (self.comparison_op, 2, opAssoc.LEFT),
-                                                 (self.log_op, 2, opAssoc.LEFT),
-                                                 (self.arith_op, 2, opAssoc.LEFT)])
+        self.expr = Group(infixNotation(Group(self.operand), [(self.bitwise_op, 2, opAssoc.LEFT),
+                                                              (self.comparison_op, 2, opAssoc.LEFT),
+                                                              (self.log_op, 2, opAssoc.LEFT),
+                                                              (self.arith_op, 2, opAssoc.LEFT)]))
         # self.expr.setParseAction(self.AST.expr)
+        self.int_size = self.int_("decl") + ~White() + Suppress(self.l_bracket) + self.expr("constraints") + Suppress(self.r_bracket)
+
         self.seq_range = Group((self.expr) + Literal(":") + (self.expr))
 
         self.seq_index_select << self.ID("ID") + ~White() +\
@@ -120,25 +123,24 @@ class Parser(object):
         self.seq_val << Group((Suppress(self.l_sq_b) + (delimitedList(self.expr)) +
                                Suppress(self.r_sq_b)))
 
-        self.seq_ << (self.int_ ^ self.bit_)("type") +\
+        self.seq_ << (self.int_size ^ self.bit_)("type") +\
             Group(OneOrMore(~White() + Suppress(self.l_sq_b) + (self.expr) + Suppress(self.r_sq_b)))("seq_size")
 
         self.function_call << self.ID("function_name") + ~White() + Suppress(self.l_bracket) +\
-                                    Optional(delimitedList(self.expr))("param_list") + Suppress(self.r_bracket)
+            Optional(delimitedList(self.expr))("param_list") + Suppress(self.r_bracket)
 
-        self.cast << Suppress(self.l_bracket) + (self.int_ ^ self.bit_ ^ self.seq_)("dest_type") +\
-                   Suppress(self.r_bracket) + (self.expr ^ self.seq_val)("target")
+        self.cast << Suppress(self.l_bracket) + (self.seq_ | self.int_size | self.bit_) +\
+            Suppress(self.r_bracket) + (self.expr)("target")
         #  ####### Declarations
 
         self.id_set = Group((self.seq_index_select | self.ID)("target") + self.eq_set + (self.expr))
         # self.id_set.setParseAction(self.id_set)
 
-        self.int_decl = Group(self.int_("decl") + ~White() + Suppress(self.l_bracket) + self.expr("constraints") + Suppress(self.r_bracket) +
-                              delimitedList(Group((self.ID("ID") + self.eq_set + self.expr) |
-                              self.ID("ID")))("values"))  # NOQA
-
-        self.bit_decl = Group(self.bit_("decl") + delimitedList(Group(self.ID("ID")) ^
-                              Group(self.ID("ID") + self.eq_set + self.expr("set_value")))("value"))
+        self.int_decl = Group(self.int_size + delimitedList(Group((self.ID_("ID_") + self.eq_set + self.expr("set_value")) |
+                              self.ID_("ID_")))("value"))  # NOQA
+        self.int_decl.setParseAction(self.AST.int_decl)
+        self.bit_decl = Group(self.bit_("decl") + delimitedList(Group(self.ID_("ID")) ^
+                              Group(self.ID_("ID") + self.eq_set + self.expr("set_value")))("value"))
         self.bit_decl.setParseAction(self.AST.bit_decl)
 
         self.seq_decl = Group(self.seq_("decl") + self.ID("ID") + Optional(self.eq_set + (self.seq_val("value") ^ self.seq_index_select)))
@@ -173,11 +175,10 @@ class Parser(object):
 
         self.grammar = self.function_decl + StringEnd()
 
-
     @property
     def AST(self):
         return self._AST
-        
+
         # Semantics
         # self.seq_decl.setParseAction(self.semantic_analyser.analyse_seq_decl)
         # self.bit_decl.setParseAction(self.semantic_analyser.analyse_bit_decl)
@@ -216,6 +217,7 @@ class Parser(object):
 
 class TestParser(unittest.TestCase):
 
+    pass
     # Working With Semantics
 
     # def test_int_decl_parsing(self):
@@ -246,14 +248,14 @@ class TestParser(unittest.TestCase):
     #     self.assertEqual(par.parse_test_unit("Int(10) dd = 10;")[1], True)
     #     self.assertEqual(par.parse_test_unit("Int (123) zz;"), False)
 
-    def test_bit_decl_parsing(self):
-        par = Parser()
-        # self.assertEqual(par.parse_test_unit("Bit a = True;")[1], True)
-        # self.assertEqual(par.parse_test_unit("Bit b, c, d = True;")[1], True)
-        # self.assertEqual(par.parse_test_unit("Bit Bit, c, d = True;"), False)
-        # self.assertEqual(par.parse_test_unit("Bit c, d = function();")[1], True)
-        # self.assertEqual(par.parse_test_unit("Bit c, d = function(1,2,(3*5) << (4 * 5)) + function_2(1,2,(3*5) << (4 * 5));")[1], True)
-        self.assertEqual(par.parse_test_unit("Bit c, d = (1+2) * (2 + (Bit) 3);")[1], True)
+    # def test_bit_decl_parsing(self):
+    #     par = Parser()
+    #     self.assertEqual(par.parse_test_unit("Bit a = True;")[1], True)
+    #     self.assertEqual(par.parse_test_unit("Bit b, c, d = True;")[1], True)
+    #     self.assertEqual(par.parse_test_unit("Bit Bit, c, d = True;"), False)
+    #     self.assertEqual(par.parse_test_unit("Bit c, d = function();")[1], True)
+    #     self.assertEqual(par.parse_test_unit("Bit c, d = function(1,2,(3*5) << (4 * 5)) + function_2(1,2,(3*5) << (4 * 5));")[1], True)
+    #     self.assertEqual(par.parse_test_unit("Bit c, d = 3 + (1+ 2 + 3) * (2 + (Bit) 3);")[1], True)
 
     # def test_set_parsing(self):
     #     par = Parser()
@@ -296,7 +298,7 @@ class TestParser(unittest.TestCase):
     #     self.assertEqual(par.parse_test_unit("[5*5, function(1,2,3), 4];")[1], True)
     #     self.assertEqual(par.parse_test_unit("[True,False,True,False,True];")[1], True)
     #     self.assertEqual(par.parse_test_unit("[[True,False,True,False,True],[True,False,True,False,True],[True,False,True,False,True]];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int[4] a;")[1], True)
+    #     self.assertEqual(par.parse_test_unit("Int(10)[4] a;")[1], True)
     #     self.assertEqual(par.parse_test_unit("Bit[4] b;")[1], True)
     #     self.assertEqual(par.parse_test_unit("Bit[4][4] c;")[1], True)
     #     self.assertEqual(par.parse_test_unit("Bit[4][4][4] d;")[1], True)
@@ -304,12 +306,12 @@ class TestParser(unittest.TestCase):
     #     self.assertEqual(par.parse_test_unit("Bit [4][4] f;"), False)
     #     self.assertEqual(par.parse_test_unit("Bit[4][4] 1;"), False)
     #     self.assertEqual(par.parse_test_unit("Bit[1][4] f = [[True,False,True,True]];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int[3] g = [5*5, function(1,2,3), 4];")[1], True)
+    #     self.assertEqual(par.parse_test_unit("Int(10)[3] g = [5*5, function(1,2,3), 4];")[1], True)
 
     # def test_seq_op_parsing(self):
     #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("Int[6] b = a[5,6,7,8:10];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int a[5,6,7,8:10];"), False)
+    #     self.assertEqual(par.parse_test_unit("Int(10)[6] b = a[5,6,7,8:10];")[1], True)
+    #     self.assertEqual(par.parse_test_unit("Int(10) a[5,6,7,8:10];"), False)
     #     self.assertEqual(par.parse_test_unit("a[5,6,7-8:10];")[1], True)
     #     self.assertEqual(par.parse_test_unit("a[5,6,7,8:10]; b[5,6,7,8:10];")[1], True)
     #     self.assertEqual(par.parse_test_unit("a[5,6,7,8:10] = [1,2,3,4,5,6];")[1], True)
@@ -371,18 +373,18 @@ class TestParser(unittest.TestCase):
 
     # def test_using_expr_parsing(self):
     #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("Int a = (5 * 10) + 3 + (3 * 2);")[1], True)
+    #     self.assertEqual(par.parse_test_unit("Int(10) a = (5 * 10) + 3 + (3 * 2);")[1], True)
 
     # def test_cast_parsing(self):
     #     par = Parser()
-    #     par.parse_test_unit("Int a, b;")
-    #     self.assertEqual(par.parse_test_unit("(Int) a;")[1], True)
+    #     par.parse_test_unit("Int(10) a, b;")
+    #     self.assertEqual(par.parse_test_unit("(Int(10)) a;")[1], True)
     #     self.assertEqual(par.parse_test_unit("(Bit) a;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("(Int[4]) 10;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("(Int[4]) 5 * 3;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("(Int[4]) Bit[10];"), False)
-    #     self.assertEqual(par.parse_test_unit("(Int[4]) Int;"), False)
-    #     self.assertEqual(par.parse_test_unit("(Int[4]) Bit;"), False)
+    #     self.assertEqual(par.parse_test_unit("(Int(10)[4]) 10;")[1], True)
+    #     self.assertEqual(par.parse_test_unit("(Int(10)[4]) 5 * 3;")[1], True)
+    #     self.assertEqual(par.parse_test_unit("(Int(10)[4]) Bit[10];"), False)
+    #     self.assertEqual(par.parse_test_unit("(Int(10)[4]) Int;"), False)
+    #     self.assertEqual(par.parse_test_unit("(Int(10)[4]) Bit;"), False)
 
     # def test_int_decl_semantics(self):
     #     sem_a = Semantic_analyser()
@@ -418,7 +420,6 @@ class TestParser(unittest.TestCase):
     #     self.assertEqual(par.semantic_analyser.value_is_correct_type("Int", "False"), False)
     #     self.assertEqual(par.parse_test_unit("a = b * c * ((4 + 4) - 4);")[1], True)
     #     self.assertEqual(par.parse_test_unit("a = [3,4,2,1] << 3;"), False)
-
 
     # def test_arith_expr_semantics(self):
     #     par = Parser()
@@ -571,6 +572,26 @@ class TestParser(unittest.TestCase):
     #     self.assertEqual(par.parse_test_unit("Int[1][2] h = ((((1,2),(1,2),(1,2),(1,2)),((1,2),(1,2),(1,2),(1,2))));"), False)
     #     self.assertEqual(par.parse_test_unit("Int[1][2][4] i = (((True,False),(True,False),(True,False),(True,False)),((True,False),(True,False),(True,False),(True,False)));"), False)  # NOQA
 
+class TestASTTree(unittest.TestCase):
+
+    # def test_bit_decl(self):
+    #     par = Parser()
+    #     par.parse_test_unit("Bit c, d = 3 + (1 + 2 + 3) * (2 + (Bit) 3 + 2);")
+    #     self.assertEqual(par.AST.tree[0].node_type,  AST_TYPE.BIT_DECL)
+    #     self.assertEqual(par.AST.tree[1].node_type, AST_TYPE.BIT_DECL)
+    #     self.assertEqual(par.AST.tree[1].value.node_type, AST_TYPE.EXPR)
+    #     self.assertEqual(len(par.AST.tree[1].value.expressions[0].expressions), 5)
+    #     self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].value, "3")
+    #     par.parse_test_unit("Bit c = 3;")
+    #     par.parse_test_unit("Bit c = a + b + d;")
+
+    def test_int_decl(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("Int(10) c = 2 + e * (Bit[4]) function(10), d = 3, e;")[1], True)
+
+
 if __name__ == "__main__":
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)
+    unittest.TextTestRunner(verbosity=2).run(suite)
     suite = unittest.TestLoader().loadTestsFromTestCase(TestParser)
     unittest.TextTestRunner(verbosity=2).run(suite)
