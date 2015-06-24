@@ -1,8 +1,22 @@
 from AST_TYPE import AST_TYPE
 from pyparsing import ParseException
+import sys
 
 
 class AST(object):
+
+    ID = 0  # Bit DECL
+    BIT_DECL_CONTENT = 2
+    BIT_EXPR = 2
+    INT_SEQ_CNST = 1
+    INT_SEQ_SIZE = 2
+    INT_SEQ_VALUE = 5
+    BIT_SEQ_SIZE = 1
+    BIT_SEQ_VALUE = 4
+    ID_SET_VALUE = 2
+    INDEX_ID = 1
+    INDEX_SET_VALUE = 3
+    INDEX_SET_ELEMENTS = 2
 
     def __init__(self):
         self._tree = []
@@ -14,45 +28,84 @@ class AST(object):
     def tree(self):
         return self._tree
 
-    def id_set(self, tokens):
-        # print(tokens)
-        pass
-
     def bit_decl(self, tokens):
         # print(tokens[0].dump())
         token = tokens[0]
         for decl in token['value']:
             if 'set_value' in decl:
-                self.add_node(Bit_decl_ast(decl['ID'][0], decl['set_value']))
+                self.add_node(Bit_decl_ast(decl[AST.ID], decl[AST.BIT_EXPR]))
             else:
-                self.add_node(Bit_decl_ast(decl['ID'][0]))
+                self.add_node(Bit_decl_ast(decl[AST.ID]))
 
     def int_decl(self, tokens):
         token = tokens[0]
         # print(token.dump())
         for decl in token['value']:
             if 'set_value' in decl:
-                self.add_node(Int_decl_ast(decl['ID'][0], token['constraints'], decl['set_value']))
+                self.add_node(Int_decl_ast(decl['ID'][0], token[1], decl[2]))
             else:
-                self.add_node(Int_decl_ast(decl['ID'][0], token['constraints']))
+                self.add_node(Int_decl_ast(decl['ID'][0], token[1]))
 
     def seq_decl(self, tokens):
         token = tokens[0]
         if token['type'] == "Int":
             self.int_seq_decl(token)
         elif token['type'] == "Bit":
-            pass
+            self.bit_seq_decl(token)
         else:
             raise ParseException("Unrecognised Token type")
 
     def int_seq_decl(self, token):
-        print("HERE")
-        print(token.dump())
+        # print(token.dump())
         if 'value' in token:
-            print("VALUE IN")
-            self.add_node(Seq_decl_ast(token['ID'][1], token['type'], token['seq_size'], token[5], token['constraints']))
+            # print(token)
+            self.add_node(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], token[AST.INT_SEQ_VALUE], token[AST.INT_SEQ_CNST]))
         else:
-            self.add_node(Seq_decl_ast(token['ID'][1], token['type'], token['seq_size'], constraints=token['constraints']))
+            pass
+            self.add_node(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], constraints=token[AST.INT_SEQ_CNST]))
+
+    def bit_seq_decl(self, token):
+        # print(token.dump())
+        if 'value' in token:
+            self.add_node(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE], token[AST.BIT_SEQ_VALUE]))
+        else:
+            self.add_node(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE]))
+
+    def id_set(self, tokens):
+        token = tokens[0]
+        # print(token.dump())
+        if token[0][0] == "index_select":
+            self.add_node(ID_set_ast(token[0][1][1][0],
+                          token[2],
+                          token[0][1][2]))
+        else:
+            self.add_node(ID_set_ast(token[AST.ID], token[AST.ID_SET_VALUE]))
+
+
+class ID_set_ast(object):
+
+    node_type = AST_TYPE.ID_SET
+
+    def __init__(self, set_id, value, elements=None):
+        self._ID = ID_ast(set_id)
+        self._value = Expr_ast(value)
+
+        if elements is not None:
+            self._elements = Expr_ast(elements)
+        else:
+            self._elements = None
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def ID(self):
+        return self._ID
+
+    @property
+    def elements(self):
+        return self._elements
 
 
 class Seq_decl_ast(object):
@@ -60,21 +113,35 @@ class Seq_decl_ast(object):
     node_type = AST_TYPE.SEQ_DECL
 
     def __init__(self, seq_id, seq_type, size, value=None, constraints=None):
-        self._id = ID_ast(seq_id)
+        self._ID = ID_ast(seq_id)
         self._type = seq_type
         if value is not None:
-            # print(value)
             self._value = Expr_ast(value)
         else:
             self._value = None
-        self._size = Expr_ast(size)
+        self._size = []
+        for s in size:
+            self._size.append(Expr_ast(size))
+
         if constraints is not None:
             self._bit_constraints = Expr_ast(constraints)
 
     @property
+    def size(self):
+        return self._size
+
+    @property
     def value(self):
         return self._value
-    
+
+    @property
+    def ID(self):
+        return self._ID
+
+    @property
+    def bit_constraints(self):
+        return self._bit_constraints
+
 
 class Int_decl_ast(object):
 
@@ -118,6 +185,9 @@ class Bit_decl_ast(object):
 
 class Expr_ast(object):
 
+    CONTENT = 1
+    OPERAND_ID = 0
+
     op_lookup = {'*': AST_TYPE.ARITH_OP,
                  '-': AST_TYPE.ARITH_OP,
                  '/': AST_TYPE.ARITH_OP,
@@ -144,7 +214,8 @@ class Expr_ast(object):
                       'ID': AST_TYPE.ID,
                       'Int_val': AST_TYPE.INT_VAL,
                       'cast': AST_TYPE.CAST,
-                      'Bit_val': AST_TYPE.BIT_VAL}
+                      'Bit_val': AST_TYPE.BIT_VAL,
+                      'seq_range': AST_TYPE.INDEX_RANGE}
 
     node_type = AST_TYPE.EXPR
 
@@ -176,28 +247,36 @@ class Expr_ast(object):
             return False
 
     def add_operand(self, token):
-        operand_type = Expr_ast.operand_lookup[token[0]]
+
+        operand_type = Expr_ast.operand_lookup[token[Expr_ast.OPERAND_ID]]
         if operand_type == AST_TYPE.INT_VAL:
-            self.expressions.append(Int_val_ast(token[1]))
+            self.expressions.append(Int_literal_ast(token[Expr_ast.CONTENT][0]))
         elif operand_type == AST_TYPE.CAST:
-            self.expressions.append(cast_ast(token[1], token[2]))
+            self.expressions.append(cast_ast(token[Expr_ast.CONTENT][0], token[Expr_ast.CONTENT][1]))
         elif operand_type == AST_TYPE.ID:
-            self.expressions.append(ID_ast(token[1]))
+            self.expressions.append(ID_ast(token[Expr_ast.CONTENT][0]))
         elif operand_type == AST_TYPE.FUNCTION_CALL:
-            if len(token) == 4:
-                self.expressions.append(Func_call_ast(token[2], token[3]))
-            elif len(token) == 3:
-                self.expressions.append(Func_call_ast(token[2]))
+            if len(token[1]) == 3:
+                self.expressions.append(Func_call_ast(token[Expr_ast.CONTENT][1][0], token[Expr_ast.CONTENT][2]))
+            elif len(token[1]) == 2:
+                self.expressions.append(Func_call_ast(token[Expr_ast.CONTENT][1][0]))
             else:
                 raise ParseException("Function Token not as expected")
         elif operand_type == AST_TYPE.SEQ_VAL:
-            self.expressions.append(seq_value(token))
+            try:
+                self.expressions.append(seq_value_ast(token[Expr_ast.CONTENT][0]))
+            except IndexError:
+                self.expressions.append(seq_value_ast())
         elif operand_type == AST_TYPE.INDEX_SEL:
-            # print("INDEX SEL")
-            self.add_expr(Seq_index_select_ast(token[2], token[3]))
+            self.add_expr(Seq_index_select_ast(token[Expr_ast.CONTENT][1][0], token[Expr_ast.CONTENT][2]))
+        elif operand_type == AST_TYPE.BIT_VAL:
+            self.expressions.append(Bit_literal_ast(token[Expr_ast.CONTENT][0]))
+        elif operand_type == AST_TYPE.INDEX_RANGE:
+            self.expressions.append(Seq_range_ast(token[Expr_ast.CONTENT]))
         else:
             print("ERROR")
             print(token)
+            sys.exit(1)
 
     def is_operator(self, token):
         try:
@@ -219,18 +298,35 @@ class Expr_ast(object):
         self.expressions.append(expr)
 
 
-class seq_value(object):
+class Seq_range_ast(object):
+
+    node_type = AST_TYPE.INDEX_RANGE
+
+    def __init__(self, seq_range):
+
+        self._start = Expr_ast(seq_range[0])
+        self._finish = Expr_ast(seq_range[1])
+
+    @property
+    def start(self):
+        return self._start
+
+    @property
+    def finish(self):
+        return self._finish
+
+
+class seq_value_ast(object):
 
     node_type = AST_TYPE.SEQ_VAL
 
-    def __init__(self, value):
-        self._value = []
-        if value[0] != "Seq_val":
-            raise ParseException("Tried to add non sequence value as parameter")
+    def __init__(self, value=None):
+        if value is not None:
+            self._value = []
+            for p in value:
+                self._value.append(Expr_ast(p))
         else:
-            value.pop(0)
-        for p in value:
-            self._value.append(Expr_ast(p))
+            self._value = value
 
     @property
     def value(self):
@@ -274,7 +370,7 @@ class Operator_ast(object):
         return self._type
 
 
-class Int_val_ast(object):
+class Int_literal_ast(object):
 
     node_type = AST_TYPE.INT_VAL
 
@@ -285,24 +381,55 @@ class Int_val_ast(object):
     def value(self):
         return self._value
 
+
+class Bit_literal_ast(object):
+
+    node_type = AST_TYPE.BIT_VAL
+
+    def __init__(self, bit_val):
+        self._value = bit_val
+
+    @property
+    def value(self):
+        return self._value
+
+
 class Seq_index_select_ast(object):
 
     node_type = AST_TYPE.INDEX_SEL
 
     def __init__(self, index_sel_id, indices):
-        print(index_sel_id)
-        print(indices)
-        # self._id = index_sel_id
-        # self._indices = []
-        # for i in indices:
-        #     self._indices.append(Expr_ast(i))
+        self._ID = ID_ast(index_sel_id)
+        self._indices = []
+        for i in indices:
+            self._indices.append(Expr_ast(i))
+
+    @property
+    def ID(self):
+        return self._ID
+
+    @property
+    def indices(self):
+        return self._indices
+
+class Cast_type_ast(object):
+
+    def __init__(self, operation):
+        self._target_type = operation[0]
+        try:
+            self._elements = Expr_ast(operation[1])
+            if len(operation[1]) > 1:
+                raise ParseException("Can only cast into one dimension array")
+        except IndexError:
+            self._elements = None
+
 
 class cast_ast(object):
 
     node_type = AST_TYPE.CAST
 
     def __init__(self, cast_type, expr):
-        self._cast_operation = cast_type
+        self._cast_operation = Cast_type_ast(cast_type)
         self._target = Expr_ast(expr)
 
     @property

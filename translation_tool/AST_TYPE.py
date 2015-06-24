@@ -17,4 +17,6 @@ class AST_TYPE(Enum):
     EXPR = 12,
     ARITH_OP = 13,
     BITWISE_OP = 14,
-    COMP_OP = 15
+    COMP_OP = 15,
+    INDEX_RANGE = 16,
+    ID_SET = 17
