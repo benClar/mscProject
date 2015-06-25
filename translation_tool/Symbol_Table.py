@@ -1,4 +1,6 @@
 import unittest
+from pyparsing import ParseException
+from AST_TYPE import AST_TYPE
 
 
 class Symbol_Table(object):
@@ -13,12 +15,13 @@ class Symbol_Table(object):
     def table(self):
         return self._table
 
-    def add_int_id(self, scope, ID, id_value=None, id_constraints=None):
-        self.add_id(scope, ID, "Int", id_value)
-        self.table[scope][ID[0]]["bit_cnst"] = id_constraints
+    def add_bit_id(self, scope, ID_node):
+        self.add_id(scope, ID_node, AST_TYPE.BIT_VAL)
+
+    def add_int_id(self, scope, ID):
+        self.add_id(scope, ID, AST_TYPE.INT_VAL)
 
     def add_seq_id(self, scope, ID, id_type, id_value=None):
-        # print(id_value)
         self.add_id(scope, ID, "Seq", id_value)
         self.table[scope][ID[0]]["seq_type"] = id_type["type"]
         seq = []
@@ -28,23 +31,22 @@ class Symbol_Table(object):
         print(seq)
         self.table[scope][ID[0]]["dimension"] = seq
 
-    def add_id(self, scope, ID, id_type, id_value=None):
+    def add_id(self, scope, ID_node, id_type):
         if scope in self.table:
-            if ID not in self.table[scope]:
-                self.table[scope][ID[0]] = {}
-                self.table[scope][ID[0]]["type"] = id_type
-                self.table[scope][ID[0]]["value"] = id_value
+            if ID_node.ID not in self.table[scope]:
+                self.table[scope][ID_node.ID] = {}
+                self.table[scope][ID_node.ID]["type"] = id_type
             else:
-                raise ValueError("Redeclaration of symbol")
+                raise ParseException("Redeclaration of symbol")
         else:
-            raise ValueError("Scope Does Not Exist")
+            raise ParseException("Scope Does Not Exist")
 
     def update_id(self, scope, ID, value):
         self.table[scope][ID]["value"] = value
 
-    def id_type(self, scope, ID):
+    def id_type(self, scope, ID_node):
         try:
-            return self.table[scope][ID]["type"]
+            return self.table[scope][ID_node.ID]["type"]
         except KeyError:
             return None
 

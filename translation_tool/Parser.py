@@ -1,7 +1,7 @@
 from pyparsing import Literal, Word, nums, ParseException, Forward, alphas,\
     Suppress, Group, ZeroOrMore, Keyword, alphanums, NotAny, CharsNotIn, \
     OneOrMore, Optional, delimitedList, StringEnd, oneOf, srange, Combine, \
-    infixNotation, opAssoc, White, ParserElement, operatorPrecedence
+    infixNotation, opAssoc, White, ParserElement, operatorPrecedence, ParseResults
 import unittest
 from Semantic_analyser import Semantic_analyser
 from AST import *
@@ -109,10 +109,11 @@ class Parser(object):
 
         # self.expr = self.arith_expr | self.bitwise_expr | self.seq_val("seq") | self.bit_val("bit")
 
-        self.expr = Group(infixNotation(Group(self.operand), [(self.bitwise_op, 2, opAssoc.LEFT),
-                                                              (self.comparison_op, 2, opAssoc.LEFT),
-                                                              (self.log_op, 2, opAssoc.LEFT),
-                                                              (self.arith_op, 2, opAssoc.LEFT)]))
+        self.expr = Group(infixNotation(Group(self.operand), [(self.bitwise_op, 2, opAssoc.LEFT, self.nest_operand_pairs),
+                                                              (self.comparison_op, 2, opAssoc.LEFT, self.nest_operand_pairs),
+                                                              (self.log_op, 2, opAssoc.LEFT, self.nest_operand_pairs),
+                                                              (self.arith_op, 2, opAssoc.LEFT, self.nest_operand_pairs)]))
+
         # self.expr.setParseAction(self.AST.expr)
         self.int_size = self.int_("decl") + ~White() + Suppress(self.l_bracket) + self.expr + Suppress(self.r_bracket)
 
@@ -180,9 +181,30 @@ class Parser(object):
         self.seq_decl.setParseAction(self.AST.seq_decl)
         self.id_set.setParseAction(self.AST.id_set)
 
+    def nest_operand_pairs(self, tokens):
+        tokens = tokens[0]
+        ret = ParseResults(tokens[:3])
+        remaining = iter(tokens[3:])
+        done = False
+        while not done:
+            next_pair = (next(remaining, None), next(remaining, None))
+            if next_pair == (None, None):
+                done = True
+                break
+            ret = ParseResults([ret])
+            ret += ParseResults(list(next_pair))
+        return [ret]
+
     @property
     def AST(self):
         return self._AST
+
+    @AST.setter
+    def AST(self, value):
+        self._AST = value
+
+    def analyse_tree_test(self, AST):
+        return self.semantic_analyser.analyse(AST)
 
     def parse_test_unit(self, data_in):
         """Parses single statements"""
@@ -196,6 +218,16 @@ class Parser(object):
             pass
             # print(res[0].dump())
         return [res, True]
+
+    def parse_test_AST_semantic(self, data_in):
+        """Parses single statements and returns AST"""
+        try:
+            self.grammar_test.parseString(data_in)
+        except ParseException as details:
+            print("The following error occured:")
+            print(details)
+            return False
+        return self.AST
 
     def parse_test_integration(self, data_in):
         """Only Parses Statements in functions"""
@@ -213,9 +245,8 @@ class Parser(object):
         return self.grammar.parseString(data_in)
 
 
-class TestParser(unittest.TestCase):
+class TestParser(unittest.TestCase):  
     pass
-
     def test_int_decl_parsing(self):
         par = Parser()
         self.assertEqual(par.parse_test_unit("Int(10) varName;")[1], True)
@@ -384,25 +415,21 @@ class TestParser(unittest.TestCase):
         self.assertEqual(par.parse_test_unit("(Int(10)[4]) Bit;"), False)
 
 class TestASTTree(unittest.TestCase):
-
+    pass
     def test_bit_decl(self):
         par = Parser()
         self.assertEqual(par.parse_test_unit("Bit c, d = 3 + (1 + 2 + 3) * (2 + (Bit) 3 + 2);")[1], True)
         self.assertEqual(par.AST.tree[0].node_type,  AST_TYPE.BIT_DECL)
         self.assertEqual(par.AST.tree[1].node_type, AST_TYPE.BIT_DECL)
         self.assertEqual(par.AST.tree[1].value.node_type, AST_TYPE.EXPR)
-        self.assertEqual(len(par.AST.tree[1].value.expressions[0].expressions), 5)
-        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].value, "3")
-        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[1].operator, "+")
-        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[2].expressions[0].value, "1")
+        self.assertEqual(len(par.AST.tree[1].value.expressions[0].expressions), 3)
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[0].value, "3")
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[1].operator, "*")
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[2].expressions[0].expressions[0].value, "1")
         self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[2].expressions[1].operator, "+")
-        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[2].expressions[2].value, "2")
-        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[2].expressions[3].operator, "+")
-        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[2].expressions[4].value, "3")
-        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[3].operator, "*")
-        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[4].expressions[0].value, "2")
-        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[4].expressions[1].operator, "+")
-        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[4].expressions[2].node_type, AST_TYPE.CAST)
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[2].expressions[0].expressions[2].value, "2")
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[2].expressions[1].operator, "+")
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[2].expressions[2].target.expressions[0].expressions[0].value, "3")
 
     def test_int_decl(self):
         par = Parser()
@@ -412,14 +439,14 @@ class TestASTTree(unittest.TestCase):
         self.assertEqual(par.AST.tree[0].node_type,  AST_TYPE.INT_DECL)
         self.assertEqual(par.AST.tree[1].node_type,  AST_TYPE.INT_DECL)
         self.assertEqual(par.AST.tree[2].node_type,  AST_TYPE.INT_DECL)
-        self.assertEqual(par.AST.tree[0].ID.ID, "c")
-        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value,  "2")
-        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[1].operator,  "+")
-        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].ID,  "e")
-        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[3].operator,  "*")
-        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[4].node_type, AST_TYPE.CAST)
-        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[4].target.expressions[0].ID.ID, "function")
-        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[4].target.expressions[0].parameters[0].expressions[0].value, "10")
+        self.assertEqual(par.AST.tree[0].ID, "c")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].expressions[0].value,  "2")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[1].operator,  "*")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].expressions[2].ID,  "e")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[1].operator,  "*")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].node_type, AST_TYPE.CAST)
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].target.expressions[0].ID.ID, "function")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].target.expressions[0].parameters[0].expressions[0].value, "10")
 
     def test_int_seq_decl(self):
         par = Parser()
@@ -435,18 +462,19 @@ class TestASTTree(unittest.TestCase):
         self.assertEqual(par.AST.tree[0].value.expressions[0].node_type, AST_TYPE.SEQ_VAL)
         self.assertEqual(par.AST.tree[0].value.expressions[0].value[0].expressions[0].value, "1")
         self.assertEqual(par.AST.tree[0].value.expressions[0].value[1].expressions[0].parameters[0].expressions[0].value, "1")
-        self.assertEqual(par.AST.tree[0].value.expressions[0].value[3].expressions[0].expressions[0].expressions[0].value, "1")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].value[3].expressions[0].expressions[0].expressions[0].expressions[0].value, "1")
         self.assertEqual(par.AST.tree[0].value.expressions[0].value[3].expressions[0].expressions[0].expressions[1].operator, "*")
-        self.assertEqual(par.AST.tree[0].value.expressions[0].value[3].expressions[0].expressions[0].expressions[2].value, "2")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].value[3].expressions[0].expressions[0].expressions[0].expressions[2].value, "2")
         self.assertEqual(par.AST.tree[0].value.expressions[0].value[3].expressions[0].expressions[1].operator, "<<")
         self.assertEqual(par.AST.tree[0].value.expressions[0].value[3].expressions[0].expressions[2].value, "4")
         self.assertEqual(par.AST.tree[0].value.expressions[0].value[4].expressions[0].expressions[0].ID, "d")
         self.assertEqual(par.parse_test_unit("Int(10) z = b[1 * 4];")[1], True)
-        self.assertEqual(par.AST.tree[6].ID.ID, "z")
+        self.assertEqual(par.AST.tree[6].ID, "z")
         self.assertEqual(par.AST.tree[6].value.expressions[0].ID.ID, "b")
         self.assertEqual(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[0].value, "1")
         self.assertEqual(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[1].operator, "*")
         self.assertEqual(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[2].value, "4")
+        self.assertEqual(par.parse_test_unit("Int(10) a = 2;")[1], True)
 
     def test_bit_seq_decl(self):
         par = Parser()
@@ -464,19 +492,60 @@ class TestASTTree(unittest.TestCase):
         par = Parser()
         self.assertEqual(par.parse_test_unit("a = b + 10 * function(a, b);")[1], True)
         self.assertEqual(par.parse_test_unit("a = [];")[1], True)
-        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].ID, "b")
-        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[1].operator, "+")
-        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[4].parameters[0].expressions[0].ID, "a")
-        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[4].parameters[1].expressions[0].ID, "b")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].expressions[0].ID, "b")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[1].operator, "*")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].parameters[0].expressions[0].ID, "a")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].parameters[1].expressions[0].ID, "b")
         self.assertEqual(par.parse_test_unit("a[1,2,3,4:5] = (Bit[4]) b + 10 * function(a, b);")[1], True)
         self.assertEqual(par.AST.tree[2].elements.expressions[0].expressions[0].value, "1")
         self.assertEqual(par.AST.tree[2].elements.expressions[1].expressions[0].value, "2")
         self.assertEqual(par.AST.tree[2].elements.expressions[3].expressions[0].start.expressions[0].value, "4")
-        self.assertEqual(par.AST.tree[2].value.expressions[0].target.expressions[0].expressions[4].node_type, AST_TYPE.FUNCTION_CALL)
+        self.assertEqual(par.AST.tree[2].value.expressions[0].target.expressions[0].expressions[2].node_type, AST_TYPE.FUNCTION_CALL)
 
+class TestSemanticAnalysisTree(unittest.TestCase):
+    # pass
+    def test_int_decl(self):
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 4 << [1,2,3,4] << 2;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 4 << 3 << 2;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10; Int(10) a = 20;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10; Int(10) b = 20;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10; Int(10) b = a;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = False;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10 + False << 4;")), False)
+
+    def test_bit_decl(self):
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = False;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = 1;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = False + False;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = False; Bit a = True;")), False)
+
+    def test_mixing_bit_int(self):
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit b = True;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit b = True; Int(10) c = b;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit b = True; Int(10) c = 5 * (b);")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Int(10) b = 10; Int(10) c = 5 * (b);")), True)
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    unittest.TextTestRunner(verbosity=0).run(suite)
     suite = unittest.TestLoader().loadTestsFromTestCase(TestParser)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    unittest.TextTestRunner(verbosity=0).run(suite)
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestSemanticAnalysisTree)
+    unittest.TextTestRunner(verbosity=0).run(suite)

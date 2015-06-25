@@ -154,7 +154,7 @@ class Int_decl_ast(object):
 
     @property
     def ID(self):
-        return self._ID
+        return self._ID.ID
 
     @property
     def bit_constraints(self):
@@ -180,7 +180,7 @@ class Bit_decl_ast(object):
 
     @property
     def ID(self):
-        return self._ID
+        return self._ID.ID
 
 
 class Expr_ast(object):
@@ -194,10 +194,10 @@ class Expr_ast(object):
                  '%': AST_TYPE.ARITH_OP,
                  '+': AST_TYPE.ARITH_OP,
                  '%': AST_TYPE.ARITH_OP,
-                 '>>': AST_TYPE.BITWISE_OP,
-                 '<<': AST_TYPE.BITWISE_OP,
-                 '>>>': AST_TYPE.BITWISE_OP,
-                 '<<<': AST_TYPE.BITWISE_OP,
+                 '>>': AST_TYPE.SHIFT_OP,
+                 '<<': AST_TYPE.SHIFT_OP,
+                 '>>>': AST_TYPE.SHIFT_OP,
+                 '<<<': AST_TYPE.SHIFT_OP,
                  '^': AST_TYPE.BITWISE_OP,
                  '&': AST_TYPE.BITWISE_OP,
                  '~': AST_TYPE.BITWISE_OP,
@@ -359,7 +359,7 @@ class Operator_ast(object):
 
     def __init__(self, op, op_type):
         self._operator = op
-        self._type = op_type
+        self._node_type = op_type
 
     @property
     def operator(self):
@@ -368,6 +368,11 @@ class Operator_ast(object):
     @property
     def type(self):
         return self._type
+
+    @property
+    def node_type(self):
+        return self._node_type
+    
 
 
 class Int_literal_ast(object):
@@ -380,6 +385,9 @@ class Int_literal_ast(object):
     @property
     def value(self):
         return self._value
+
+    # def __str__(self):
+    #     return (self.value)
 
 
 class Bit_literal_ast(object):

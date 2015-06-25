@@ -1,17 +1,8 @@
-# greeting.py
-#
-# Demonstration of the pyparsing module, on the prototypical "Hello, World!"
-# example
-#
-# Copyright 2003, by Paul McGuire
-#
-from pyparsing import Word, alphas
+expr = ['a', 'b', 'c', 'd', 'e']
 
-# define grammar
-greet = Word( alphas ) + "," + Word( alphas ) + "!"
-
-# input string
-hello = "Hello, World!"
-
-# parse input string
-print(hello, "->", greet.parseString( hello ))
+for i, letter in enumerate(expr):
+    print(i)
+    print(letter)
+    if letter == 'c':
+        expr = expr[:i]
+        break
