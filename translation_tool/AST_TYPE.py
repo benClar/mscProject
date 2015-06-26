@@ -21,4 +21,6 @@ class AST_TYPE(Enum):
     INDEX_RANGE = 16,
     ID_SET = 17,
     OP = 18,
-    SHIFT_OP = 19
+    SHIFT_OP = 19,
+    SEQ_INT_VAL = 20,
+    SEQ_BIT_VAL = 21

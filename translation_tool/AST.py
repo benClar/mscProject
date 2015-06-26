@@ -101,7 +101,7 @@ class ID_set_ast(object):
 
     @property
     def ID(self):
-        return self._ID
+        return self._ID.ID
 
     @property
     def elements(self):
@@ -121,7 +121,7 @@ class Seq_decl_ast(object):
             self._value = None
         self._size = []
         for s in size:
-            self._size.append(Expr_ast(size))
+            self._size.append(Expr_ast(s))
 
         if constraints is not None:
             self._bit_constraints = Expr_ast(constraints)
@@ -142,6 +142,10 @@ class Seq_decl_ast(object):
     def bit_constraints(self):
         return self._bit_constraints
 
+    @property
+    def type(self):
+        return self._type
+
 
 class Int_decl_ast(object):
 
@@ -150,7 +154,10 @@ class Int_decl_ast(object):
     def __init__(self, ID, bit_constraints, expr=None):
         self._ID = ID_ast(ID)
         self._bit_constraints = Expr_ast(bit_constraints)
-        self._value = Expr_ast(expr)
+        if expr is not None:
+            self._value = Expr_ast(expr)
+        else:
+            self._value = None
 
     @property
     def ID(self):
@@ -172,7 +179,10 @@ class Bit_decl_ast(object):
     def __init__(self, ID, value=None):
 
         self._ID = ID_ast(ID)
-        self._value = Expr_ast(value)
+        if value is not None:
+            self._value = Expr_ast(value)
+        else:
+            self._value = None
 
     @property
     def value(self):
@@ -331,6 +341,10 @@ class seq_value_ast(object):
     @property
     def value(self):
         return self._value
+
+    @property
+    def size(self):
+        return len(self.value)
 
 
 class Func_call_ast(object):
