@@ -20,31 +20,45 @@ class AST(object):
 
     def __init__(self):
         self._tree = []
+        self._statements = []
 
-    def add_node(self, node):
-        self.tree.append(node)
+    def add_function_node(self, node):
+        """Bypasses check and directly adds node to function list"""
+        self._tree.append(node)
+
+    def add_statement(self, node):
+        self.statements.append(node)
+
+    @property
+    def statements(self):
+        return self._statements
 
     @property
     def tree(self):
-        return self._tree
+        """returns the list of statement nodes for testing if there are no function nodes"""
+        if len(self._tree) == 0:
+            return self._statements
+        else:
+            return self._tree
+
 
     def bit_decl(self, tokens):
         # print(tokens[0].dump())
         token = tokens[0]
         for decl in token['value']:
             if 'set_value' in decl:
-                self.add_node(Bit_decl_ast(decl[AST.ID], decl[AST.BIT_EXPR]))
+                self.add_statement(Bit_decl_ast(decl[AST.ID], decl[AST.BIT_EXPR]))
             else:
-                self.add_node(Bit_decl_ast(decl[AST.ID]))
+                self.add_statement(Bit_decl_ast(decl[AST.ID]))
 
     def int_decl(self, tokens):
         token = tokens[0]
         # print(token.dump())
         for decl in token['value']:
             if 'set_value' in decl:
-                self.add_node(Int_decl_ast(decl['ID'][0], token[1], decl[2]))
+                self.add_statement(Int_decl_ast(decl['ID'][0], token[1], decl[2]))
             else:
-                self.add_node(Int_decl_ast(decl['ID'][0], token[1]))
+                self.add_statement(Int_decl_ast(decl['ID'][0], token[1]))
 
     def seq_decl(self, tokens):
         token = tokens[0]
@@ -59,28 +73,64 @@ class AST(object):
         # print(token.dump())
         if 'value' in token:
             # print(token)
-            self.add_node(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], token[AST.INT_SEQ_VALUE], token[AST.INT_SEQ_CNST]))
+            self.add_statement(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], token[AST.INT_SEQ_VALUE], token[AST.INT_SEQ_CNST]))
         else:
             pass
-            self.add_node(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], constraints=token[AST.INT_SEQ_CNST]))
+            self.add_statement(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], constraints=token[AST.INT_SEQ_CNST]))
 
     def bit_seq_decl(self, token):
         # print(token.dump())
         if 'value' in token:
-            self.add_node(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE], token[AST.BIT_SEQ_VALUE]))
+            self.add_statement(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE], token[AST.BIT_SEQ_VALUE]))
         else:
-            self.add_node(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE]))
+            self.add_statement(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE]))
 
     def id_set(self, tokens):
         token = tokens[0]
         # print(token.dump())
         if token[0][0] == "index_select":
-            self.add_node(ID_set_ast(token[0][1][1][0],
-                          token[2],
-                          token[0][1][2]))
+            self.add_statement(ID_set_ast(token[0][1][1][0],
+                               token[2],
+                               token[0][1][2]))
         else:
-            self.add_node(ID_set_ast(token[AST.ID], token[AST.ID_SET_VALUE]))
+            self.add_statement(ID_set_ast(token[AST.ID], token[AST.ID_SET_VALUE]))
 
+    def function_decl(self, tokens):
+        token = tokens[0]
+        # print(token.dump())
+        self.add_function_node(function_declaration_ast(token[0], token[1][1][0], token[2]))
+        self.tree[-1].stmts += self.statements[:]
+        self.statements.clear()
+
+
+class function_declaration_ast(object):
+
+    node_type = AST_TYPE.FUNC_DECL
+
+    def __init__(self, return_value, ID, parameters):
+        self._stmts = []
+        self._ID = ID_ast(ID)
+        self._parameters = []
+
+        for p in parameters:
+            self._parameters.append({"param_type": p[0], "param_ID": p[1][1][0]})
+
+        self.return_value = AST_TYPE.convert(return_value)
+
+    @property
+    def stmts(self):
+        return self._stmts
+
+    def add_statement(self, stmt):
+        self.stmts.append(stmt)
+
+    @property
+    def ID(self):
+        return self._ID.ID
+
+    @stmts.setter
+    def stmts(self, value):
+        self._stmts = value
 
 class ID_set_ast(object):
 

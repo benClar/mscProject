@@ -23,4 +23,9 @@ class AST_TYPE(Enum):
     OP = 18,
     SHIFT_OP = 19,
     SEQ_INT_VAL = 20,
-    SEQ_BIT_VAL = 21
+    SEQ_BIT_VAL = 21,
+    FUNC_DECL = 22
+
+    def convert(type_input):
+        if type_input == "Int":
+            return AST_TYPE.INT_VAL

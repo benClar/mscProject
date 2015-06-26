@@ -135,27 +135,7 @@ class Semantic_analyser(object):
     #         return True
     #     else:
     #         return False
-
-    # def convert_base(self, val):
-    #     if len(val) > 1 and val[1] == 'x':
-    #         return int(val, 16)
-    #     elif len(val) > 1 and val[1] == 'b':
-    #         return int(val, 2)
-    #     else:
-    #         return int(val)
-
-    def convert_base_to_str(self, tokens):
-        return str(self.convert_base(tokens[0]))
-
-    def convert_to_bin_str(self, val):
-        if len(val) > 1 and val[1] == 'x':
-            return str(int(val, 16)).zfill((len(val) - 2) - len(int(val, 16)) * 4)
-        elif len(val) > 1 and val[1] == 'b':
-            return str(int(val, 2)).zfill((len(val) - 2) - len(int(val, 2)))
-        else:
-            return str(int(val)).zfill((len(val)) - len(int(val)))
-
-    # def analyse_constraints(self, value, constraints):
+# def analyse_constraints(self, value, constraints):
     #     val = self.convert_base(value)
     #     if val.bit_length() > int(constraints):
     #         return False
@@ -270,6 +250,25 @@ class Semantic_analyser(object):
     #         self.add_int_decl(decl, token)
     #     print("DONE")
     #     return tokens
+
+    def convert_base(self, val):
+        if len(val) > 1 and val[1] == 'x':
+            return int(val, 16)
+        elif len(val) > 1 and val[1] == 'b':
+            return int(val, 2)
+        else:
+            return int(val)
+
+    def convert_base_to_str(self, tokens):
+        return str(self.convert_base(tokens[0]))
+
+    def convert_to_bin_str(self, val):
+        if len(val) > 1 and val[1] == 'x':
+            return str(int(val, 16)).zfill((len(val) - 2) - len(int(val, 16)) * 4)
+        elif len(val) > 1 and val[1] == 'b':
+            return str(int(val, 2)).zfill((len(val) - 2) - len(int(val, 2)))
+        else:
+            return str(int(val)).zfill((len(val)) - len(int(val)))
 
     def analyse_int_decl(self, node):
         try:
