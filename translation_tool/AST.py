@@ -41,9 +41,8 @@ class AST(object):
         else:
             return self._tree
 
-
     def bit_decl(self, tokens):
-        # print(tokens[0].dump())
+        # print(tokens)
         token = tokens[0]
         for decl in token['value']:
             if 'set_value' in decl:
@@ -69,10 +68,42 @@ class AST(object):
         else:
             raise ParseException("Unrecognised Token type")
 
+    def for_loop(self, tokens):
+        token = tokens[0]
+        initializer = []
+        terminator = []
+        increment = []
+        stmts = []
+        try:
+            for i in token["init"]:
+                initializer.append(self.statements.pop(0))
+        except KeyError:
+            initializer = None
+        try:
+            for t in token["term"]:
+                terminator = Expr_ast(token["term"])
+        except KeyError:
+            terminator = None
+        try:
+            for i in token["increm"]:
+                increment.append(self.statements.pop(0))
+        except KeyError:
+            increment = None
+        try:
+            for s in token["loop_body"]:
+                stmts.append(self.statements.pop(0))
+        except KeyError:
+            stmts = None
+
+        self.add_statement(for_loop_ast(initializer, terminator, increment, stmts))
+
+    def terminator(self, tokens):
+        if len(tokens) > 0:
+            token = tokens[0]
+            self.add_statement(Expr_ast(token))
+
     def int_seq_decl(self, token):
-        # print(token.dump())
         if 'value' in token:
-            # print(token)
             self.add_statement(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], token[AST.INT_SEQ_VALUE], token[AST.INT_SEQ_CNST]))
         else:
             pass
@@ -101,6 +132,47 @@ class AST(object):
         self.add_function_node(function_declaration_ast(token[0], token[1][1][0], token[2]))
         self.tree[-1].stmts += self.statements[:]
         self.statements.clear()
+
+    def return_stmt(self, tokens):
+        token = tokens[0]
+        self.add_statement(return_stmt_ast(token[1]))
+
+    def expr(self, tokens):
+        print(tokens)
+
+    def if_cond(self, tokens):
+        # print(tokens[0].dump())
+        # print(">>>>")
+        token = tokens[0]
+        stmts = []
+        try:
+            for s in token["body"]:
+                i = self.statements.pop(0)
+                print(i)
+                stmts.append(self.statements.pop(0))
+        except KeyError:
+            stmts = None
+        self.add_statement(if_stmt_ast(Expr_ast(token["if_cond"]), stmts))
+        print(self.statements)
+
+class if_stmt_ast(object):
+
+    node_type = AST_TYPE.IF_STMT
+
+    def __init__(self, condition, body):
+        self._condition = condition
+        self._body = body
+
+class return_stmt_ast(object):
+
+    node_type = AST_TYPE.RETURN_STMT
+
+    def __init__(self, expr):
+        self._expr = Expr_ast(expr)
+
+    @property
+    def expr(self):
+        return self._expr
 
 
 class function_declaration_ast(object):
@@ -131,6 +203,26 @@ class function_declaration_ast(object):
     @stmts.setter
     def stmts(self, value):
         self._stmts = value
+
+
+class for_loop_ast(object):
+
+    node_type = AST_TYPE.FOR_LOOP
+
+    def __init__(self, initializer, terminator, increment, body):
+        self._initializer = initializer
+        self._terminator = terminator
+        self._increment = increment
+        self._body = body
+
+    @property
+    def terminator(self):
+        return self._terminator
+
+    @property
+    def body(self):
+        return self._body
+
 
 class ID_set_ast(object):
 
@@ -266,7 +358,8 @@ class Expr_ast(object):
                  '>=': AST_TYPE.COMP_OP,
                  '<': AST_TYPE.COMP_OP,
                  '<=': AST_TYPE.COMP_OP,
-                 '&&': AST_TYPE.COMP_OP}
+                 '&&': AST_TYPE.COMP_OP,
+                 '==': AST_TYPE.COMP_OP}
 
     operand_lookup = {'Seq_val': AST_TYPE.SEQ_VAL,
                       'index_select': AST_TYPE.INDEX_SEL,
@@ -436,7 +529,6 @@ class Operator_ast(object):
     @property
     def node_type(self):
         return self._node_type
-    
 
 
 class Int_literal_ast(object):
@@ -483,6 +575,7 @@ class Seq_index_select_ast(object):
     @property
     def indices(self):
         return self._indices
+
 
 class Cast_type_ast(object):
 
