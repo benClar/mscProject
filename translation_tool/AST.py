@@ -21,13 +21,22 @@ class AST(object):
     def __init__(self):
         self._tree = []
         self._statements = []
+        self._target = []
+        self.add_target({'parent': self, 'target': self._statements})
+
+    def add_target(self, target):
+        self._target.insert(0, target)
+
+    def remove_target(self):
+        return self._target.pop(0)
 
     def add_function_node(self, node):
         """Bypasses check and directly adds node to function list"""
         self._tree.append(node)
 
     def add_statement(self, node):
-        self.statements.append(node)
+        # print(self._target[0])
+        self._target[0]['target'].append(node)
 
     @property
     def statements(self):
@@ -68,34 +77,58 @@ class AST(object):
         else:
             raise ParseException("Unrecognised Token type")
 
-    def for_loop(self, tokens):
-        token = tokens[0]
-        initializer = []
-        terminator = []
-        increment = []
-        stmts = []
-        try:
-            for i in token["init"]:
-                initializer.append(self.statements.pop(0))
-        except KeyError:
-            initializer = None
-        try:
-            for t in token["term"]:
-                terminator = Expr_ast(token["term"])
-        except KeyError:
-            terminator = None
-        try:
-            for i in token["increm"]:
-                increment.append(self.statements.pop(0))
-        except KeyError:
-            increment = None
-        try:
-            for s in token["loop_body"]:
-                stmts.append(self.statements.pop(0))
-        except KeyError:
-            stmts = None
+    def begin_for(self, tokens):
+        new_for = for_loop_ast()
+        self.add_statement(new_for)
+        self.add_target({'parent': new_for, 'target': new_for.initializer})
 
-        self.add_statement(for_loop_ast(initializer, terminator, increment, stmts))
+    def for_terminator(self, tokens):
+        curr = self.remove_target()['parent']
+        self.add_target({'parent': curr, 'target': curr.terminator})
+
+    def for_increment(self, tokens):
+        curr = self.remove_target()['parent']
+        self.add_target({'parent': curr, 'target': curr.increment})
+
+    def for_body(self, tokens):
+        curr = self.remove_target()['parent']
+        self.add_target({'parent': curr, 'target': curr.body})
+
+    def end_for(self, tokens):
+        self.remove_target()
+
+    # def for_loop(self, tokens):
+    #     token = tokens[0]
+    #     initializer = []
+    #     terminator = []
+    #     increment = []
+    #     stmts = []
+    #     try:
+    #         for i in token["init"]:
+    #             initializer.append(self.statements.pop(0))
+    #     except KeyError:
+    #         initializer = None
+    #     try:
+    #         for t in token["term"]:
+    #             terminator = Expr_ast(token["term"])
+    #     except KeyError:
+    #         terminator = None
+    #     try:
+    #         for i in token["increm"]:
+    #             increment.append(self.statements.pop(0))
+    #     except KeyError:
+    #         increment = None
+    #     try:
+    #         for s in token["loop_body"]:
+    #             stmts.append(self.statements.pop(0))
+    #     except KeyError:
+    #         stmts = None
+
+    #     self.add_statement(for_loop_ast(initializer, terminator, increment, stmts))
+
+    def terminator_expr(self, tokens):
+        token = tokens[0]
+        self.add_statement(Expr_ast(token))
 
     def terminator(self, tokens):
         if len(tokens) > 0:
@@ -137,31 +170,42 @@ class AST(object):
         token = tokens[0]
         self.add_statement(return_stmt_ast(token[1]))
 
-    def expr(self, tokens):
-        print(tokens)
-
     def if_cond(self, tokens):
-        # print(tokens[0].dump())
-        # print(">>>>")
-        token = tokens[0]
-        stmts = []
-        try:
-            for s in token["body"]:
-                i = self.statements.pop(0)
-                print(i)
-                stmts.append(self.statements.pop(0))
-        except KeyError:
-            stmts = None
-        self.add_statement(if_stmt_ast(Expr_ast(token["if_cond"]), stmts))
-        print(self.statements)
+        self.add_statement(Expr_ast(tokens))
+
+    def begin_if(self, tokens):
+        new_if = if_stmt_ast()
+        self.add_statement(new_if)
+        self.add_target({'parent': new_if, 'target': new_if.condition})
+
+    def if_body_st(self, tokens):
+        curr_node = self.remove_target()['parent']
+        self.add_target({'parent': curr_node, 'target': curr_node.body})
+
+    def if_body_end(self, tokens):
+        self.remove_target()
+
 
 class if_stmt_ast(object):
 
     node_type = AST_TYPE.IF_STMT
 
-    def __init__(self, condition, body):
-        self._condition = condition
-        self._body = body
+    def __init__(self):
+        self._condition = []
+        self._body = []
+
+    @property
+    def body(self):
+        return self._body
+
+    @property
+    def condition(self):
+        return self._condition
+
+    @condition.setter
+    def condition(self, value):
+        self._condition = value
+
 
 class return_stmt_ast(object):
 
@@ -209,15 +253,23 @@ class for_loop_ast(object):
 
     node_type = AST_TYPE.FOR_LOOP
 
-    def __init__(self, initializer, terminator, increment, body):
-        self._initializer = initializer
-        self._terminator = terminator
-        self._increment = increment
-        self._body = body
+    def __init__(self):
+        self._initializer = []
+        self._terminator = []
+        self._increment = []
+        self._body = []
+
+    @property
+    def initializer(self):
+        return self._initializer
 
     @property
     def terminator(self):
         return self._terminator
+
+    @property
+    def increment(self):
+        return self._increment
 
     @property
     def body(self):

@@ -157,20 +157,47 @@ class Parser(object):
                                    Suppress(self.r_bracket) + Suppress(self.l_brace) + Group(self.stmt)("body") + Suppress(self.r_brace))
         self.function_decl.setParseAction(self.AST.function_decl)
 
-        self.terminator = Optional(self.expr) + Suppress(self.term_st)
-
         # self.terminator.setParseAction(self.AST.terminator)
+        self.for_init = Literal('(')
+        self.for_init.setParseAction(self.AST.begin_for)
 
-        self.for_loop << Group(self.for_ + ~White() + Suppress(self.l_bracket) +
-                               Optional(delimitedList(self.decl ^ self.id_set))("init") + Suppress(self.term_st) +
-                               Optional(self.expr)("term") + Suppress(self.term_st) +
+        self.for_terminator = Literal(';')
+        self.for_terminator.setParseAction(self.AST.for_terminator)
+
+        self.for_increment = Literal(';')
+        self.for_increment.setParseAction(self.AST.for_increment)
+
+        self.terminator_expr = Group(infixNotation(Group(self.operand), [(self.bitwise_op, 2, opAssoc.LEFT, self.nest_operand_pairs),
+                                                              (self.comparison_op, 2, opAssoc.LEFT, self.nest_operand_pairs),
+                                                              (self.log_op, 2, opAssoc.LEFT, self.nest_operand_pairs),
+                                                              (self.arith_op, 2, opAssoc.LEFT, self.nest_operand_pairs)]))
+
+        self.terminator_expr.setParseAction(self.AST.terminator_expr)
+        self.for_body = Literal('{')
+        self.for_body.setParseAction(self.AST.for_body)
+
+        self.end_for = Literal('}')
+        self.end_for.setParseAction(self.AST.end_for)
+
+        self.for_loop << Group(self.for_ + ~White() + Suppress(self.for_init) +
+                               Optional(delimitedList(self.decl ^ self.id_set))("init") + Suppress(self.for_terminator) +
+                               Optional(self.terminator_expr) + Suppress(self.for_increment) +
                                Optional(delimitedList(self.id_set))("increm") + Suppress(self.r_bracket) +
-                               Suppress(self.l_brace) + Group(self.stmt)("loop_body") + Suppress(self.r_brace))
-        self.for_loop.setParseAction(self.AST.for_loop)
+                               Suppress(self.for_body) + self.stmt("loop_body") + Suppress(self.end_for))
+        # self.for_loop.setParseAction(self.AST.for_loop)
+
         self.if_condition = Suppress(self.l_bracket) + self.expr + Suppress(self.r_bracket)
-        # self.if_condition.setParseAction(self.AST.expr)
-        self.if_stmt = Group(self.if_ + self.if_condition("if_cond") + Suppress(self.l_brace) + Group(self.stmt).setResultsName("body") + Suppress(self.r_brace))
-        self.if_stmt.setParseAction(self.AST.if_cond)
+        self.if_condition.setParseAction(self.AST.if_cond)
+
+        self.if_.setParseAction(self.AST.begin_if)
+        self.if_body_st = Literal('{')
+        self.if_body_st.setParseAction(self.AST.if_body_st)
+        self.if_body_end = Literal('}')
+        self.if_body_end.setParseAction(self.AST.if_body_end)
+        self.if_stmt = Group(self.if_ + self.if_condition("if_cond") + Suppress(self.if_body_st) + Group(self.stmt).setResultsName("body") + Suppress(self.if_body_end))
+
+        # self.if_stmt.setParseAction(self.AST.if_cond)
+
         self.stmt << ZeroOrMore(self.decl + Suppress(self.term_st)
                                 | self.id_set + Suppress(self.term_st)
                                 | self.expr + Suppress(self.term_st)
@@ -182,7 +209,6 @@ class Parser(object):
         self.grammar_test = self.stmt + StringEnd()  # Allows single statements to be parsed
 
         self.grammar = self.function_decl + StringEnd()
-
 
     def nest_operand_pairs(self, tokens):
         tokens = tokens[0]
@@ -250,373 +276,372 @@ class Parser(object):
 
 class TestParser(unittest.TestCase):  
     pass
-    # def test_int_decl_parsing(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("Int(10) varName;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(123) ee;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(123) ff"), False)
-    #     self.assertEqual(par.parse_test_unit("Int()"), False)
-    #     self.assertEqual(par.parse_test_unit("Int(1) ;"), False)
-    #     self.assertEqual(par.parse_test_unit("Int(1) test"), False)
-    #     self.assertEqual(par.parse_test_unit("Int"), False)
-    #     self.assertEqual(par.parse_test_unit("Int(123) gg,jj,test2;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int Int;"), False)
-    #     self.assertEqual(par.parse_test_unit("Int(10) Integer;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10) kk; Int(20) \
-    #         ll;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10) mm, nn, oo, pp;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10) qq = 10, rr = 4, ss = 5, tt = \
-    #         7;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10) uu = 10, j, k = 5,\
-    #         d;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10) l = 10, m, n = 5, \
-    #      h;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10) o = 10, p, q = 5, \
-    #      h"), False)
-    #     self.assertEqual(par.parse_test_unit("Int(10) r1 = 10, s1, t1 = 5, u1; Int(10) v1, w1=10, \
-    #         ll1;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10) dd = 10;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int (123) zz;"), False)
+    def test_int_decl_parsing(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("Int(10) varName;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(123) ee;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(123) ff"), False)
+        self.assertEqual(par.parse_test_unit("Int()"), False)
+        self.assertEqual(par.parse_test_unit("Int(1) ;"), False)
+        self.assertEqual(par.parse_test_unit("Int(1) test"), False)
+        self.assertEqual(par.parse_test_unit("Int"), False)
+        self.assertEqual(par.parse_test_unit("Int(123) gg,jj,test2;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int Int;"), False)
+        self.assertEqual(par.parse_test_unit("Int(10) Integer;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10) kk; Int(20) \
+            ll;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10) mm, nn, oo, pp;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10) qq = 10, rr = 4, ss = 5, tt = \
+            7;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10) uu = 10, j, k = 5,\
+            d;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10) l = 10, m, n = 5, \
+         h;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10) o = 10, p, q = 5, \
+         h"), False)
+        self.assertEqual(par.parse_test_unit("Int(10) r1 = 10, s1, t1 = 5, u1; Int(10) v1, w1=10, \
+            ll1;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10) dd = 10;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int (123) zz;"), False)
 
-    # def test_bit_decl_parsing(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("Bit a = True;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit b, c, d = True;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit Bit, c, d = True;"), False)
-    #     self.assertEqual(par.parse_test_unit("Bit c, d = function(1,2,3,4);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit c, d = function();")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit c, d = function(1,2,(3*5) << (4 * 5)) + function_2(1,2,(3*5) << (4 * 5));")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit c, d = 3 + (1+ 2 + 3) * (2 + (Bit) 3);")[1], True)
+    def test_bit_decl_parsing(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("Bit a = True;")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit b, c, d = True;")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit Bit, c, d = True;"), False)
+        self.assertEqual(par.parse_test_unit("Bit c, d = function(1,2,3,4);")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit c, d = function();")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit c, d = function(1,2,(3*5) << (4 * 5)) + function_2(1,2,(3*5) << (4 * 5));")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit c, d = 3 + (1+ 2 + 3) * (2 + (Bit) 3);")[1], True)
 
-    # def test_set_parsing(self):
-    #     par = Parser()
-    #     par.parse_test_unit("Int b;")
-    #     par.parse_test_unit("Bit d, e;")
-    #     self.assertEqual(par.parse_test_unit("b = 2;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int = 2;"), False)
-    #     self.assertEqual(par.parse_test_unit("d = False;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("e = True;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("e = True True;"), False)
+    def test_set_parsing(self):
+        par = Parser()
+        par.parse_test_unit("Int b;")
+        par.parse_test_unit("Bit d, e;")
+        self.assertEqual(par.parse_test_unit("b = 2;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int = 2;"), False)
+        self.assertEqual(par.parse_test_unit("d = False;")[1], True)
+        self.assertEqual(par.parse_test_unit("e = True;")[1], True)
+        self.assertEqual(par.parse_test_unit("e = True True;"), False)
 
-    # def test_expr_parsing(self):
-    #     par = Parser()
-    #     par.parse_test_unit("Int(10) a, b, c, d, e, r; Bit ff;")
-    #     self.assertEqual(par.parse_test_unit("((a > 4) && (b > 5)) || d > 3 || (3 << 3);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("[[1,2,3,4],[1,2,3,4]] << 3;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a + b;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a + c + d + e;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a + (c + d) + e;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a + c + d + + e;"), False)
-    #     self.assertEqual(par.parse_test_unit("a + c + 4 - e;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a + (c) + 4 - e;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a + (c + 4) - (e + r);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a + ((c + d) + 4) - (e + r);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("[1,2,3,4] << 2;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("([1,2,3,4] << 2) << c;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("1;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("True;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("False;")[1], True)
+    def test_expr_parsing(self):
+        par = Parser()
+        par.parse_test_unit("Int(10) a, b, c, d, e, r; Bit ff;")
+        self.assertEqual(par.parse_test_unit("((a > 4) && (b > 5)) || d > 3 || (3 << 3);")[1], True)
+        self.assertEqual(par.parse_test_unit("[[1,2,3,4],[1,2,3,4]] << 3;")[1], True)
+        self.assertEqual(par.parse_test_unit("a + b;")[1], True)
+        self.assertEqual(par.parse_test_unit("a + c + d + e;")[1], True)
+        self.assertEqual(par.parse_test_unit("a + (c + d) + e;")[1], True)
+        self.assertEqual(par.parse_test_unit("a + c + d + + e;"), False)
+        self.assertEqual(par.parse_test_unit("a + c + 4 - e;")[1], True)
+        self.assertEqual(par.parse_test_unit("a + (c) + 4 - e;")[1], True)
+        self.assertEqual(par.parse_test_unit("a + (c + 4) - (e + r);")[1], True)
+        self.assertEqual(par.parse_test_unit("a + ((c + d) + 4) - (e + r);")[1], True)
+        self.assertEqual(par.parse_test_unit("[1,2,3,4] << 2;")[1], True)
+        self.assertEqual(par.parse_test_unit("([1,2,3,4] << 2) << c;")[1], True)
+        self.assertEqual(par.parse_test_unit("a;")[1], True)
+        self.assertEqual(par.parse_test_unit("1;")[1], True)
+        self.assertEqual(par.parse_test_unit("True;")[1], True)
+        self.assertEqual(par.parse_test_unit("False;")[1], True)
 
-    # def test_if_parsing(self):
-    #     par = Parser()
-    #     par.parse_test_unit("Int a, b, d, e, g;")
-    #     self.assertEqual(par.parse_test_unit("if(a==1) { }")[1], True)  # NOQA
+    def test_if_parsing(self):
+        par = Parser()
+        par.parse_test_unit("Int a, b, d, e, g;")
+        self.assertEqual(par.parse_test_unit("if(a==1) { }")[1], True)  # NOQA
 
-    # def test_seq_decl_parsing(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("[[1,2,3,4,5]];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("[5*5, function(1,2,3), 4];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("[True,False,True,False,True];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("[[True,False,True,False,True],[True,False,True,False,True],[True,False,True,False,True]];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10)[4] a;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit[4] b;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit[4][4] c;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit[4][4][4] d;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit[4][4] [4] e;"), False)
-    #     self.assertEqual(par.parse_test_unit("Bit [4][4] f;"), False)
-    #     self.assertEqual(par.parse_test_unit("Bit[4][4] 1;"), False)
-    #     self.assertEqual(par.parse_test_unit("Bit[1][4] f = [[True,False,True,True]];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10)[3] g = [5*5, function(1,2,3), 4];")[1], True)
+    def test_seq_decl_parsing(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("[[1,2,3,4,5]];")[1], True)
+        self.assertEqual(par.parse_test_unit("[5*5, function(1,2,3), 4];")[1], True)
+        self.assertEqual(par.parse_test_unit("[True,False,True,False,True];")[1], True)
+        self.assertEqual(par.parse_test_unit("[[True,False,True,False,True],[True,False,True,False,True],[True,False,True,False,True]];")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10)[4] a;")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit[4] b;")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit[4][4] c;")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit[4][4][4] d;")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit[4][4] [4] e;"), False)
+        self.assertEqual(par.parse_test_unit("Bit [4][4] f;"), False)
+        self.assertEqual(par.parse_test_unit("Bit[4][4] 1;"), False)
+        self.assertEqual(par.parse_test_unit("Bit[1][4] f = [[True,False,True,True]];")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10)[3] g = [5*5, function(1,2,3), 4];")[1], True)
 
-    # def test_seq_op_parsing(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("Int(10)[6] b = a[5,6,7,8:10];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10) a[5,6,7,8:10];"), False)
-    #     self.assertEqual(par.parse_test_unit("a[5,6,7-8:10];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a[5,6,7,8:10]; b[5,6,7,8:10];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a[5,6,7,8:10] = [1,2,3,4,5,6];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a[5] = 10;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a[5] + a[5];")[1], True)
+    def test_seq_op_parsing(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("Int(10)[6] b = a[5,6,7,8:10];")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10) a[5,6,7,8:10];"), False)
+        self.assertEqual(par.parse_test_unit("a[5,6,7-8:10];")[1], True)
+        self.assertEqual(par.parse_test_unit("a[5,6,7,8:10]; b[5,6,7,8:10];")[1], True)
+        self.assertEqual(par.parse_test_unit("a[5,6,7,8:10] = [1,2,3,4,5,6];")[1], True)
+        self.assertEqual(par.parse_test_unit("a[5] = 10;")[1], True)
+        self.assertEqual(par.parse_test_unit("a[5] + a[5];")[1], True)
 
-    # def test_for_parsing(self):
-        # par = Parser()
-        # par.parse_test_unit("Int b, d, e, g;")
-        # par.parse_test_unit("Int[4] l;")
-        # self.assertEqual(par.parse_test_unit("for(Int(10) a = 2; ((a > 4) && (b > 5)) || d > 3; d = 5, d = (e * g))\
-        #     {\
-        #         a = 1;\
-        #     }")[1], True)
-        # self.assertEqual(par.parse_test_unit("for(Int(10) a = 2; ((a > 4) && (b > 5)) || d > 3; d = 5, d = (e * g))\
-        #     { \
-        #         for(d = 3; d < 5; d = d + 1) {\
-        #             a = 1;\
-        #         }\
-        #     }")[1], True)  # NOQA
-        # self.assertEqual(par.parse_test_unit("for(;a < 4;){}")[1], True)
-        # self.assertEqual(par.parse_test_unit("for(l[4] = 6 ;a < 4;){}")[1], True)
-        # self.assertEqual(par.parse_test_unit("for(;;){ }")[1], True)
+    def test_for_parsing(self):
+        par = Parser()
+        par.parse_test_unit("Int b, d, e, g;")
+        par.parse_test_unit("Int[4] l;")
+        self.assertEqual(par.parse_test_unit("for(Int(10) a = 2; ((a > 4) && (b > 5)) || d > 3; d = 5, d = (e * g))\
+            {\
+                a = 1;\
+            }")[1], True)
+        self.assertEqual(par.parse_test_unit("for(Int(10) a = 2; ((a > 4) && (b > 5)) || d > 3; d = 5, d = (e * g))\
+            { \
+                for(d = 3; d < 5; d = d + 1) {\
+                    a = 1;\
+                }\
+            }")[1], True)  # NOQA
+        self.assertEqual(par.parse_test_unit("for(;a < 4;){}")[1], True)
+        self.assertEqual(par.parse_test_unit("for(l[4] = 6 ;a < 4;){}")[1], True)
+        self.assertEqual(par.parse_test_unit("for(;;){ }")[1], True)
 
-    # def test_function_call_parsing(self):
-    #     par = Parser()
-    #     par.parse_test_unit("Int a, b, e;")
-    #     self.assertEqual(par.parse_test_unit("func(a, b, 10, 40);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("func(a, b, Int[10] a, 40);"), False)
-    #     self.assertEqual(par.parse_test_unit("func(a, b, [1,0,1,1], 40);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("func (a, b, [1,0,1,1], 40);"), False)
-    #     self.assertEqual(par.parse_test_unit("func(a, b, 5 * 3, e * 6);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("func(a, b, 5 * 3, e * 6, func(3));")[1], True)
-    #     self.assertEqual(par.parse_test_unit("func(1,2,3,4)"), False)
-    #     self.assertEqual(par.parse_test_unit("func(1,2,3,4);")[1], True)
+    def test_function_call_parsing(self):
+        par = Parser()
+        par.parse_test_unit("Int a, b, e;")
+        self.assertEqual(par.parse_test_unit("func(a, b, 10, 40);")[1], True)
+        self.assertEqual(par.parse_test_unit("func(a, b, Int[10] a, 40);"), False)
+        self.assertEqual(par.parse_test_unit("func(a, b, [1,0,1,1], 40);")[1], True)
+        self.assertEqual(par.parse_test_unit("func (a, b, [1,0,1,1], 40);"), False)
+        self.assertEqual(par.parse_test_unit("func(a, b, 5 * 3, e * 6);")[1], True)
+        self.assertEqual(par.parse_test_unit("func(a, b, 5 * 3, e * 6, func(3));")[1], True)
+        self.assertEqual(par.parse_test_unit("func(1,2,3,4)"), False)
+        self.assertEqual(par.parse_test_unit("func(1,2,3,4);")[1], True)
 
-    # def sbox_call_parsing(self):
-    #     par = Parser()
-    #     par.parse_test_unit("Int a;")
-    #     self.assertEqual(par.parse_test_unit("a.sbox(1);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a.sbox(1 * 1);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a.sbox(a);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a. sbox(a);"), False)
-    #     self.assertEqual(par.parse_test_unit("a .sbox(a);"), False)
-    #     self.assertEqual(par.parse_test_unit("a.sbo x(a);"), False)
-    #     self.assertEqual(par.parse_test_unit("a.sbox (a);"), False)
+    def sbox_call_parsing(self):
+        par = Parser()
+        par.parse_test_unit("Int a;")
+        self.assertEqual(par.parse_test_unit("a.sbox(1);")[1], True)
+        self.assertEqual(par.parse_test_unit("a.sbox(1 * 1);")[1], True)
+        self.assertEqual(par.parse_test_unit("a.sbox(a);")[1], True)
+        self.assertEqual(par.parse_test_unit("a. sbox(a);"), False)
+        self.assertEqual(par.parse_test_unit("a .sbox(a);"), False)
+        self.assertEqual(par.parse_test_unit("a.sbo x(a);"), False)
+        self.assertEqual(par.parse_test_unit("a.sbox (a);"), False)
 
-    # def test_shift_op_parsing(self):
-    #     par = Parser()
-    #     par.parse_test_unit("Int a;")
-    #     self.assertEqual(par.parse_test_unit("a << 3;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a >> 3;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a <<< 3;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a >>> 3;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("10 >> 4;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("10 >> 4; a >> 4;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("([1,2,3,4] >> 4) >> 2 * 4;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("(5 >> 4) >> 2 * 4;")[1], True)
+    def test_shift_op_parsing(self):
+        par = Parser()
+        par.parse_test_unit("Int a;")
+        self.assertEqual(par.parse_test_unit("a << 3;")[1], True)
+        self.assertEqual(par.parse_test_unit("a >> 3;")[1], True)
+        self.assertEqual(par.parse_test_unit("a <<< 3;")[1], True)
+        self.assertEqual(par.parse_test_unit("a >>> 3;")[1], True)
+        self.assertEqual(par.parse_test_unit("10 >> 4;")[1], True)
+        self.assertEqual(par.parse_test_unit("10 >> 4; a >> 4;")[1], True)
+        self.assertEqual(par.parse_test_unit("([1,2,3,4] >> 4) >> 2 * 4;")[1], True)
+        self.assertEqual(par.parse_test_unit("(5 >> 4) >> 2 * 4;")[1], True)
 
-    # def test_using_expr_parsing(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("Int(10) a = (5 * 10) + 3 + (3 * 2);")[1], True)
+    def test_using_expr_parsing(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("Int(10) a = (5 * 10) + 3 + (3 * 2);")[1], True)
 
-    # def test_cast_parsing(self):
-    #     par = Parser()
-    #     par.parse_test_unit("Int(10) a, b;")
-    #     self.assertEqual(par.parse_test_unit("(Int(10)) a;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("(Bit) a;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("(Int(10)[4]) 10;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("(Int(10)[4]) 5 * 3;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("(Int(10)[4]) Bit[10];"), False)
-    #     self.assertEqual(par.parse_test_unit("(Int(10)[4]) Int;"), False)
-    #     self.assertEqual(par.parse_test_unit("(Int(10)[4]) Bit;"), False)
+    def test_cast_parsing(self):
+        par = Parser()
+        par.parse_test_unit("Int(10) a, b;")
+        self.assertEqual(par.parse_test_unit("(Int(10)) a;")[1], True)
+        self.assertEqual(par.parse_test_unit("(Bit) a;")[1], True)
+        self.assertEqual(par.parse_test_unit("(Int(10)[4]) 10;")[1], True)
+        self.assertEqual(par.parse_test_unit("(Int(10)[4]) 5 * 3;")[1], True)
+        self.assertEqual(par.parse_test_unit("(Int(10)[4]) Bit[10];"), False)
+        self.assertEqual(par.parse_test_unit("(Int(10)[4]) Int;"), False)
+        self.assertEqual(par.parse_test_unit("(Int(10)[4]) Bit;"), False)
 
-    # def test_function_dec_parsing(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_integration("Int function_1(Int a, Bit b) { Int(10) a = 1; Int(10) b = 2; }")[1], True)
+    def test_function_dec_parsing(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_integration("Int function_1(Int a, Bit b) { Int(10) a = 1; Int(10) b = 2; }")[1], True)
 
 
 class TestASTTree(unittest.TestCase):
     pass
-    # def test_bit_decl(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("Bit c, d = 3 + (1 + 2 + 3) * (2 + (Bit) 3 + 2);")[1], True)
-    #     self.assertEqual(par.AST.tree[0].node_type,  AST_TYPE.BIT_DECL)
-    #     self.assertEqual(par.AST.tree[1].node_type, AST_TYPE.BIT_DECL)
-    #     self.assertEqual(par.AST.tree[1].value.node_type, AST_TYPE.EXPR)
-    #     self.assertEqual(len(par.AST.tree[1].value.expressions[0].expressions), 3)
-    #     self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[0].value, "3")
-    #     self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[1].operator, "*")
-    #     self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[2].expressions[0].expressions[0].value, "1")
-    #     self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[2].expressions[1].operator, "+")
-    #     self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[2].expressions[0].expressions[2].value, "2")
-    #     self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[2].expressions[1].operator, "+")
-    #     self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[2].expressions[2].target.expressions[0].expressions[0].value, "3")
+    def test_bit_decl(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("Bit c, d = 3 + (1 + 2 + 3) * (2 + (Bit) 3 + 2);")[1], True)
+        self.assertEqual(par.AST.tree[0].node_type,  AST_TYPE.BIT_DECL)
+        self.assertEqual(par.AST.tree[1].node_type, AST_TYPE.BIT_DECL)
+        self.assertEqual(par.AST.tree[1].value.node_type, AST_TYPE.EXPR)
+        self.assertEqual(len(par.AST.tree[1].value.expressions[0].expressions), 3)
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[0].value, "3")
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[1].operator, "*")
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[2].expressions[0].expressions[0].value, "1")
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[2].expressions[1].operator, "+")
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[2].expressions[0].expressions[2].value, "2")
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[0].expressions[2].expressions[1].operator, "+")
+        self.assertEqual(par.AST.tree[1].value.expressions[0].expressions[2].expressions[2].target.expressions[0].expressions[0].value, "3")
 
-    # def test_int_decl(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("Int(10) c = 2 + e * (Bit[4]) function(10,10,b * 5), d = 3, e;")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10) c =function(b);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10) c = [1,2,3,4];")[1], True)
-    #     self.assertEqual(par.AST.tree[0].node_type,  AST_TYPE.INT_DECL)
-    #     self.assertEqual(par.AST.tree[1].node_type,  AST_TYPE.INT_DECL)
-    #     self.assertEqual(par.AST.tree[2].node_type,  AST_TYPE.INT_DECL)
-    #     self.assertEqual(par.AST.tree[0].ID, "c")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].expressions[0].value,  "2")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[1].operator,  "*")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].expressions[2].ID,  "e")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[1].operator,  "*")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].node_type, AST_TYPE.CAST)
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].target.expressions[0].ID.ID, "function")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].target.expressions[0].parameters[0].expressions[0].value, "10")
+    def test_int_decl(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("Int(10) c = 2 + e * (Bit[4]) function(10,10,b * 5), d = 3, e;")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10) c =function(b);")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10) c = [1,2,3,4];")[1], True)
+        self.assertEqual(par.AST.tree[0].node_type,  AST_TYPE.INT_DECL)
+        self.assertEqual(par.AST.tree[1].node_type,  AST_TYPE.INT_DECL)
+        self.assertEqual(par.AST.tree[2].node_type,  AST_TYPE.INT_DECL)
+        self.assertEqual(par.AST.tree[0].ID, "c")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].expressions[0].value,  "2")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[1].operator,  "*")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].expressions[2].ID,  "e")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[1].operator,  "*")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].node_type, AST_TYPE.CAST)
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].target.expressions[0].ID.ID, "function")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].target.expressions[0].parameters[0].expressions[0].value, "10")
 
-    # def test_int_seq_decl(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("Int(10)[5] a = [1,function(1,2,3),function(), (1*2*3) << 4, d + e];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10)[2][2] f = [[1,2],[3,4]];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10)[2][2][2] f = [[[[1 * 2 * 3,2],[(Int(10)) [1,2,3,4],3]]],[[[5,6],[7,8]]]];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("[1,2,3,4];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10)[1][2] b = [[],[]];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10)[5] b = c[1,2,3:5];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Int(10)[5] b;")[1], True)
-    #     self.assertEqual(par.AST.tree[0].ID.ID, "a")
-    #     self.assertEqual(par.AST.tree[0].bit_constraints.expressions[0].value, "10")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].node_type, AST_TYPE.SEQ_VAL)
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[0].expressions[0].value, "1")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[1].expressions[0].parameters[0].expressions[0].value, "1")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[3].expressions[0].expressions[0].expressions[0].expressions[0].value, "1")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[3].expressions[0].expressions[0].expressions[1].operator, "*")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[3].expressions[0].expressions[0].expressions[0].expressions[2].value, "2")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[3].expressions[0].expressions[1].operator, "<<")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[3].expressions[0].expressions[2].value, "4")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[4].expressions[0].expressions[0].ID, "d")
-    #     self.assertEqual(par.parse_test_unit("Int(10) z = b[1 * 4];")[1], True)
-    #     self.assertEqual(par.AST.tree[6].ID, "z")
-    #     self.assertEqual(par.AST.tree[6].value.expressions[0].ID.ID, "b")
-    #     self.assertEqual(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[0].value, "1")
-    #     self.assertEqual(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[1].operator, "*")
-    #     self.assertEqual(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[2].value, "4")
-    #     self.assertEqual(par.parse_test_unit("Int(10) a = 2;")[1], True)
+    def test_int_seq_decl(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("Int(10)[5] a = [1,function(1,2,3),function(), (1*2*3) << 4, d + e];")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10)[2][2] f = [[1,2],[3,4]];")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10)[2][2][2] f = [[[[1 * 2 * 3,2],[(Int(10)) [1,2,3,4],3]]],[[[5,6],[7,8]]]];")[1], True)
+        self.assertEqual(par.parse_test_unit("[1,2,3,4];")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10)[1][2] b = [[],[]];")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10)[5] b = c[1,2,3:5];")[1], True)
+        self.assertEqual(par.parse_test_unit("Int(10)[5] b;")[1], True)
+        self.assertEqual(par.AST.tree[0].ID.ID, "a")
+        self.assertEqual(par.AST.tree[0].bit_constraints.expressions[0].value, "10")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].node_type, AST_TYPE.SEQ_VAL)
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[0].expressions[0].value, "1")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[1].expressions[0].parameters[0].expressions[0].value, "1")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[3].expressions[0].expressions[0].expressions[0].expressions[0].value, "1")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[3].expressions[0].expressions[0].expressions[1].operator, "*")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[3].expressions[0].expressions[0].expressions[0].expressions[2].value, "2")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[3].expressions[0].expressions[1].operator, "<<")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[3].expressions[0].expressions[2].value, "4")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[4].expressions[0].expressions[0].ID, "d")
+        self.assertEqual(par.parse_test_unit("Int(10) z = b[1 * 4];")[1], True)
+        self.assertEqual(par.AST.tree[6].ID, "z")
+        self.assertEqual(par.AST.tree[6].value.expressions[0].ID.ID, "b")
+        self.assertEqual(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[0].value, "1")
+        self.assertEqual(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[1].operator, "*")
+        self.assertEqual(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[2].value, "4")
+        self.assertEqual(par.parse_test_unit("Int(10) a = 2;")[1], True)
 
-    # def test_bit_seq_decl(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("Bit[5] b = [True, False, True, False];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit[1][2] b = [[True, False, True, False],[True, False, True, False]];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit[1][2] b = [[],[]];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit[1] b = [];")[1], True)
-    #     self.assertEqual(par.parse_test_unit("Bit[1] b;")[1], True)
-    #     self.assertEqual(par.AST.tree[0].node_type, AST_TYPE.SEQ_DECL)
-    #     self.assertEqual(par.AST.tree[0].size[0].expressions[0].value, "5")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[0].expressions[0].value, "True")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[1].expressions[0].value, "False")
+    def test_bit_seq_decl(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("Bit[5] b = [True, False, True, False];")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit[1][2] b = [[True, False, True, False],[True, False, True, False]];")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit[1][2] b = [[],[]];")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit[1] b = [];")[1], True)
+        self.assertEqual(par.parse_test_unit("Bit[1] b;")[1], True)
+        self.assertEqual(par.AST.tree[0].node_type, AST_TYPE.SEQ_DECL)
+        self.assertEqual(par.AST.tree[0].size[0].expressions[0].value, "5")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[0].expressions[0].value, "True")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].value[1].expressions[0].value, "False")
 
-    # def test_id_set(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("a = b + 10 * function(a, b);")[1], True)
-    #     self.assertEqual(par.parse_test_unit("a = [];")[1], True)
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].expressions[0].ID, "b")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[1].operator, "*")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].parameters[0].expressions[0].ID, "a")
-    #     self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].parameters[1].expressions[0].ID, "b")
-    #     self.assertEqual(par.parse_test_unit("a[1,2,3,4:5] = (Bit[4]) b + 10 * function(a, b);")[1], True)
-    #     self.assertEqual(par.AST.tree[2].elements.expressions[0].expressions[0].value, "1")
-    #     self.assertEqual(par.AST.tree[2].elements.expressions[1].expressions[0].value, "2")
-    #     self.assertEqual(par.AST.tree[2].elements.expressions[3].expressions[0].start.expressions[0].value, "4")
-    #     self.assertEqual(par.AST.tree[2].value.expressions[0].target.expressions[0].expressions[2].node_type, AST_TYPE.FUNCTION_CALL)
+    def test_id_set(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("a = b + 10 * function(a, b);")[1], True)
+        self.assertEqual(par.parse_test_unit("a = [];")[1], True)
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[0].expressions[0].ID, "b")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[1].operator, "*")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].parameters[0].expressions[0].ID, "a")
+        self.assertEqual(par.AST.tree[0].value.expressions[0].expressions[2].parameters[1].expressions[0].ID, "b")
+        self.assertEqual(par.parse_test_unit("a[1,2,3,4:5] = (Bit[4]) b + 10 * function(a, b);")[1], True)
+        self.assertEqual(par.AST.tree[2].elements.expressions[0].expressions[0].value, "1")
+        self.assertEqual(par.AST.tree[2].elements.expressions[1].expressions[0].value, "2")
+        self.assertEqual(par.AST.tree[2].elements.expressions[3].expressions[0].start.expressions[0].value, "4")
+        self.assertEqual(par.AST.tree[2].value.expressions[0].target.expressions[0].expressions[2].node_type, AST_TYPE.FUNCTION_CALL)
 
-    # def test_func_decl(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_integration("Int function_1(Int a, Bit b) { Int(10) a = 1; Int(10) b = 2; Int(10) c = 0xa; }")[1], True)
-    #     self.assertEqual(par.AST.tree[0].ID, "function_1")
-    #     self.assertEqual(len(par.AST._statements), 0)
-    #     self.assertEqual(par.AST.tree[0].stmts[0].value.expressions[0].value, '1')
-    #     self.assertEqual(par.AST.tree[0].stmts[1].value.expressions[0].value, '2')
-    #     self.assertEqual(par.AST.tree[0].stmts[2].value.expressions[0].value, '10')
+    def test_func_decl(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_integration("Int function_1(Int a, Bit b) { Int(10) a = 1; Int(10) b = 2; Int(10) c = 0xa; }")[1], True)
+        self.assertEqual(par.AST.tree[0].ID, "function_1")
+        self.assertEqual(len(par.AST._statements), 0)
+        self.assertEqual(par.AST.tree[0].stmts[0].value.expressions[0].value, '1')
+        self.assertEqual(par.AST.tree[0].stmts[1].value.expressions[0].value, '2')
+        self.assertEqual(par.AST.tree[0].stmts[2].value.expressions[0].value, '10')
 
-    # def test_return_stmt(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("return a * b * c * 10;")[1], True)
-    #     self.assertEqual(par.AST.tree[0].node_type, AST_TYPE.RETURN_STMT)
-    #     self.assertEqual(par.AST.tree[0].expr.expressions[0].expressions[0].expressions[0].expressions[0].ID, "a")
-    #     self.assertEqual(par.AST.tree[0].expr.expressions[0].expressions[0].expressions[1].operator, "*")
+    def test_return_stmt(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("return a * b * c * 10;")[1], True)
+        self.assertEqual(par.AST.tree[0].node_type, AST_TYPE.RETURN_STMT)
+        self.assertEqual(par.AST.tree[0].expr.expressions[0].expressions[0].expressions[0].expressions[0].ID, "a")
+        self.assertEqual(par.AST.tree[0].expr.expressions[0].expressions[0].expressions[1].operator, "*")
 
-    # def test_for_loop(self):
-    #     par = Parser()
-    #     self.assertEqual(par.parse_test_unit("for(Int(10) a = 5, Bit f = False; a < 5 && d < 5; a = a + 1, b = b + 3) { b = b <<< 1; z = b + 19; }")[1], True)
-    #     self.assertEqual(par.parse_test_unit("for(;;) { }")[1], True)
-    #     self.assertEqual(par.AST.tree[0].node_type, AST_TYPE.FOR_LOOP)
-    #     self.assertEqual(par.AST.tree[1].node_type, AST_TYPE.FOR_LOOP)
-    #     self.assertEqual(par.AST.tree[0].terminator.expressions[0].expressions[0].expressions[1].operator, "&&")
-    #     self.assertEqual(par.AST.tree[0].body[0].node_type, AST_TYPE.ID_SET)
-    #     self.assertEqual(par.AST.tree[0].body[0].ID, "b")
+    def test_for_loop(self):
+        par = Parser()
+        self.assertEqual(par.parse_test_unit("for(Int(10) a = 5, Bit f = False; a < 5 && d < 5; a = a + 1, b = b + 3) { b = b <<< 1; z = b + 19; }")[1], True)
+        self.assertEqual(par.parse_test_unit("for(;;) { }")[1], True)
+        self.assertEqual(par.AST.tree[0].node_type, AST_TYPE.FOR_LOOP)
+        self.assertEqual(par.AST.tree[1].node_type, AST_TYPE.FOR_LOOP)
+        self.assertEqual(par.AST.tree[0].terminator[0].expressions[0].expressions[1].operator, "&&")
+        self.assertEqual(par.AST.tree[0].body[0].node_type, AST_TYPE.ID_SET)
+        self.assertEqual(par.AST.tree[0].body[0].ID, "b")
 
     def test_if_stmt(self):
         par = Parser()
-        # self.assertEqual(par.parse_test_unit("if(i > 3) { b = b + 1; c = d + 3; } if(d < 4) { z = z + 1; kk = k + 3; }")[1], True)
-        par.parse_test_unit("Bit a = True; a = d; Int(10) d = 10;")
-        print(par.AST.tree)
-        # self.assertEqual(par.AST.tree[0].node_type, AST_TYPE.IF_STMT)
-        # self.assertEqual(par.AST.tree[1].node_type, AST_TYPE.IF_STMT)
+        self.assertEqual(par.parse_test_unit("if(i > 3) { b = b + 1; c = d + 3; } if(d < 4) { z = z + 1; kk = k + 3; }")[1], True)
+        self.assertEqual(par.AST.tree[0].node_type, AST_TYPE.IF_STMT)
+        self.assertEqual(par.AST.tree[1].node_type, AST_TYPE.IF_STMT)
+        self.assertEqual(par.AST.tree[0].condition[0].expressions[0].expressions[0].expressions[0].ID, "i")
 
 class TestSemanticAnalysisTree(unittest.TestCase):
     pass
-    # def test_int_decl(self):
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 4 << [1,2,3,4] << 2;")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 4 << 3 << 2;")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10;")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10; Int(10) a = 20;")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10; Int(10) b = 20;")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10; Int(10) b = a;")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = False;")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10 + False << 4;")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a; Int(10) b = a;")), True)
+    def test_int_decl(self):
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 4 << [1,2,3,4] << 2;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 4 << 3 << 2;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10; Int(10) a = 20;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10; Int(10) b = 20;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10; Int(10) b = a;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = False;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10 + False << 4;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a; Int(10) b = a;")), True)
 
-    # def test_bit_decl(self):
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = False;")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = 1;")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = False + False;")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = False; Bit a = True;")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a; Bit b = a;")), True)
+    def test_bit_decl(self):
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = False;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = 1;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = False + False;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = False; Bit a = True;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a; Bit b = a;")), True)
 
-    # def test_mixing_bit_int(self):
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit b = True;")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit b = True; Int(10) c = b;")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit b = True; Int(10) c = 5 * (b);")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Int(10) b = 10; Int(10) c = 5 * (b);")), True)
+    def test_mixing_bit_int(self):
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit b = True;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit b = True; Int(10) c = b;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit b = True; Int(10) c = 5 * (b);")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Int(10) b = 10; Int(10) c = 5 * (b);")), True)
 
-    # def test_id_set(self):
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Int(10) b = a;")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Int(10) b = a; Bit c = b;")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Int(10) b = a * 10 * 3 << 4;")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit d = False; Int(10) b = a * 10 * 3 << d;")), False)
+    def test_id_set(self):
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Int(10) b = a;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Int(10) b = a; Bit c = b;")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Int(10) b = a * 10 * 3 << 4;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit d = False; Int(10) b = a * 10 * 3 << d;")), False)
 
-    # def test_seq_decl(self):
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2][2] a = [[1,2],[3,4]]; ")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2][2] a = [[False,2],[3,4]]; ")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1, 2, 3, 4]; ")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1]; ")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1,2,3,4] ^ [1,2,3,4];")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Int(10)[2] a = [b,2,c,4] ^ [1,2,b * 2,4];")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Bit d = False; Int(10)[2] a = [b,d,c,4] ^ [1,2,b,4];")), False)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[4] a = [1,2,3,4];")), True)
-    #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[4] a = [1,2,3,4]; Int(10) c; c = a;")), False)
+    def test_seq_decl(self):
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2][2] a = [[1,2],[3,4]]; ")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2][2] a = [[False,2],[3,4]]; ")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1, 2, 3, 4]; ")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1]; ")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1,2,3,4] ^ [1,2,3,4];")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Int(10)[2] a = [b,2,c,4] ^ [1,2,b * 2,4];")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Bit d = False; Int(10)[2] a = [b,d,c,4] ^ [1,2,b,4];")), False)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[4] a = [1,2,3,4];")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[4] a = [1,2,3,4]; Int(10) c; c = a;")), False)
 
 
 if __name__ == "__main__":
