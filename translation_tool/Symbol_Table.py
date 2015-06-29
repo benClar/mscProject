@@ -1,22 +1,28 @@
 import unittest
 from pyparsing import ParseException
 from AST_TYPE import AST_TYPE
-
+from Stack import Stack
 
 class Symbol_Table(object):
 
     def __init__(self):
         self._table = {}
+        self._f_table = {}
+        self._inner_scope = Stack()
 
     def add_scope(self, scope):
         self.table[scope] = {}
 
     @property
+    def f_table(self):
+        return self._f_table
+
+    @property
     def table(self):
         return self._table
 
-    def add_bit_id(self, scope, ID_node):
-        self.add_id(scope, ID_node, AST_TYPE.BIT_VAL)
+    def add_bit_id(self, scope, ID):
+        self.add_id(scope, ID, AST_TYPE.BIT_VAL)
 
     def add_int_id(self, scope, ID):
         self.add_id(scope, ID, AST_TYPE.INT_VAL)
@@ -31,11 +37,24 @@ class Symbol_Table(object):
         print(seq)
         self.table[scope][ID[0]]["dimension"] = seq
 
-    def add_id(self, scope, ID_node, id_type):
+    def add_function(self, func_ID, parameters, return_type):
+        if func_ID not in self.table:
+            self.add_scope(func_ID)
+            self.f_table[func_ID] = {}
+            self.f_table[func_ID]["return_type"] = return_type
+            self.f_table[func_ID]["parameters"] = []
+            for p in parameters:
+                self.f_table[func_ID]["parameters"].append(p)
+                self.add_id(func_ID, p['param_ID'], p['param_type'])
+        else:
+            raise ParseException("Redeclaration of function")
+
+
+    def add_id(self, scope, ID, id_type):
         if scope in self.table:
-            if ID_node.ID not in self.table[scope]:
-                self.table[scope][ID_node.ID] = {}
-                self.table[scope][ID_node.ID]["type"] = id_type
+            if ID not in self.table[scope]:
+                self.table[scope][ID] = {}
+                self.table[scope][ID]["type"] = id_type
             else:
                 raise ParseException("Redeclaration of symbol")
         else:
@@ -44,9 +63,9 @@ class Symbol_Table(object):
     def update_id(self, scope, ID, value):
         self.table[scope][ID]["value"] = value
 
-    def id_type(self, scope, ID_node):
+    def id_type(self, scope, ID):
         try:
-            return self.table[scope][ID_node.ID]["type"]
+            return self.table[scope][ID]["type"]
         except KeyError:
             return None
 

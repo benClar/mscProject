@@ -229,7 +229,7 @@ class function_declaration_ast(object):
         self._parameters = []
 
         for p in parameters:
-            self._parameters.append({"param_type": p[0], "param_ID": p[1][1][0]})
+            self._parameters.append({"param_type": AST_TYPE.convert(p[0]), "param_ID": p[1][1][0]})
 
         self.return_value = AST_TYPE.convert(return_value)
 
@@ -242,11 +242,15 @@ class function_declaration_ast(object):
 
     @property
     def ID(self):
-        return self._ID.ID
+        return self._ID
 
     @stmts.setter
     def stmts(self, value):
         self._stmts = value
+
+    @property
+    def parameters(self):
+        return self._parameters
 
 
 class for_loop_ast(object):

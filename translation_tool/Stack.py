@@ -17,6 +17,11 @@ class Stack(object):
     def peek(self):
         return self.stack[len(self.stack) - 1]
 
+    def is_empty(self):
+        if len(self.stack) == 0:
+            return True
+        return False
+
 
 class stack_test(unittest.TestCase):
 

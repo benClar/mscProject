@@ -95,20 +95,6 @@ class Parser(object):
         self.seq_range.setParseAction(lambda t: ['seq_range'] + [t.asList()])
         #  #######Expressions
 
-        # self.bitwise_expr << infixNotation(infixNotation(self.arith_expr ^ self.seq_val,
-        #                                                  [(self.bitwise_op, 2, opAssoc.LEFT), ]),
-        #                                    [(self.arith_op, 2, opAssoc.LEFT), ])
-
-        # self.arith_expr << infixNotation(self.arith_operand, [(self.arith_op, 2, opAssoc.LEFT), ])
-
-        # self.comparison_expr = infixNotation(infixNotation(self.arith_expr | self.bitwise_expr | self.seq_val,
-        #                                                    [(self.comparison_op, 2, opAssoc.LEFT), ]),
-        #                                      [(self.log_op, 2, opAssoc.LEFT), ])
-
-        # self.bitwise_expr = infixNotation(self.expr, [(self.bitwise_op, 2, opAssoc.LEFT), ])
-
-        # self.expr = self.arith_expr | self.bitwise_expr | self.seq_val("seq") | self.bit_val("bit")
-
         self.expr = Group(infixNotation(Group(self.operand), [(self.bitwise_op, 2, opAssoc.LEFT, self.nest_operand_pairs),
                                                               (self.comparison_op, 2, opAssoc.LEFT, self.nest_operand_pairs),
                                                               (self.log_op, 2, opAssoc.LEFT, self.nest_operand_pairs),
@@ -199,6 +185,7 @@ class Parser(object):
         # self.if_stmt.setParseAction(self.AST.if_cond)
 
         self.stmt << ZeroOrMore(self.decl + Suppress(self.term_st)
+                                | self.function_decl
                                 | self.id_set + Suppress(self.term_st)
                                 | self.expr + Suppress(self.term_st)
                                 | self.for_loop
@@ -562,15 +549,15 @@ class TestASTTree(unittest.TestCase):
     #     self.assertEqual(par.AST.tree[0].body[0].node_type, AST_TYPE.ID_SET)
     #     self.assertEqual(par.AST.tree[0].body[0].ID, "b")
 
-    def test_if_stmt(self):
-        par = Parser()
-        self.assertEqual(par.parse_test_unit("if(i > 3) { b = b + 1; c = d + 3; } if(d < 4) { z = z + 1; kk = k + 3; }")[1], True)
-        self.assertEqual(par.AST.tree[0].node_type, AST_TYPE.IF_STMT)
-        self.assertEqual(par.AST.tree[1].node_type, AST_TYPE.IF_STMT)
-        self.assertEqual(par.AST.tree[0].condition[0].expressions[0].expressions[0].expressions[0].ID, "i")
-        par = Parser()
-        self.assertEqual(par.parse_test_unit("if(i > 3) { if(d < 4) { z = z + 1; kk = k + 3; } } ")[1], True)
-        self.assertEqual(par.AST.tree[0].body[0].condition[0].expressions[0].expressions[0].expressions[0].ID, "d")
+    # def test_if_stmt(self):
+    #     par = Parser()
+    #     self.assertEqual(par.parse_test_unit("if(i > 3) { b = b + 1; c = d + 3; } if(d < 4) { z = z + 1; kk = k + 3; }")[1], True)
+    #     self.assertEqual(par.AST.tree[0].node_type, AST_TYPE.IF_STMT)
+    #     self.assertEqual(par.AST.tree[1].node_type, AST_TYPE.IF_STMT)
+    #     self.assertEqual(par.AST.tree[0].condition[0].expressions[0].expressions[0].expressions[0].ID, "i")
+    #     par = Parser()
+    #     self.assertEqual(par.parse_test_unit("if(i > 3) { if(d < 4) { z = z + 1; kk = k + 3; } } ")[1], True)
+    #     self.assertEqual(par.AST.tree[0].body[0].condition[0].expressions[0].expressions[0].expressions[0].ID, "d")
 
 class TestSemanticAnalysisTree(unittest.TestCase):
     pass
@@ -640,12 +627,45 @@ class TestSemanticAnalysisTree(unittest.TestCase):
     #     par = Parser()
     #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Int(10)[2] a = [b,2,c,4] ^ [1,2,b * 2,4];")), True)
     #     par = Parser()
-    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Bit d = False; Int(10)[2] a = [b,d,c,4] ^ [1,2,b,4];")), False)
+    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Bit d = False; Int(10)[2] a = [b,d,c,4] ^ [1,2,b,4];")), False)  # NOQA
     #     par = Parser()
     #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[4] a = [1,2,3,4];")), True)
     #     par = Parser()
+    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(a * a)[4] a = [1,2,3,4];")), False)
+    #     par = Parser()
     #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[4] a = [1,2,3,4]; Int(10) c; c = a;")), False)
+    #     par = Parser()
+    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit[4] a = [True,False,True,False];")), True)
+    #     par = Parser()
+    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit[4] a = [True,False,True,False,[True, False]];")), False)
+    #     par = Parser()
+    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit[4] a = [1,False,True,False];")), False)
+    #     par = Parser()
+    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit[4][4] a = [[True,False,True,False],[True,False,True,False]];")), True)
 
+    def test_if_stmt(self):
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) a = 4; if(a > 4) { a = 10; }")), True)
+
+
+
+    # def test_func_decl(self):
+    #     par = Parser()
+    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int test_func(Int a) { Int(10) d = 1;  Bit b = False; }")), True)
+    #     self.assertEqual(par.semantic_analyser.sym_table.f_table['test_func']['return_type'], AST_TYPE.INT_VAL)
+
+    # def test_func_call(self):
+    #     par = Parser()
+    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int test_func(Int a) { Int(10) d = test_func(test_func(10)) + 20; }")), True)
+    #     par = Parser()
+    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit test_func(Int a) { Int(10) d = 10; }")), True)
+    #     par = Parser()
+    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit test_func1(Int a) { a = a + 10; }\
+    #                                                                         Int test_func(Int a) { Int(10) d = test_func(test_func1(10)) + 20; }")), False)
+    #     par = Parser()
+    #     self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int test_func2(Bit a) { Int(10) d = 39; }\
+    #                                                                         Bit test_func1(Bit a) { Int(10) d = 10; }\
+    #                                                                         Int test_func(Int a) { Int(10) d = test_func(test_func2(test_func1(False))) + 20; }")), True)  # NOQA
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)

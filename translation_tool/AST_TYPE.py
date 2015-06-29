@@ -1,4 +1,5 @@
 from enum import Enum
+from pyparsing import ParseException
 
 
 class AST_TYPE(Enum):
@@ -32,3 +33,7 @@ class AST_TYPE(Enum):
     def convert(type_input):
         if type_input == "Int":
             return AST_TYPE.INT_VAL
+        elif type_input == "Bit":
+            return AST_TYPE.BIT_VAL
+        else:
+            raise ParseException("Unknown Value Type")
