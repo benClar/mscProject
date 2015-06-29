@@ -20,8 +20,6 @@ class Semantic_analyser(object):
 
     def initialise(self):
         self._sym_table = Symbol_Table()
-        self._sym_table.add_scope("global")
-        self._call_stack = Stack("global")
         # self._IR = IR_Tree()
 
     @property
@@ -31,10 +29,6 @@ class Semantic_analyser(object):
     @property
     def sym_table(self):
         return self._sym_table
-
-    @property
-    def call_stack(self):
-        return self._call_stack
 
     def convert_base(self, val):
         if len(val) > 1 and val[1] == 'x':
@@ -60,7 +54,7 @@ class Semantic_analyser(object):
             if node.value is not None:
                 if self.expr_type_is(node.value) != AST_TYPE.INT_VAL or self.expr_type_is(node.bit_constraints) != AST_TYPE.INT_VAL:
                     return False
-            self.sym_table.add_int_id(self.scope(), node.ID)
+            self.sym_table.add_int_id(node.ID)
             return True
         except ParseException as details:
             print(details)
@@ -71,7 +65,7 @@ class Semantic_analyser(object):
             if node.value is not None:
                 if self.expr_type_is(node.value) != AST_TYPE.BIT_VAL:
                     return False
-            self.sym_table.add_bit_id(self.scope(), node.ID)
+            self.sym_table.add_bit_id(node.ID)
             return True
         except ParseException as details:
             print(details)
@@ -90,14 +84,14 @@ class Semantic_analyser(object):
         if self.analyse_array_size(node) is True:
             if self.expr_type_is(node.value) != AST_TYPE.SEQ_BIT_VAL:
                 return False
-        self.sym_table.add_id(self.scope(), node.ID.ID, AST_TYPE.SEQ_BIT_VAL)
+        self.sym_table.add_id(node.ID.ID, AST_TYPE.SEQ_BIT_VAL)
         return True
 
     def analyse_int_seq(self, node):
         if self.analyse_array_size(node) is True:
             if self.expr_type_is(node.value) != AST_TYPE.SEQ_INT_VAL or self.expr_type_is(node.bit_constraints) != AST_TYPE.INT_VAL:
                 return False
-        self.sym_table.add_id(self.scope(), node.ID.ID, AST_TYPE.SEQ_INT_VAL)
+        self.sym_table.add_id(node.ID.ID, AST_TYPE.SEQ_INT_VAL)
         return True
 
     def seq_type_is(self, seq_value):
@@ -138,7 +132,7 @@ class Semantic_analyser(object):
         return True
 
     def analyse_ID_set(self, node):
-        if self.expr_type_is(node.value) != self.sym_table.id_type(self.scope(), node):
+        if self.expr_type_is(node.value) != self.sym_table.id_type(node.ID):
             raise ParseException("Incorrect data type assignment")
             return False
         return True
@@ -158,12 +152,12 @@ class Semantic_analyser(object):
                 expr_types["OPERAND_" + str(len(expr_types))] = self.analyse_seq_val_type(expr)
             elif expr.node_type == AST_TYPE.BIT_VAL:
                 expr_types["OPERAND_" + str(len(expr_types))] = AST_TYPE.BIT_VAL
-            elif expr.node_type == AST_TYPE.SHIFT_OP or expr.node_type == AST_TYPE.ARITH_OP or expr.node_type == AST_TYPE.BITWISE_OP:
-                    expr_types["OP"] = expr.node_type
+            elif expr.node_type == AST_TYPE.SHIFT_OP or expr.node_type == AST_TYPE.ARITH_OP or expr.node_type == AST_TYPE.BITWISE_OP or expr.node_type == AST_TYPE.COMP_OP:
+                expr_types["OP"] = expr.node_type
             elif expr.node_type == AST_TYPE.EXPR:
                 expr_types["OPERAND_" + str(len(expr_types))] = self.expr_type_is(expr)
             elif expr.node_type == AST_TYPE.ID:
-                expr_types["OPERAND_" + str(len(expr_types))] = self.id_type(expr)
+                expr_types["OPERAND_" + str(len(expr_types))] = self.sym_table.id_type(expr.ID)
             elif expr.node_type == AST_TYPE.FUNCTION_CALL:
                 expr_types["OPERAND_" + str(len(expr_types))] = self.analyse_func_call(expr)  # Change obv.
             if len(expr_types) == 3:
@@ -185,8 +179,15 @@ class Semantic_analyser(object):
                 return False
         return self.sym_table.f_table[node.ID.ID]['return_type']
 
-    def id_type(self, id_node):
-        return self.sym_table.id_type(self.scope(), id_node.ID)
+    def analyse_if_stmt_decl(self, node):
+        self.sym_table.add_scope()
+        for c in node.condition:
+            self.expr_type_is(c)
+        for stmt in node.body:
+            if Semantic_analyser.node_type_lookup[stmt.node_type](self, stmt) is False:
+                    return False
+        self.sym_table.leave_scope()
+        return True
 
     def scope(self):
         return self.call_stack.peek()
@@ -194,10 +195,18 @@ class Semantic_analyser(object):
     def sub_expr_valid(self, expression):
         if expression['OP'] is AST_TYPE.ARITH_OP:
             return self.arith_expr_valid(expression)
-        if expression['OP'] is AST_TYPE.SHIFT_OP:
+        elif expression['OP'] is AST_TYPE.SHIFT_OP:
             return self.shift_expr_valid(expression)
-        if expression['OP'] is AST_TYPE.BITWISE_OP:
+        elif expression['OP'] is AST_TYPE.BITWISE_OP:
             return self.bitwise_expr_valid(expression)
+        elif expression['OP'] is AST_TYPE.COMP_OP:
+            return self.comp_expr_valid(expression)
+        else:
+            raise ParseException("Invalid Operand")
+
+    def comp_expr_valid(self, expression):
+        if expression['OPERAND_0'] == expression['OPERAND_2']:
+            return True
 
     def bitwise_expr_valid(self, expression):
         if expression['OPERAND_0'] == expression['OPERAND_2']:
@@ -218,14 +227,18 @@ class Semantic_analyser(object):
             return {'OPERAND_0': expression['OPERAND_0']}
         if expression['OP'] is AST_TYPE.BITWISE_OP:
             return {'OPERAND_0': expression['OPERAND_0']}
+        if expression['OP'] is AST_TYPE.COMP_OP:
+            return {'OPERAND_0': AST_TYPE.BIT_VAL}
+        else:
+            raise ParseException("Unrecognised operator")
 
     def analyse_func_decl(self, node):
+        self.sym_table.add_scope()
         self.sym_table.add_function(node.ID.ID, node.parameters, node.return_value)
-        self.call_stack.push(node.ID.ID)
         for s in node.stmts:
             if Semantic_analyser.node_type_lookup[s.node_type](self, s) is False:
                     return False
-        self.call_stack.pop()
+        self.sym_table.leave_scope()
         return True
 
     def analyse(self, AST):
