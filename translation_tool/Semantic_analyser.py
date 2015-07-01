@@ -4,6 +4,7 @@ from Stack import Stack
 #     Tree
 from pyparsing import ParseException
 from AST_TYPE import AST_TYPE
+from Translator import Translator
 
 
 class Semantic_analyser(object):
@@ -13,18 +14,19 @@ class Semantic_analyser(object):
                         AST_TYPE.ID_SET: lambda self, node: self.analyse_ID_set(node),
                         AST_TYPE.SEQ_DECL: lambda self, node: self.analyse_seq_decl(node),
                         AST_TYPE.FUNC_DECL: lambda self, node: self.analyse_func_decl(node),
-                        AST_TYPE.IF_STMT: lambda self, node: self.analyse_if_stmt_decl(node)}
+                        AST_TYPE.IF_STMT: lambda self, node: self.analyse_if_stmt_decl(node),
+                        AST_TYPE.FOR_LOOP: lambda self, node: self.analyse_for_loop_decl(node)}
 
     def __init__(self):
         self.initialise()
 
     def initialise(self):
         self._sym_table = Symbol_Table()
-        # self._IR = IR_Tree()
+        self._translator = Translator()
 
     @property
-    def IR(self):
-        return self._IR
+    def translator(self):
+        return self._translator
 
     @property
     def sym_table(self):
@@ -55,6 +57,7 @@ class Semantic_analyser(object):
                 if self.expr_type_is(node.value) != AST_TYPE.INT_VAL or self.expr_type_is(node.bit_constraints) != AST_TYPE.INT_VAL:
                     return False
             self.sym_table.add_int_id(node.ID)
+            self.translator.translate_int_decl(node, self.sym_table)
             return True
         except ParseException as details:
             print(details)
@@ -72,9 +75,9 @@ class Semantic_analyser(object):
             return False
 
     def analyse_seq_decl(self, node):
-        if node.type == "Int":
+        if node.type == AST_TYPE.SEQ_INT_VAL or node.type == AST_TYPE.BS_SEQ_INT_VAL:
             return self.analyse_int_seq(node)
-        elif node.type == "Bit":
+        elif node.type == AST_TYPE.SEQ_BIT_VAL:
             return self.analyse_bit_seq(node)
         else:
             print("Unknown Sequence Type")
@@ -89,9 +92,13 @@ class Semantic_analyser(object):
 
     def analyse_int_seq(self, node):
         if self.analyse_array_size(node) is True:
-            if self.expr_type_is(node.value) != AST_TYPE.SEQ_INT_VAL or self.expr_type_is(node.bit_constraints) != AST_TYPE.INT_VAL:
-                return False
-        self.sym_table.add_id(node.ID.ID, AST_TYPE.SEQ_INT_VAL)
+            try: 
+                if self.expr_type_is(node.bit_constraints) != AST_TYPE.INT_VAL or self.expr_type_is(node.value) != AST_TYPE.SEQ_INT_VAL:
+                    return False
+            except AttributeError:
+                pass
+        self.sym_table.add_id(node.ID.ID, node.type)
+        self.translator.translate_int_seq_decl(node, self.sym_table)
         return True
 
     def seq_type_is(self, seq_value):
@@ -114,6 +121,7 @@ class Semantic_analyser(object):
 
     def analyse_seq_val_type(self, seq_val):
         seq_type = self.seq_type_is(seq_val)
+        seq_val.seq_type = list(seq_type)[0]
         if len(seq_type) > 1:
             raise ParseException("Combined Types in sequence")
         elif list(seq_type)[0] == AST_TYPE.INT_VAL:
@@ -155,11 +163,13 @@ class Semantic_analyser(object):
             elif expr.node_type == AST_TYPE.SHIFT_OP or expr.node_type == AST_TYPE.ARITH_OP or expr.node_type == AST_TYPE.BITWISE_OP or expr.node_type == AST_TYPE.COMP_OP:
                 expr_types["OP"] = expr.node_type
             elif expr.node_type == AST_TYPE.EXPR:
-                expr_types["OPERAND_" + str(len(expr_types))] = self.expr_type_is(expr)
+                expr.ret_type = self.expr_type_is(expr)
+                expr_types["OPERAND_" + str(len(expr_types))] = expr.ret_type
             elif expr.node_type == AST_TYPE.ID:
-                expr_types["OPERAND_" + str(len(expr_types))] = self.sym_table.id_type(expr.ID)
+                expr.ID_type = self.sym_table.id_type(expr.ID)
+                expr_types["OPERAND_" + str(len(expr_types))] = expr.ID_type
             elif expr.node_type == AST_TYPE.FUNCTION_CALL:
-                expr_types["OPERAND_" + str(len(expr_types))] = self.analyse_func_call(expr)  # Change obv.
+                expr_types["OPERAND_" + str(len(expr_types))] = self.analyse_func_call(expr)
             if len(expr_types) == 3:
                 if self.sub_expr_valid(expr_types) is True:
                     expr_types = self.reduce_sub_expr(expr_types)
@@ -186,6 +196,25 @@ class Semantic_analyser(object):
         for stmt in node.body:
             if Semantic_analyser.node_type_lookup[stmt.node_type](self, stmt) is False:
                     return False
+        self.sym_table.leave_scope()
+        return True
+
+    def analyse_for_loop_decl(self, node):
+        self.sym_table.add_scope()
+        for i in node.initializer:
+            if Semantic_analyser.node_type_lookup[i.node_type](self, i) is False:
+                return False
+        for t in node.terminator:
+            self.expr_type_is(t)
+
+        for i in node.increment:
+            if self.analyse_ID_set(i) is False:
+                return False
+
+        for stmt in node.body:
+            if Semantic_analyser.node_type_lookup[stmt.node_type](self, stmt) is False:
+                return False
+        self.translator.translate_for_loop(node, self.sym_table)
         self.sym_table.leave_scope()
         return True
 

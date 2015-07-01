@@ -22,21 +22,23 @@ void sub_cells(Bit[] state, Int[] sBox)	{
 }
 
 void shift_row(Bit[] state)	{
-	for(int row = 0 ; row < 4; row++)	{
-		state[row : row + 3] <<< row;
-	}
+		state[0 : 3] <<< 0;
+		state[4 : 7] <<< 1;
+		state[8 : 11] <<< 2
+		state[12 : 15] <<< 3;
 }
 
 void addConstants(Bit[] state, Int constant)	{
-	Bit[16][4] roundConstant = (Bit[64]) 0;
-	for(nibble = 0; nibble < 16; nibble++)	{
+	Bit[16][4] roundConstant;
+	for(nibble = 0; nibble < 16; nibble = nibble + 4)	{
 		roundConstant[nibble][0:3] = (Bit[4]) row;
 		if(row == 0 || row == 2)	{
 			roundConstant[nibble][0:3] = (Bit([4]) constant[5:3];
 		} else {
 			roundConstant[nibble][0:3] = (Bit([4]) constant[2:0];
 		}
-		roundConstant[nibble : nibble + 1][0:3] = (Bit[4]) 0; //!Setting values accross 2d elements
+		roundConstant[nibble][0:3] = (Bit[4]) 0; //!Setting values accross 2d elements
+		roundConstant[nibble + 1][0:3] = (Bit[4]) 0;
 		state[nibble] = state[nibble] ^ roundConstant[nibble]; //! Notice that this 2d structure can XOR its elements.
 	}
 	

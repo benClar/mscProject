@@ -6,14 +6,15 @@ from Stack import Stack
 class Symbol_Table(object):
 
     def __init__(self):
-        self._table = {}
-        self._f_table = {}
-        self._inner_scope = Stack()
         self._symbols = Stack()
         self.add_scope()
 
     # def add_scope(self, scope):
     #     self.table[scope] = {}
+
+    def print_s_table(self):
+        for i in self.symbols.stack:
+            print(self.symbols.peek())
 
     def add_scope(self):
         self.symbols.push({})
@@ -25,14 +26,6 @@ class Symbol_Table(object):
     def symbols(self):
         return self._symbols
 
-    @property
-    def f_table(self):
-        return self._f_table
-
-    @property
-    def table(self):
-        return self._table
-
     def add_bit_id(self, ID):
         self.add_id(ID, AST_TYPE.BIT_VAL)
 
@@ -41,6 +34,19 @@ class Symbol_Table(object):
 
     def add_int_id(self, ID):
         self.add_id(ID, AST_TYPE.INT_VAL)
+
+    def update_value(self, ID, value):
+        for scope in self.symbols.stack:
+            if ID in scope:
+                scope[ID]["value"] = value
+                return
+        raise ParseException("Tried to update nonexistent ID")
+
+    def id(self, ID):
+        for scope in self.symbols.stack:
+            if ID in scope:
+                return scope[ID]
+        raise ParseException("Tried to update nonexistent ID")
 
     def add_id(self, ID, id_type):
         if ID not in self.symbols.peek():
@@ -70,6 +76,12 @@ class Symbol_Table(object):
         else:
             raise ParseException("Redeclaration of function")
 
+    def link_node(self, ID, node):
+        for scope in self.symbols.stack:
+            if ID in scope:
+                scope[ID]["node"] = node
+                return
+        raise ParseException("Internal Error: Tried to link node to non existent symbol")
 
     # def add_id(self, scope, ID, id_type):
     #     if scope in self.table:

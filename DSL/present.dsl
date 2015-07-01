@@ -1,13 +1,7 @@
 main()	{
-	Bit[64] key = (false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
-					false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
-					false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
-					false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true);
 
-	Bit[64] state = (false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
-						false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
-						false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
-						false,false,false,false);
+	@Int(64)[5] state = (0,1,2,3,4)
+	@Int(80)[5] key = (0,0,0,0,0)
 
     Int[16](4) sBox = (0xC,0x5,0x6,0xB,0x9,0x0,0xA,0xD,0x3,0xE,0xF,0x8,0x4,0x7,0x1,0x2);
 
@@ -38,13 +32,13 @@ sBox_layer(Bit[] state, Bit[] sBox)	{
 	state = sBox.sBox(state);
 }
 
-generate_round_keys(Sequence key, Sequence sBox)	{
-
-	for(int round = 0; round < 32; round = round + 1)	{
-		Sequence round_keys.add(Sequence(key[0:64]));
+generate_round_keys(Int[] key, Int[] sBox)	{
+	@Int(64)[5][32] round_keys;
+	for(Int(5) round = 0; round < 32; round = round + 1)	{
+		round_keys[round] = (Bit[80]) key[79:16];
 		key = key <<< 61;
-		key[0:3] = sBox.sBox(key[0:3]);
-		key[-19 : -15] ^= round;
+		((Bit[80]) key)[79:76] = sBox.sBox((Bit[80]) key[0:3]);
+		((Bit[80]) key)[19 : 15] ^= (Bit[5]) round;
 	}
 	return round_keys;
 }

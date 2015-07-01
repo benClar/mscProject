@@ -28,12 +28,22 @@ class AST_TYPE(Enum):
     FUNC_DECL = 22,
     RETURN_STMT = 23,
     FOR_LOOP = 24,
-    IF_STMT = 25
+    IF_STMT = 25,
+    BS_INT_VAL = 26,
+    BS_SEQ_INT_VAL = 27
 
-    def convert(type_input):
+    def convert(type_input, qualifier=None):
         if type_input == "Int":
+            if qualifier == "Seq":
+                return AST_TYPE.SEQ_INT_VAL
             return AST_TYPE.INT_VAL
         elif type_input == "Bit":
+            if qualifier == "Seq":
+                return AST_TYPE.SEQ_BIT_VAL
             return AST_TYPE.BIT_VAL
+        elif type_input == "@Int":
+            if qualifier == "Seq":
+                return AST_TYPE.BS_SEQ_INT_VAL
+            return AST_TYPE.BS_INT_VAL
         else:
             raise ParseException("Unknown Value Type")

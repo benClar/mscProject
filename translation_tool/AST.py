@@ -70,7 +70,8 @@ class AST(object):
 
     def seq_decl(self, tokens):
         token = tokens[0]
-        if token['type'] == "Int":
+        # print(token.dump())
+        if token['type'] == "Int" or token['type'] == "@Int":
             self.int_seq_decl(token)
         elif token['type'] == "Bit":
             self.bit_seq_decl(token)
@@ -312,7 +313,7 @@ class Seq_decl_ast(object):
 
     def __init__(self, seq_id, seq_type, size, value=None, constraints=None):
         self._ID = ID_ast(seq_id)
-        self._type = seq_type
+        self._type = AST_TYPE.convert(seq_type, "Seq")
         if value is not None:
             self._value = Expr_ast(value)
         else:
@@ -415,7 +416,8 @@ class Expr_ast(object):
                  '<': AST_TYPE.COMP_OP,
                  '<=': AST_TYPE.COMP_OP,
                  '&&': AST_TYPE.COMP_OP,
-                 '==': AST_TYPE.COMP_OP}
+                 '==': AST_TYPE.COMP_OP,
+                 '!=': AST_TYPE.COMP_OP}
 
     operand_lookup = {'Seq_val': AST_TYPE.SEQ_VAL,
                       'index_select': AST_TYPE.INDEX_SEL,
@@ -429,6 +431,7 @@ class Expr_ast(object):
     node_type = AST_TYPE.EXPR
 
     def __init__(self, expr=None):
+        self._ret_value = None
         if expr is not None:
             self._expressions = []
             self.eval(expr)
@@ -436,6 +439,14 @@ class Expr_ast(object):
             self._expressions = None
         pass
 
+    @property
+    def ret_value(self):
+        return self._ret_value
+
+    @ret_value.setter
+    def setter(self, value):
+        self.ret_value = value
+    
     def eval(self, expr):
         # print("EXPR")
         # print(expr)
@@ -530,6 +541,7 @@ class seq_value_ast(object):
     node_type = AST_TYPE.SEQ_VAL
 
     def __init__(self, value=None):
+        self.seq_type
         if value is not None:
             self._value = []
             for p in value:
@@ -544,6 +556,14 @@ class seq_value_ast(object):
     @property
     def size(self):
         return len(self.value)
+
+    @property
+    def seq_type(self):
+        return self._seq_type
+
+    @seq_type.setter
+    def seq_type(self, value):
+        self.seq_type = value
 
 
 class Func_call_ast(object):
@@ -664,6 +684,15 @@ class ID_ast(object):
 
     def __init__(self, ID):
         self._ID = ID
+        self._ID_type
+
+    @property
+    def ID_type(self):
+        return self._ID_type
+
+    @ID_type.setter
+    def ID_type(self, value):
+        self.ID_type = value
 
     @property
     def ID(self):
