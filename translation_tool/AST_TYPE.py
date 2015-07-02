@@ -50,11 +50,26 @@ class AST_TYPE(Enum):
         elif type_input == "@Int":
             if qualifier == "Seq":
                 return AST_TYPE.BS_SEQ_INT_VAL
-            print("HERE3")
             return AST_TYPE.BS_INT_VAL
         elif type_input == "void":
             return AST_TYPE.VOID
         elif type_input == AST_TYPE.INT_DECL:
             return AST_TYPE.INT_VAL
+        else:
+            raise ParseException("Unknown Value Type")
+
+    def decl_to_value(type_input):
+        if type_input == AST_TYPE.BS_INT_DECL:
+            return AST_TYPE.BS_INT_VAL
+        elif type_input == AST_TYPE.INT_DECL:
+            return AST_TYPE.INT_VAL
+        elif type_input == AST_TYPE.BIT_DECL:
+            return AST_TYPE.BIT_VAL
+        elif type_input == AST_TYPE.SEQ_INT_DECL:
+            return AST_TYPE.SEQ_INT_VAL
+        elif type_input == AST_TYPE.BS_SEQ_INT_DECL:
+            return AST_TYPE.BS_SEQ_INT_VAL
+        elif type_input == AST_TYPE.SEQ_BIT_DECL:
+            return AST_TYPE.SEQ_BIT_VAL
         else:
             raise ParseException("Unknown Value Type")

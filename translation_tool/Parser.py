@@ -610,6 +610,8 @@ class TestSemanticAnalysisTree(unittest.TestCase):
         self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10 + False << 4;")), False)
         par = Parser()
         self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a; Int(10) b = a;")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) a; Int(10) b = a + 3;")), True)
 
 
     def test_bit_decl(self):
@@ -689,7 +691,7 @@ class TestSemanticAnalysisTree(unittest.TestCase):
         par = Parser()
         self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("for(Int(10) i = 5, Bit b = False; b != True; i = i + 5) { b = True; }")), True)
         par = Parser()
-        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("for(Int(10) i = 5, Bit b = False; b != True; i = i + 5) { b = True; } b = True;")), False)
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("for(Int(10) i = 5, Bit b = False; b != True; i = i + 5) { b = True; } b = True;")), False)  #b is out of scope!
         par = Parser()
         self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("Bit b; for(Int(10) i = 5; b != True; i = i + 5) { b = True; } b = True;")), True)
         par = Parser()
@@ -713,7 +715,10 @@ class TestSemanticAnalysisTree(unittest.TestCase):
                                                                             Bit test_func1(Bit a) { Int(10) d = 10; }\
                                                                             Int(10) test_func(Int(10) a) { Int(10) d = test_func(test_func2(test_func1(False))) + 20; }")), True)  # NOQA
         par = Parser()
-        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) test_func2(Bit a) { Int(10) d = 39; }")), True)
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) test_func2(Bit a) { Int(10) d = 39; }\
+                                                                            void test_func3(Bit a) { @Int(10) i = test_func2(False); }")), True)
+        par = Parser()
+        self.assertEqual(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) test_func2(@Int(8) c) { c = 4 + 39; }")), True)
 
 
 class TestTranslator(unittest.TestCase):

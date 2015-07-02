@@ -76,7 +76,7 @@ class Symbol_Table(object):
             self.f_table[func_ID]["parameters"] = []
             for p in parameters:
                 self.f_table[func_ID]["parameters"].append(p)
-                self.add_id(p.ID, p.node_type)
+                self.add_id(p.ID, AST_TYPE.decl_to_value(p.node_type))
         else:
             raise ParseException("Redeclaration of function")
 
@@ -104,7 +104,7 @@ class Symbol_Table(object):
         for scope in self.symbols.stack:
             if ID in scope:
                 return scope[ID]["type"]
-        return None
+        raise ParseException("Symbol " + ID + " Does not exist")
 
     # def id_details(self, scope, ID):
     #     return self.table[scope][ID]

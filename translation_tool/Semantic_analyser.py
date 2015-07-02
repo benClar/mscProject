@@ -17,7 +17,8 @@ class Semantic_analyser(object):
                         AST_TYPE.FOR_LOOP: lambda self, node: self.analyse_for_loop_decl(node),
                         AST_TYPE.SEQ_INT_DECL: lambda self, node: self.analyse_int_seq(node),
                         AST_TYPE.SEQ_BIT_DECL: lambda self, node: self.analyse_bit_seq(node),
-                        AST_TYPE.BS_SEQ_INT_DECL: lambda self, node: self.analyse_int_seq(node)}
+                        AST_TYPE.BS_SEQ_INT_DECL: lambda self, node: self.analyse_int_seq(node),
+                        AST_TYPE.BS_INT_DECL: lambda self, node: self.analyse_int_decl(node)}
 
     def __init__(self):
         self.initialise()
@@ -56,9 +57,10 @@ class Semantic_analyser(object):
     def analyse_int_decl(self, node):
         try:
             if node.value is not None:
-                if self.expr_type_is(node.value) != AST_TYPE.INT_VAL or self.expr_type_is(node.bit_constraints) != AST_TYPE.INT_VAL:
+                if self.value_matches_expected(self.expr_type_is(node.value), node.node_type) is False or self.expr_type_is(node.bit_constraints) != AST_TYPE.INT_VAL:
+                    raise ParseException(str(self.expr_type_is(node.value)) + " value not as expected for " + str(node.node_type) + " assignment")
                     return False
-            self.sym_table.add_int_id(node.ID)
+            self.sym_table.add_id(node.ID, AST_TYPE.decl_to_value(node.node_type))
             # self.translator.translate_int_decl(node, self.sym_table)
             return True
         except ParseException as details:
@@ -142,8 +144,8 @@ class Semantic_analyser(object):
         return True
 
     def analyse_ID_set(self, node):
-        if self.expr_type_is(node.value) != self.sym_table.id_type(node.ID):
-            raise ParseException("Incorrect data type assignment")
+        if self.value_matches_expected(self.expr_type_is(node.value), self.sym_table.id_type(node.ID)) is False:
+            raise ParseException(str(self.expr_type_is(node.value)) + " cannot be assigned to variable of type " + str(self.sym_table.id_type(node.ID)))
             return False
         return True
 
@@ -176,7 +178,8 @@ class Semantic_analyser(object):
                 if self.sub_expr_valid(expr_types) is True:
                     expr_types = self.reduce_sub_expr(expr_types)
                 else:
-                    raise ParseException("Invalid Expression")
+                    raise ParseException("cannot combine a " + str(expr_types['OPERAND_0']) + " value with a " +
+                                         str(expr_types['OPERAND_2']) + " in " + str(expr_types['OP']) + " Operation")
         if len(expr_types) != 1:
             print(expr_types)
             raise ParseException("Internal Error")
@@ -187,14 +190,18 @@ class Semantic_analyser(object):
 
     def analyse_func_call(self, node):
         for i, p in enumerate(node.parameters):
-            if self.value_matches_parameter(self.expr_type_is(p), self.sym_table.f_table[node.ID]['parameters'][i].node_type) is False:
+            if self.value_matches_expected(self.expr_type_is(p), self.sym_table.f_table[node.ID]['parameters'][i].node_type) is False:
                 raise ParseException(str(self.expr_type_is(p)) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i].node_type))
                 return False
         return self.sym_table.f_table[node.ID]['return_type']
 
-    def value_matches_parameter(self, result_value, expected_value):
-        allowed_values = {AST_TYPE.INT_DECL: [AST_TYPE.INT_DECL, AST_TYPE.INT_VAL],
-                          AST_TYPE.BIT_DECL: [AST_TYPE.BIT_VAL, AST_TYPE.BIT_DECL]}
+    def value_matches_expected(self, result_value, expected_value):
+        allowed_values = {AST_TYPE.INT_DECL: [AST_TYPE.INT_VAL, AST_TYPE.BS_INT_VAL],
+                          AST_TYPE.BIT_DECL: [AST_TYPE.BIT_VAL],
+                          AST_TYPE.BS_INT_DECL: [AST_TYPE.INT_VAL, AST_TYPE.BS_INT_VAL],
+                          AST_TYPE.BS_INT_VAL: [AST_TYPE.INT_VAL, AST_TYPE.BS_INT_VAL],
+                          AST_TYPE.INT_VAL: [AST_TYPE.INT_VAL, AST_TYPE.BS_INT_VAL],
+                          AST_TYPE.BIT_VAL: [AST_TYPE.BIT_VAL]}
         if result_value in allowed_values[expected_value]:
             return True
         return False
@@ -256,12 +263,13 @@ class Semantic_analyser(object):
             return True
 
     def arith_expr_valid(self, expression):
-        if expression['OPERAND_0'] == AST_TYPE.INT_VAL and expression['OPERAND_2'] == AST_TYPE.INT_VAL:
+
+        if self.value_matches_expected(expression['OPERAND_0'], expression['OPERAND_2']):
             return True
 
     def reduce_sub_expr(self, expression):
         if expression['OP'] is AST_TYPE.ARITH_OP:
-            return {'OPERAND_0': AST_TYPE.INT_VAL}
+            return {'OPERAND_0': self.reduce_arith_op(expression)}
         if expression['OP'] is AST_TYPE.SHIFT_OP:
             return {'OPERAND_0': expression['OPERAND_0']}
         if expression['OP'] is AST_TYPE.BITWISE_OP:
@@ -270,6 +278,12 @@ class Semantic_analyser(object):
             return {'OPERAND_0': AST_TYPE.BIT_VAL}
         else:
             raise ParseException("Unrecognised operator")
+
+    def reduce_arith_op(self, expression):
+        if expression['OPERAND_0'] == AST_TYPE.BS_INT_VAL or expression['OPERAND_2'] == AST_TYPE.BS_INT_VAL:
+            return AST_TYPE.BS_INT_VAL
+        else:
+            return AST_TYPE.INT_VAL
 
     def analyse_func_decl(self, node):
         self.sym_table.add_scope()
