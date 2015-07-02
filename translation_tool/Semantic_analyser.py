@@ -77,7 +77,6 @@ class Semantic_analyser(object):
             return False
 
     def analyse_seq_decl(self, node):
-        print("HERE<<<<<<<<<<")
         if node.type == AST_TYPE.SEQ_INT_VAL or node.type == AST_TYPE.BS_SEQ_INT_VAL:
             return self.analyse_int_seq(node)
         elif node.type == AST_TYPE.SEQ_BIT_VAL:
@@ -90,7 +89,7 @@ class Semantic_analyser(object):
         if self.analyse_array_size(node) is True:
             if self.expr_type_is(node.value) != AST_TYPE.SEQ_BIT_VAL:
                 return False
-        self.sym_table.add_id(node.ID.ID, node.node_type)
+        self.sym_table.add_id(node.ID, node.node_type)
         return True
 
     def analyse_int_seq(self, node):
@@ -100,7 +99,7 @@ class Semantic_analyser(object):
                     return False
             except AttributeError:
                 pass
-        self.sym_table.add_id(node.ID.ID, node.node_type)
+        self.sym_table.add_id(node.ID, node.node_type)
         # self.translator.translate_int_seq_decl(node, self.sym_table)
         return True
 
@@ -188,9 +187,17 @@ class Semantic_analyser(object):
 
     def analyse_func_call(self, node):
         for i, p in enumerate(node.parameters):
-            if self.expr_type_is(p) != self.sym_table.f_table[node.ID.ID]['parameters'][i]['param_type']:
+            if self.value_matches_parameter(self.expr_type_is(p), self.sym_table.f_table[node.ID]['parameters'][i].node_type) is False:
+                raise ParseException(str(self.expr_type_is(p)) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i].node_type))
                 return False
-        return self.sym_table.f_table[node.ID.ID]['return_type']
+        return self.sym_table.f_table[node.ID]['return_type']
+
+    def value_matches_parameter(self, result_value, expected_value):
+        allowed_values = {AST_TYPE.INT_DECL: [AST_TYPE.INT_DECL, AST_TYPE.INT_VAL],
+                          AST_TYPE.BIT_DECL: [AST_TYPE.BIT_VAL, AST_TYPE.BIT_DECL]}
+        if result_value in allowed_values[expected_value]:
+            return True
+        return False
 
     def analyse_if_stmt_decl(self, node):
         self.sym_table.add_scope()
@@ -266,7 +273,7 @@ class Semantic_analyser(object):
 
     def analyse_func_decl(self, node):
         self.sym_table.add_scope()
-        self.sym_table.add_function(node.ID.ID, node.parameters, node.return_value)
+        self.sym_table.add_function(node.ID, node.parameters, node.return_value)
         for s in node.stmts:
             if Semantic_analyser.node_type_lookup[s.node_type](self, s) is False:
                     return False

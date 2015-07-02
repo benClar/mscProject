@@ -76,7 +76,7 @@ class Symbol_Table(object):
             self.f_table[func_ID]["parameters"] = []
             for p in parameters:
                 self.f_table[func_ID]["parameters"].append(p)
-                self.add_id(p['param_ID'], p['param_type'])
+                self.add_id(p.ID, p.node_type)
         else:
             raise ParseException("Redeclaration of function")
 

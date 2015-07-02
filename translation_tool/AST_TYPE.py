@@ -54,5 +54,7 @@ class AST_TYPE(Enum):
             return AST_TYPE.BS_INT_VAL
         elif type_input == "void":
             return AST_TYPE.VOID
+        elif type_input == AST_TYPE.INT_DECL:
+            return AST_TYPE.INT_VAL
         else:
             raise ParseException("Unknown Value Type")

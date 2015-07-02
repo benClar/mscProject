@@ -122,17 +122,17 @@ class AST(object):
             raise ParseException("Unknown Int Seq Type")
         # seq_decl_type
         if 'value' in token:
-            self.add_statement(Seq_decl_ast(seq_decl_type, token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], token[AST.INT_SEQ_VALUE], token[AST.INT_SEQ_CNST]))
+            self.add_statement(Seq_decl_ast(seq_decl_type, token['ID'][1][0], token[AST.INT_SEQ_SIZE], token[AST.INT_SEQ_VALUE], token[AST.INT_SEQ_CNST]))
         else:
             pass
-            self.add_statement(Seq_decl_ast(seq_decl_type, token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], constraints=token[AST.INT_SEQ_CNST]))
+            self.add_statement(Seq_decl_ast(seq_decl_type, token['ID'][1][0], token[AST.INT_SEQ_SIZE], constraints=token[AST.INT_SEQ_CNST]))
 
     def bit_seq_decl(self, token):
         # print(token.dump())
         if 'value' in token:
-            self.add_statement(Seq_decl_ast(AST_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE], token[AST.BIT_SEQ_VALUE]))
+            self.add_statement(Seq_decl_ast(AST_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token[AST.BIT_SEQ_SIZE], token[AST.BIT_SEQ_VALUE]))
         else:
-            self.add_statement(Seq_decl_ast(AST_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE]))
+            self.add_statement(Seq_decl_ast(AST_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token[AST.BIT_SEQ_SIZE]))
 
     def id_set(self, tokens):
         token = tokens[0]
@@ -147,10 +147,64 @@ class AST(object):
     def function_decl(self, tokens):
         token = tokens[0]
         # print(token.dump())
-        self.add_function_node(function_declaration_ast(token[0], token[1][1][0], token[2]))
+        params = []
+        for p in token['func_param']:
+            decl_type = self.param_type(p)
+            if decl_type == AST_TYPE.INT_DECL or decl_type == AST_TYPE.BS_INT_DECL:
+                params.append(Int_decl_ast(decl_type, p[2][1][0], p[1]))
+            elif decl_type == AST_TYPE.SEQ_INT_DECL or decl_type == AST_TYPE.BS_SEQ_INT_DECL:
+                params.append(Seq_decl_ast(decl_type, p[3][1][0], p[2]))
+            elif decl_type == AST_TYPE.SEQ_BIT_DECL:
+                params.append(Seq_decl_ast(decl_type, p[2][1][0], p[1]))
+            elif decl_type == AST_TYPE.BIT_DECL:
+                params.append(Bit_decl_ast(p[1][1][0]))
+            else:
+                raise ParseException("Unknown Param Type")
+        
+        self.add_function_node(function_declaration_ast(self.return_type(token[0]), token['func_ID'][1][0], params))
         self.tree[-1].stmts += self.statements[:]
         self.statements.clear()
 
+    def param_type(self, param):
+        if param[0] == "@Int":
+            if self.is_sequence(param):
+                return AST_TYPE.BS_SEQ_INT_DECL
+            else:
+                return AST_TYPE.BS_INT_DECL
+        elif param[0] == "Int":
+            if self.is_sequence(param):
+                return AST_TYPE.SEQ_INT_DECL
+            else:
+                return AST_TYPE.INT_DECL
+        elif param[0] == "Bit":
+            if self.is_sequence(param):
+                return AST_TYPE.SEQ_BIT_DECL
+            else:
+                return AST_TYPE.BIT_DECL
+
+    def return_type(self, param):
+        if param[0] == "@Int":
+            if self.is_sequence(param):
+                return AST_TYPE.BS_SEQ_INT_VAL
+            else:
+                return AST_TYPE.BS_INT_VAL
+        elif param[0] == "Int":
+            if self.is_sequence(param):
+                return AST_TYPE.SEQ_INT_VAL
+            else:
+                return AST_TYPE.INT_VAL
+        elif param[0] == "Bit":
+            if self.is_sequence(param):
+                return AST_TYPE.SEQ_BIT_VAL
+            else:
+                return AST_TYPE.BIT_VAL
+        elif param[0] == "void":
+            return AST_TYPE.VOID
+
+    def is_sequence(self, param):
+        if 'seq_size' in param:
+            return True
+        return False
     def return_stmt(self, tokens):
         token = tokens[0]
         self.add_statement(return_stmt_ast(token[1]))
@@ -211,12 +265,8 @@ class function_declaration_ast(object):
     def __init__(self, return_value, ID, parameters):
         self._stmts = []
         self._ID = ID_ast(ID)
-        self._parameters = []
-
-        for p in parameters:
-            self._parameters.append({"param_type": AST_TYPE.convert(p[0]), "param_ID": p[1][1][0]})
-
-        self.return_value = AST_TYPE.convert(return_value)
+        self._parameters = parameters
+        self.return_value = return_value
 
     @property
     def stmts(self):
@@ -227,7 +277,7 @@ class function_declaration_ast(object):
 
     @property
     def ID(self):
-        return self._ID
+        return self._ID.ID
 
     @stmts.setter
     def stmts(self, value):
@@ -293,8 +343,8 @@ class ID_set_ast(object):
 
 class Seq_decl_ast(object):
 
-    def __init__(self, deq_decl_type, seq_id, seq_type, size, value=None, constraints=None):
-        self.node_type = deq_decl_type
+    def __init__(self, seq_decl_type, seq_id, size, value=None, constraints=None):
+        self.node_type = seq_decl_type
         self._ID = ID_ast(seq_id)
         if value is not None:
             self._value = Expr_ast(value)
@@ -317,7 +367,7 @@ class Seq_decl_ast(object):
 
     @property
     def ID(self):
-        return self._ID
+        return self._ID.ID
 
     @property
     def bit_constraints(self):
@@ -557,7 +607,7 @@ class Func_call_ast(object):
 
     @property
     def ID(self):
-        return self._ID
+        return self._ID.ID
 
     @property
     def parameters(self):
@@ -622,7 +672,7 @@ class Seq_index_select_ast(object):
 
     @property
     def ID(self):
-        return self._ID
+        return self._ID.ID
 
     @property
     def indices(self):
