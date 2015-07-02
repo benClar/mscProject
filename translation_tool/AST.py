@@ -445,7 +445,7 @@ class Expr_ast(object):
 
     @ret_value.setter
     def setter(self, value):
-        self.ret_value = value
+        self._ret_value = value
     
     def eval(self, expr):
         # print("EXPR")
@@ -541,7 +541,7 @@ class seq_value_ast(object):
     node_type = AST_TYPE.SEQ_VAL
 
     def __init__(self, value=None):
-        self.seq_type
+        self._seq_type = None
         if value is not None:
             self._value = []
             for p in value:
@@ -563,7 +563,7 @@ class seq_value_ast(object):
 
     @seq_type.setter
     def seq_type(self, value):
-        self.seq_type = value
+        self._seq_type = value
 
 
 class Func_call_ast(object):
@@ -684,7 +684,7 @@ class ID_ast(object):
 
     def __init__(self, ID):
         self._ID = ID
-        self._ID_type
+        self._ID_type = None
 
     @property
     def ID_type(self):
@@ -692,7 +692,7 @@ class ID_ast(object):
 
     @ID_type.setter
     def ID_type(self, value):
-        self.ID_type = value
+        self._ID_type = value
 
     @property
     def ID(self):

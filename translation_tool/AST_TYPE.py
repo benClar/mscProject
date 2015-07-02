@@ -30,7 +30,9 @@ class AST_TYPE(Enum):
     FOR_LOOP = 24,
     IF_STMT = 25,
     BS_INT_VAL = 26,
-    BS_SEQ_INT_VAL = 27
+    BS_SEQ_INT_VAL = 27,
+    VOID = 28,
+    FUNCTION_PARAM = 29
 
     def convert(type_input, qualifier=None):
         if type_input == "Int":
@@ -44,6 +46,9 @@ class AST_TYPE(Enum):
         elif type_input == "@Int":
             if qualifier == "Seq":
                 return AST_TYPE.BS_SEQ_INT_VAL
+            print("HERE3")
             return AST_TYPE.BS_INT_VAL
+        elif type_input == "void":
+            return AST_TYPE.VOID
         else:
             raise ParseException("Unknown Value Type")

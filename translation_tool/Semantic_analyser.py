@@ -57,7 +57,7 @@ class Semantic_analyser(object):
                 if self.expr_type_is(node.value) != AST_TYPE.INT_VAL or self.expr_type_is(node.bit_constraints) != AST_TYPE.INT_VAL:
                     return False
             self.sym_table.add_int_id(node.ID)
-            self.translator.translate_int_decl(node, self.sym_table)
+            # self.translator.translate_int_decl(node, self.sym_table)
             return True
         except ParseException as details:
             print(details)
@@ -98,7 +98,7 @@ class Semantic_analyser(object):
             except AttributeError:
                 pass
         self.sym_table.add_id(node.ID.ID, node.type)
-        self.translator.translate_int_seq_decl(node, self.sym_table)
+        # self.translator.translate_int_seq_decl(node, self.sym_table)
         return True
 
     def seq_type_is(self, seq_value):
@@ -214,7 +214,7 @@ class Semantic_analyser(object):
         for stmt in node.body:
             if Semantic_analyser.node_type_lookup[stmt.node_type](self, stmt) is False:
                 return False
-        self.translator.translate_for_loop(node, self.sym_table)
+        # self.translator.translate_for_loop(node, self.sym_table)
         self.sym_table.leave_scope()
         return True
 

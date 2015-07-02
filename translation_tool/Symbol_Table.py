@@ -8,7 +8,7 @@ class Symbol_Table(object):
     def __init__(self):
         self._symbols = Stack()
         self.add_scope()
-
+        self._f_table = {}
     # def add_scope(self, scope):
     #     self.table[scope] = {}
 
@@ -21,6 +21,10 @@ class Symbol_Table(object):
 
     def leave_scope(self):
         self.symbols.pop()
+
+    @property
+    def f_table(self):
+        return self._f_table
 
     @property
     def symbols(self):
