@@ -174,6 +174,8 @@ class Semantic_analyser(object):
                 expr_types["OPERAND_" + str(len(expr_types))] = expr.ID_type
             elif expr.node_type == AST_TYPE.FUNCTION_CALL:
                 expr_types["OPERAND_" + str(len(expr_types))] = self.analyse_func_call(expr)
+            elif expr.node_type == AST_TYPE.CAST:
+                expr_types["OPERAND_" + str(len(expr_types))] = self.analyse_cast(expr)
             if len(expr_types) == 3:
                 if self.sub_expr_valid(expr_types) is True:
                     expr_types = self.reduce_sub_expr(expr_types)
@@ -187,6 +189,12 @@ class Semantic_analyser(object):
         # print(expr_types["OPERAND_0"])
         # print("____")
         return expr_types["OPERAND_0"]
+
+    def analyse_cast(self, node):
+        cast_target_type = self.expr_type_is(node.target)
+        # print(cast_target_type)
+        return node.cast_operation.target_type
+
 
     def analyse_func_call(self, node):
         for i, p in enumerate(node.parameters):
@@ -259,7 +267,7 @@ class Semantic_analyser(object):
             return True
 
     def shift_expr_valid(self, expression):
-        if expression['OPERAND_2'] == AST_TYPE.INT_VAL:
+        if expression['OPERAND_2'] == AST_TYPE.INT_VAL or expression['OPERAND_2'] == AST_TYPE.BS_INT_VAL:
             return True
 
     def arith_expr_valid(self, expression):

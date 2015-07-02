@@ -682,13 +682,42 @@ class Seq_index_select_ast(object):
 class Cast_type_ast(object):
 
     def __init__(self, operation):
-        self._target_type = operation[0]
+        if operation[0] == "Bit":
+            if len(operation) == 1:
+                self._target_type = AST_TYPE.convert(operation[0])
+            elif len(operation) == 2:
+                self._seq_size = []
+                for s in operation[1]:
+                    self._seq_size.append(Expr_ast(s))
+                self._target_type = AST_TYPE.convert(operation[0], "Seq")
+        elif operation[0] == "Int":
+            self._constraints = Expr_ast(operation[1])
+            if len(operation) == 2:
+                self._target_type = AST_TYPE.convert(operation[0])
+            elif len(operation) == 3:
+                self._seq_size = []
+                for s in operation[2]:
+                    self._seq_size.append(Expr_ast(s))
+                self._target_type = AST_TYPE.convert(operation[0], "Seq")
+
         try:
             self._elements = Expr_ast(operation[1])
-            if len(operation[1]) > 1:
+            if len(operation[2]) > 1:
                 raise ParseException("Can only cast into one dimension array")
         except IndexError:
             self._elements = None
+
+    @property
+    def seq_size(self):
+        return self._seq_size
+
+    @property
+    def constraints(self):
+        return self._constraints
+
+    @property
+    def target_type(self):
+        return self._target_type
 
 
 class cast_ast(object):
@@ -702,6 +731,10 @@ class cast_ast(object):
     @property
     def target(self):
         return self._target
+
+    @property
+    def cast_operation(self):
+        return self._cast_operation
 
 
 class ID_ast(object):
