@@ -12,10 +12,12 @@ class Semantic_analyser(object):
     node_type_lookup = {AST_TYPE.INT_DECL: lambda self, node: self.analyse_int_decl(node),
                         AST_TYPE.BIT_DECL: lambda self, node: self.analyse_bit_decl(node),
                         AST_TYPE.ID_SET: lambda self, node: self.analyse_ID_set(node),
-                        AST_TYPE.SEQ_DECL: lambda self, node: self.analyse_seq_decl(node),
                         AST_TYPE.FUNC_DECL: lambda self, node: self.analyse_func_decl(node),
                         AST_TYPE.IF_STMT: lambda self, node: self.analyse_if_stmt_decl(node),
-                        AST_TYPE.FOR_LOOP: lambda self, node: self.analyse_for_loop_decl(node)}
+                        AST_TYPE.FOR_LOOP: lambda self, node: self.analyse_for_loop_decl(node),
+                        AST_TYPE.SEQ_INT_DECL: lambda self, node: self.analyse_int_seq(node),
+                        AST_TYPE.SEQ_BIT_DECL: lambda self, node: self.analyse_bit_seq(node),
+                        AST_TYPE.BS_SEQ_INT_DECL: lambda self, node: self.analyse_int_seq(node)}
 
     def __init__(self):
         self.initialise()
@@ -75,6 +77,7 @@ class Semantic_analyser(object):
             return False
 
     def analyse_seq_decl(self, node):
+        print("HERE<<<<<<<<<<")
         if node.type == AST_TYPE.SEQ_INT_VAL or node.type == AST_TYPE.BS_SEQ_INT_VAL:
             return self.analyse_int_seq(node)
         elif node.type == AST_TYPE.SEQ_BIT_VAL:
@@ -87,17 +90,17 @@ class Semantic_analyser(object):
         if self.analyse_array_size(node) is True:
             if self.expr_type_is(node.value) != AST_TYPE.SEQ_BIT_VAL:
                 return False
-        self.sym_table.add_id(node.ID.ID, AST_TYPE.SEQ_BIT_VAL)
+        self.sym_table.add_id(node.ID.ID, node.node_type)
         return True
 
     def analyse_int_seq(self, node):
         if self.analyse_array_size(node) is True:
-            try: 
+            try:
                 if self.expr_type_is(node.bit_constraints) != AST_TYPE.INT_VAL or self.expr_type_is(node.value) != AST_TYPE.SEQ_INT_VAL:
                     return False
             except AttributeError:
                 pass
-        self.sym_table.add_id(node.ID.ID, node.type)
+        self.sym_table.add_id(node.ID.ID, node.node_type)
         # self.translator.translate_int_seq_decl(node, self.sym_table)
         return True
 

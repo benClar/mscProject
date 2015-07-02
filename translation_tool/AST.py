@@ -62,11 +62,15 @@ class AST(object):
     def int_decl(self, tokens):
         token = tokens[0]
         # print(token.dump())
+        if token['decl'] == "@Int":
+            decl_type = AST_TYPE.BS_INT_DECL
+        else:
+            decl_type = AST_TYPE.INT_DECL
         for decl in token['value']:
             if 'set_value' in decl:
-                self.add_statement(Int_decl_ast(decl['ID'][0], token[1], decl[2]))
+                self.add_statement(Int_decl_ast(decl_type, decl['ID'][0], token[1], decl[2]))
             else:
-                self.add_statement(Int_decl_ast(decl['ID'][0], token[1]))
+                self.add_statement(Int_decl_ast(decl_type, decl['ID'][0], token[1]))
 
     def seq_decl(self, tokens):
         token = tokens[0]
@@ -98,35 +102,6 @@ class AST(object):
     def end_for(self, tokens):
         self.remove_target()
 
-    # def for_loop(self, tokens):
-    #     token = tokens[0]
-    #     initializer = []
-    #     terminator = []
-    #     increment = []
-    #     stmts = []
-    #     try:
-    #         for i in token["init"]:
-    #             initializer.append(self.statements.pop(0))
-    #     except KeyError:
-    #         initializer = None
-    #     try:
-    #         for t in token["term"]:
-    #             terminator = Expr_ast(token["term"])
-    #     except KeyError:
-    #         terminator = None
-    #     try:
-    #         for i in token["increm"]:
-    #             increment.append(self.statements.pop(0))
-    #     except KeyError:
-    #         increment = None
-    #     try:
-    #         for s in token["loop_body"]:
-    #             stmts.append(self.statements.pop(0))
-    #     except KeyError:
-    #         stmts = None
-
-    #     self.add_statement(for_loop_ast(initializer, terminator, increment, stmts))
-
     def terminator_expr(self, tokens):
         token = tokens[0]
         self.add_statement(Expr_ast(token))
@@ -137,18 +112,27 @@ class AST(object):
             self.add_statement(Expr_ast(token))
 
     def int_seq_decl(self, token):
+        seq_decl_type = None
+        # print(token.dump())
+        if token['type'] == "@Int":
+            seq_decl_type = AST_TYPE.BS_SEQ_INT_DECL
+        elif token['type'] == "Int":
+            seq_decl_type = AST_TYPE.SEQ_INT_DECL
+        else:
+            raise ParseException("Unknown Int Seq Type")
+        # seq_decl_type
         if 'value' in token:
-            self.add_statement(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], token[AST.INT_SEQ_VALUE], token[AST.INT_SEQ_CNST]))
+            self.add_statement(Seq_decl_ast(seq_decl_type, token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], token[AST.INT_SEQ_VALUE], token[AST.INT_SEQ_CNST]))
         else:
             pass
-            self.add_statement(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], constraints=token[AST.INT_SEQ_CNST]))
+            self.add_statement(Seq_decl_ast(seq_decl_type, token['ID'][1][0], token['type'], token[AST.INT_SEQ_SIZE], constraints=token[AST.INT_SEQ_CNST]))
 
     def bit_seq_decl(self, token):
         # print(token.dump())
         if 'value' in token:
-            self.add_statement(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE], token[AST.BIT_SEQ_VALUE]))
+            self.add_statement(Seq_decl_ast(AST_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE], token[AST.BIT_SEQ_VALUE]))
         else:
-            self.add_statement(Seq_decl_ast(token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE]))
+            self.add_statement(Seq_decl_ast(AST_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token['type'], token[AST.BIT_SEQ_SIZE]))
 
     def id_set(self, tokens):
         token = tokens[0]
@@ -309,11 +293,9 @@ class ID_set_ast(object):
 
 class Seq_decl_ast(object):
 
-    node_type = AST_TYPE.SEQ_DECL
-
-    def __init__(self, seq_id, seq_type, size, value=None, constraints=None):
+    def __init__(self, deq_decl_type, seq_id, seq_type, size, value=None, constraints=None):
+        self.node_type = deq_decl_type
         self._ID = ID_ast(seq_id)
-        self._type = AST_TYPE.convert(seq_type, "Seq")
         if value is not None:
             self._value = Expr_ast(value)
         else:
@@ -341,16 +323,10 @@ class Seq_decl_ast(object):
     def bit_constraints(self):
         return self._bit_constraints
 
-    @property
-    def type(self):
-        return self._type
-
-
 class Int_decl_ast(object):
 
-    node_type = AST_TYPE.INT_DECL
-
-    def __init__(self, ID, bit_constraints, expr=None):
+    def __init__(self, decl_type, ID, bit_constraints, expr=None):
+        self.node_type = decl_type
         self._ID = ID_ast(ID)
         self._bit_constraints = Expr_ast(bit_constraints)
         if expr is not None:
@@ -446,7 +422,7 @@ class Expr_ast(object):
     @ret_value.setter
     def setter(self, value):
         self._ret_value = value
-    
+
     def eval(self, expr):
         # print("EXPR")
         # print(expr)

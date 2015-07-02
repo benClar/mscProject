@@ -32,7 +32,11 @@ class AST_TYPE(Enum):
     BS_INT_VAL = 26,
     BS_SEQ_INT_VAL = 27,
     VOID = 28,
-    FUNCTION_PARAM = 29
+    FUNCTION_PARAM = 29,
+    BS_INT_DECL = 30,
+    BS_SEQ_INT_DECL = 31,
+    SEQ_INT_DECL = 32,
+    SEQ_BIT_DECL = 33
 
     def convert(type_input, qualifier=None):
         if type_input == "Int":
