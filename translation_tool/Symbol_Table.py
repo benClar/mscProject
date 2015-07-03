@@ -1,6 +1,6 @@
 import unittest
 from pyparsing import ParseException
-from AST_TYPE import AST_TYPE
+from DATA_TYPE import DATA_TYPE
 from Stack import Stack
 
 class Symbol_Table(object):
@@ -31,13 +31,13 @@ class Symbol_Table(object):
         return self._symbols
 
     def add_bit_id(self, ID):
-        self.add_id(ID, AST_TYPE.BIT_VAL)
+        self.add_id(ID, DATA_TYPE.BIT_VAL)
 
     # def add_int_id(self, scope, ID):
-    #     self.add_id(scope, ID, AST_TYPE.INT_VAL)
+    #     self.add_id(scope, ID, DATA_TYPE.INT_VAL)
 
     def add_int_id(self, ID):
-        self.add_id(ID, AST_TYPE.INT_VAL)
+        self.add_id(ID, DATA_TYPE.INT_VAL)
 
     def update_value(self, ID, value):
         for scope in self.symbols.stack:
@@ -76,7 +76,7 @@ class Symbol_Table(object):
             self.f_table[func_ID]["parameters"] = []
             for p in parameters:
                 self.f_table[func_ID]["parameters"].append(p)
-                self.add_id(p.ID, AST_TYPE.decl_to_value(p.node_type))
+                self.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type))
         else:
             raise ParseException("Redeclaration of function")
 

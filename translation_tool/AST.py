@@ -1,4 +1,4 @@
-from AST_TYPE import AST_TYPE
+from DATA_TYPE import DATA_TYPE
 from pyparsing import ParseException
 import sys
 
@@ -63,9 +63,9 @@ class AST(object):
         token = tokens[0]
         # print(token.dump())
         if token['decl'] == "@Int":
-            decl_type = AST_TYPE.BS_INT_DECL
+            decl_type = DATA_TYPE.BS_INT_DECL
         else:
-            decl_type = AST_TYPE.INT_DECL
+            decl_type = DATA_TYPE.INT_DECL
         for decl in token['value']:
             if 'set_value' in decl:
                 self.add_statement(Int_decl_ast(decl_type, decl['ID'][0], token[1], decl[2]))
@@ -115,9 +115,9 @@ class AST(object):
         seq_decl_type = None
         # print(token.dump())
         if token['type'] == "@Int":
-            seq_decl_type = AST_TYPE.BS_SEQ_INT_DECL
+            seq_decl_type = DATA_TYPE.BS_SEQ_INT_DECL
         elif token['type'] == "Int":
-            seq_decl_type = AST_TYPE.SEQ_INT_DECL
+            seq_decl_type = DATA_TYPE.SEQ_INT_DECL
         else:
             raise ParseException("Unknown Int Seq Type")
         # seq_decl_type
@@ -130,9 +130,9 @@ class AST(object):
     def bit_seq_decl(self, token):
         # print(token.dump())
         if 'value' in token:
-            self.add_statement(Seq_decl_ast(AST_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token[AST.BIT_SEQ_SIZE], token[AST.BIT_SEQ_VALUE]))
+            self.add_statement(Seq_decl_ast(DATA_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token[AST.BIT_SEQ_SIZE], token[AST.BIT_SEQ_VALUE]))
         else:
-            self.add_statement(Seq_decl_ast(AST_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token[AST.BIT_SEQ_SIZE]))
+            self.add_statement(Seq_decl_ast(DATA_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token[AST.BIT_SEQ_SIZE]))
 
     def id_set(self, tokens):
         token = tokens[0]
@@ -150,13 +150,13 @@ class AST(object):
         params = []
         for p in token['func_param']:
             decl_type = self.param_type(p)
-            if decl_type == AST_TYPE.INT_DECL or decl_type == AST_TYPE.BS_INT_DECL:
+            if decl_type == DATA_TYPE.INT_DECL or decl_type == DATA_TYPE.BS_INT_DECL:
                 params.append(Int_decl_ast(decl_type, p[2][1][0], p[1]))
-            elif decl_type == AST_TYPE.SEQ_INT_DECL or decl_type == AST_TYPE.BS_SEQ_INT_DECL:
+            elif decl_type == DATA_TYPE.SEQ_INT_DECL or decl_type == DATA_TYPE.BS_SEQ_INT_DECL:
                 params.append(Seq_decl_ast(decl_type, p[3][1][0], p[2]))
-            elif decl_type == AST_TYPE.SEQ_BIT_DECL:
+            elif decl_type == DATA_TYPE.SEQ_BIT_DECL:
                 params.append(Seq_decl_ast(decl_type, p[2][1][0], p[1]))
-            elif decl_type == AST_TYPE.BIT_DECL:
+            elif decl_type == DATA_TYPE.BIT_DECL:
                 params.append(Bit_decl_ast(p[1][1][0]))
             else:
                 raise ParseException("Unknown Param Type")
@@ -168,38 +168,38 @@ class AST(object):
     def param_type(self, param):
         if param[0] == "@Int":
             if self.is_sequence(param):
-                return AST_TYPE.BS_SEQ_INT_DECL
+                return DATA_TYPE.BS_SEQ_INT_DECL
             else:
-                return AST_TYPE.BS_INT_DECL
+                return DATA_TYPE.BS_INT_DECL
         elif param[0] == "Int":
             if self.is_sequence(param):
-                return AST_TYPE.SEQ_INT_DECL
+                return DATA_TYPE.SEQ_INT_DECL
             else:
-                return AST_TYPE.INT_DECL
+                return DATA_TYPE.INT_DECL
         elif param[0] == "Bit":
             if self.is_sequence(param):
-                return AST_TYPE.SEQ_BIT_DECL
+                return DATA_TYPE.SEQ_BIT_DECL
             else:
-                return AST_TYPE.BIT_DECL
+                return DATA_TYPE.BIT_DECL
 
     def return_type(self, param):
         if param[0] == "@Int":
             if self.is_sequence(param):
-                return AST_TYPE.BS_SEQ_INT_VAL
+                return DATA_TYPE.BS_SEQ_INT_VAL
             else:
-                return AST_TYPE.BS_INT_VAL
+                return DATA_TYPE.BS_INT_VAL
         elif param[0] == "Int":
             if self.is_sequence(param):
-                return AST_TYPE.SEQ_INT_VAL
+                return DATA_TYPE.SEQ_INT_VAL
             else:
-                return AST_TYPE.INT_VAL
+                return DATA_TYPE.INT_VAL
         elif param[0] == "Bit":
             if self.is_sequence(param):
-                return AST_TYPE.SEQ_BIT_VAL
+                return DATA_TYPE.SEQ_BIT_VAL
             else:
-                return AST_TYPE.BIT_VAL
+                return DATA_TYPE.BIT_VAL
         elif param[0] == "void":
-            return AST_TYPE.VOID
+            return DATA_TYPE.VOID
 
     def is_sequence(self, param):
         if 'seq_size' in param:
@@ -227,7 +227,7 @@ class AST(object):
 
 class if_stmt_ast(object):
 
-    node_type = AST_TYPE.IF_STMT
+    node_type = DATA_TYPE.IF_STMT
 
     def __init__(self):
         self._condition = []
@@ -248,7 +248,7 @@ class if_stmt_ast(object):
 
 class return_stmt_ast(object):
 
-    node_type = AST_TYPE.RETURN_STMT
+    node_type = DATA_TYPE.RETURN_STMT
 
     def __init__(self, expr):
         self._expr = Expr_ast(expr)
@@ -260,7 +260,7 @@ class return_stmt_ast(object):
 
 class function_declaration_ast(object):
 
-    node_type = AST_TYPE.FUNC_DECL
+    node_type = DATA_TYPE.FUNC_DECL
 
     def __init__(self, return_value, ID, parameters):
         self._stmts = []
@@ -290,7 +290,7 @@ class function_declaration_ast(object):
 
 class for_loop_ast(object):
 
-    node_type = AST_TYPE.FOR_LOOP
+    node_type = DATA_TYPE.FOR_LOOP
 
     def __init__(self):
         self._initializer = []
@@ -317,7 +317,7 @@ class for_loop_ast(object):
 
 class ID_set_ast(object):
 
-    node_type = AST_TYPE.ID_SET
+    node_type = DATA_TYPE.ID_SET
 
     def __init__(self, set_id, value, elements=None):
         self._ID = ID_ast(set_id)
@@ -399,7 +399,7 @@ class Int_decl_ast(object):
 
 class Bit_decl_ast(object):
 
-    node_type = AST_TYPE.BIT_DECL
+    node_type = DATA_TYPE.BIT_DECL
 
     def __init__(self, ID, value=None):
 
@@ -423,38 +423,38 @@ class Expr_ast(object):
     CONTENT = 1
     OPERAND_ID = 0
 
-    op_lookup = {'*': AST_TYPE.ARITH_OP,
-                 '-': AST_TYPE.ARITH_OP,
-                 '/': AST_TYPE.ARITH_OP,
-                 '%': AST_TYPE.ARITH_OP,
-                 '+': AST_TYPE.ARITH_OP,
-                 '%': AST_TYPE.ARITH_OP,
-                 '>>': AST_TYPE.SHIFT_OP,
-                 '<<': AST_TYPE.SHIFT_OP,
-                 '>>>': AST_TYPE.SHIFT_OP,
-                 '<<<': AST_TYPE.SHIFT_OP,
-                 '^': AST_TYPE.BITWISE_OP,
-                 '&': AST_TYPE.BITWISE_OP,
-                 '~': AST_TYPE.BITWISE_OP,
-                 '|': AST_TYPE.BITWISE_OP,
-                 '>': AST_TYPE.COMP_OP,
-                 '>=': AST_TYPE.COMP_OP,
-                 '<': AST_TYPE.COMP_OP,
-                 '<=': AST_TYPE.COMP_OP,
-                 '&&': AST_TYPE.COMP_OP,
-                 '==': AST_TYPE.COMP_OP,
-                 '!=': AST_TYPE.COMP_OP}
+    op_lookup = {'*': DATA_TYPE.ARITH_OP,
+                 '-': DATA_TYPE.ARITH_OP,
+                 '/': DATA_TYPE.ARITH_OP,
+                 '%': DATA_TYPE.ARITH_OP,
+                 '+': DATA_TYPE.ARITH_OP,
+                 '%': DATA_TYPE.ARITH_OP,
+                 '>>': DATA_TYPE.SHIFT_OP,
+                 '<<': DATA_TYPE.SHIFT_OP,
+                 '>>>': DATA_TYPE.SHIFT_OP,
+                 '<<<': DATA_TYPE.SHIFT_OP,
+                 '^': DATA_TYPE.BITWISE_OP,
+                 '&': DATA_TYPE.BITWISE_OP,
+                 '~': DATA_TYPE.BITWISE_OP,
+                 '|': DATA_TYPE.BITWISE_OP,
+                 '>': DATA_TYPE.COMP_OP,
+                 '>=': DATA_TYPE.COMP_OP,
+                 '<': DATA_TYPE.COMP_OP,
+                 '<=': DATA_TYPE.COMP_OP,
+                 '&&': DATA_TYPE.COMP_OP,
+                 '==': DATA_TYPE.COMP_OP,
+                 '!=': DATA_TYPE.COMP_OP}
 
-    operand_lookup = {'Seq_val': AST_TYPE.SEQ_VAL,
-                      'index_select': AST_TYPE.INDEX_SEL,
-                      'function_call': AST_TYPE.FUNCTION_CALL,
-                      'ID': AST_TYPE.ID,
-                      'Int_val': AST_TYPE.INT_VAL,
-                      'cast': AST_TYPE.CAST,
-                      'Bit_val': AST_TYPE.BIT_VAL,
-                      'seq_range': AST_TYPE.INDEX_RANGE}
+    operand_lookup = {'Seq_val': DATA_TYPE.SEQ_VAL,
+                      'index_select': DATA_TYPE.INDEX_SEL,
+                      'function_call': DATA_TYPE.FUNCTION_CALL,
+                      'ID': DATA_TYPE.ID,
+                      'Int_val': DATA_TYPE.INT_VAL,
+                      'cast': DATA_TYPE.CAST,
+                      'Bit_val': DATA_TYPE.BIT_VAL,
+                      'seq_range': DATA_TYPE.INDEX_RANGE}
 
-    node_type = AST_TYPE.EXPR
+    node_type = DATA_TYPE.EXPR
 
     def __init__(self, expr=None):
         self._ret_value = None
@@ -495,29 +495,29 @@ class Expr_ast(object):
     def add_operand(self, token):
 
         operand_type = Expr_ast.operand_lookup[token[Expr_ast.OPERAND_ID]]
-        if operand_type == AST_TYPE.INT_VAL:
+        if operand_type == DATA_TYPE.INT_VAL:
             self.expressions.append(Int_literal_ast(token[Expr_ast.CONTENT][0]))
-        elif operand_type == AST_TYPE.CAST:
+        elif operand_type == DATA_TYPE.CAST:
             self.expressions.append(cast_ast(token[Expr_ast.CONTENT][0], token[Expr_ast.CONTENT][1]))
-        elif operand_type == AST_TYPE.ID:
+        elif operand_type == DATA_TYPE.ID:
             self.expressions.append(ID_ast(token[Expr_ast.CONTENT][0]))
-        elif operand_type == AST_TYPE.FUNCTION_CALL:
+        elif operand_type == DATA_TYPE.FUNCTION_CALL:
             if len(token[1]) == 3:
                 self.expressions.append(Func_call_ast(token[Expr_ast.CONTENT][1][0], token[Expr_ast.CONTENT][2]))
             elif len(token[1]) == 2:
                 self.expressions.append(Func_call_ast(token[Expr_ast.CONTENT][1][0]))
             else:
                 raise ParseException("Function Token not as expected")
-        elif operand_type == AST_TYPE.SEQ_VAL:
+        elif operand_type == DATA_TYPE.SEQ_VAL:
             try:
                 self.expressions.append(seq_value_ast(token[Expr_ast.CONTENT][0]))
             except IndexError:
                 self.expressions.append(seq_value_ast())
-        elif operand_type == AST_TYPE.INDEX_SEL:
+        elif operand_type == DATA_TYPE.INDEX_SEL:
             self.add_expr(Seq_index_select_ast(token[Expr_ast.CONTENT][1][0], token[Expr_ast.CONTENT][2]))
-        elif operand_type == AST_TYPE.BIT_VAL:
+        elif operand_type == DATA_TYPE.BIT_VAL:
             self.expressions.append(Bit_literal_ast(token[Expr_ast.CONTENT][0]))
-        elif operand_type == AST_TYPE.INDEX_RANGE:
+        elif operand_type == DATA_TYPE.INDEX_RANGE:
             self.expressions.append(Seq_range_ast(token[Expr_ast.CONTENT]))
         else:
             print("ERROR")
@@ -546,7 +546,7 @@ class Expr_ast(object):
 
 class Seq_range_ast(object):
 
-    node_type = AST_TYPE.INDEX_RANGE
+    node_type = DATA_TYPE.INDEX_RANGE
 
     def __init__(self, seq_range):
 
@@ -564,7 +564,7 @@ class Seq_range_ast(object):
 
 class seq_value_ast(object):
 
-    node_type = AST_TYPE.SEQ_VAL
+    node_type = DATA_TYPE.SEQ_VAL
 
     def __init__(self, value=None):
         self._seq_type = None
@@ -594,7 +594,7 @@ class seq_value_ast(object):
 
 class Func_call_ast(object):
 
-    node_type = AST_TYPE.FUNCTION_CALL
+    node_type = DATA_TYPE.FUNCTION_CALL
 
     def __init__(self, ID, parameters=None):
         self._ID = ID_ast(ID)
@@ -635,7 +635,7 @@ class Operator_ast(object):
 
 class Int_literal_ast(object):
 
-    node_type = AST_TYPE.INT_VAL
+    node_type = DATA_TYPE.INT_VAL
 
     def __init__(self, int_val):
         self._value = int_val
@@ -650,7 +650,7 @@ class Int_literal_ast(object):
 
 class Bit_literal_ast(object):
 
-    node_type = AST_TYPE.BIT_VAL
+    node_type = DATA_TYPE.BIT_VAL
 
     def __init__(self, bit_val):
         self._value = bit_val
@@ -662,7 +662,7 @@ class Bit_literal_ast(object):
 
 class Seq_index_select_ast(object):
 
-    node_type = AST_TYPE.INDEX_SEL
+    node_type = DATA_TYPE.INDEX_SEL
 
     def __init__(self, index_sel_id, indices):
         self._ID = ID_ast(index_sel_id)
@@ -682,23 +682,26 @@ class Seq_index_select_ast(object):
 class Cast_type_ast(object):
 
     def __init__(self, operation):
+        self._target_type = None
+        self._constraints = None
+        self._seq_size = None
         if operation[0] == "Bit":
             if len(operation) == 1:
-                self._target_type = AST_TYPE.convert(operation[0])
+                self._target_type = DATA_TYPE.convert(operation[0])
             elif len(operation) == 2:
                 self._seq_size = []
                 for s in operation[1]:
                     self._seq_size.append(Expr_ast(s))
-                self._target_type = AST_TYPE.convert(operation[0], "Seq")
+                self._target_type = DATA_TYPE.convert(operation[0], "Seq")
         elif operation[0] == "Int" or operation[0] == "@Int":
             self._constraints = Expr_ast(operation[1])
             if len(operation) == 2:
-                self._target_type = AST_TYPE.convert(operation[0])
+                self._target_type = DATA_TYPE.convert(operation[0])
             elif len(operation) == 3:
                 self._seq_size = []
                 for s in operation[2]:
                     self._seq_size.append(Expr_ast(s))
-                self._target_type = AST_TYPE.convert(operation[0], "Seq")
+                self._target_type = DATA_TYPE.convert(operation[0], "Seq")
         # print(">>>")
         # print(self._target_type)
         try:
@@ -723,7 +726,7 @@ class Cast_type_ast(object):
 
 class cast_ast(object):
 
-    node_type = AST_TYPE.CAST
+    node_type = DATA_TYPE.CAST
 
     def __init__(self, cast_type, expr):
         self._cast_operation = Cast_type_ast(cast_type)
@@ -740,19 +743,19 @@ class cast_ast(object):
 
 class ID_ast(object):
 
-    node_type = AST_TYPE.ID
+    node_type = DATA_TYPE.ID
 
     def __init__(self, ID):
         self._ID = ID
-        self._ID_type = None
+        # self._ID_type = None
 
     @property
     def ID_type(self):
         return self._ID_type
 
-    @ID_type.setter
-    def ID_type(self, value):
-        self._ID_type = value
+    # @ID_type.setter
+    # def ID_type(self, value):
+    #     self._ID_type = value
 
     @property
     def ID(self):

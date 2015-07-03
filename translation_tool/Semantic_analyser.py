@@ -3,33 +3,34 @@ from Stack import Stack
 # from IR import IR_Tree, Seq_node, Decl_node, Type_node, Name_node, Literal_node,\
 #     Tree
 from pyparsing import ParseException
-from AST_TYPE import AST_TYPE
-from Translator import Translator
-from IR import Int_literal, Name, Int_decl, Binary_operation, IR
+from DATA_TYPE import DATA_TYPE
+from IR import Int_literal, Name, Int_decl, ID_set, Bit_literal, Binary_operation,\
+    Cast_operation, Cast, IR, Call, Bit_decl, Seq_decl, Seq_val, If_stmt, For_loop
+
 
 class Semantic_analyser(object):
 
-    node_type_lookup = {AST_TYPE.INT_DECL: lambda self, node: self.analyse_int_decl(node),
-                        AST_TYPE.BIT_DECL: lambda self, node: self.analyse_bit_decl(node),
-                        AST_TYPE.ID_SET: lambda self, node: self.analyse_ID_set(node),
-                        AST_TYPE.FUNC_DECL: lambda self, node: self.analyse_func_decl(node),
-                        AST_TYPE.IF_STMT: lambda self, node: self.analyse_if_stmt_decl(node),
-                        AST_TYPE.FOR_LOOP: lambda self, node: self.analyse_for_loop_decl(node),
-                        AST_TYPE.SEQ_INT_DECL: lambda self, node: self.analyse_int_seq(node),
-                        AST_TYPE.SEQ_BIT_DECL: lambda self, node: self.analyse_bit_seq(node),
-                        AST_TYPE.BS_SEQ_INT_DECL: lambda self, node: self.analyse_int_seq(node),
-                        AST_TYPE.BS_INT_DECL: lambda self, node: self.analyse_int_decl(node)}
+    node_type_lookup = {DATA_TYPE.INT_DECL: lambda self, node: self.analyse_int_decl(node),
+                        DATA_TYPE.BIT_DECL: lambda self, node: self.analyse_bit_decl(node),
+                        DATA_TYPE.ID_SET: lambda self, node: self.analyse_ID_set(node),
+                        DATA_TYPE.FUNC_DECL: lambda self, node: self.analyse_func_decl(node),
+                        DATA_TYPE.IF_STMT: lambda self, node: self.analyse_if_stmt_decl(node),
+                        DATA_TYPE.FOR_LOOP: lambda self, node: self.analyse_for_loop_decl(node),
+                        DATA_TYPE.SEQ_INT_DECL: lambda self, node: self.analyse_int_seq(node),
+                        DATA_TYPE.SEQ_BIT_DECL: lambda self, node: self.analyse_bit_seq(node),
+                        DATA_TYPE.BS_SEQ_INT_DECL: lambda self, node: self.analyse_int_seq(node),
+                        DATA_TYPE.BS_INT_DECL: lambda self, node: self.analyse_int_decl(node)}
 
     def __init__(self):
         self.initialise()
 
     def initialise(self):
         self._sym_table = Symbol_Table()
-        self._translator = Translator()
+        self._IR = IR()
 
     @property
-    def translator(self):
-        return self._translator
+    def IR(self):
+        return self._IR
 
     @property
     def sym_table(self):
@@ -54,102 +55,123 @@ class Semantic_analyser(object):
         else:
             return str(int(val)).zfill((len(val)) - len(int(val)))
 
+    def analyse_ID_set(self, node):
+        id_set = ID_set(node.ID, self.expr_type_is(node.value), self.sym_table.id_type(node.ID))
+        if self.value_matches_expected(id_set.value.type, id_set.ID.type) is False:
+            raise ParseException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.ID.type))
+            return False
+        # self.IR.add(id_set)
+        return id_set
+
     def analyse_int_decl(self, node):
+        if node.value is not None:
+            decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), node.ID, self.expr_type_is(node.value))
+        else:
+            decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), node.ID)
+
         try:
-            if node.value is not None:
-                if self.value_matches_expected(self.expr_type_is(node.value), node.node_type) is False or self.expr_type_is(node.bit_constraints) != AST_TYPE.INT_VAL:
-                    raise ParseException(str(self.expr_type_is(node.value)) + " value not as expected for " + str(node.node_type) + " assignment")
-                    return False
-            self.sym_table.add_id(node.ID, AST_TYPE.decl_to_value(node.node_type))
-            # self.translator.translate_int_decl(node, self.sym_table)
-            return True
+            if decl.constraints.value.type == DATA_TYPE.INT_VAL:
+                if node.value is not None and self.value_matches_expected(decl.value.type, node.node_type) is False:
+                    raise ParseException(str(decl.value.type) + " value not as expected for " + str(node.node_type) + " assignment")
+            else:
+                raise ParseException("Number of bits must be an int literal")
+            self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
+            # self.IR.add(decl)
+            return decl
         except ParseException as details:
             print(details)
             return False
 
     def analyse_bit_decl(self, node):
+        if node.value is not None:
+            decl = Bit_decl(node.ID, self.expr_type_is(node.value))
+        else:
+            decl = Bit_decl(node.ID)
         try:
             if node.value is not None:
-                if self.expr_type_is(node.value) != AST_TYPE.BIT_VAL:
+                if decl.value.type != DATA_TYPE.BIT_VAL:
                     return False
             self.sym_table.add_bit_id(node.ID)
-            return True
+            # self.IR.add(decl)
+            return decl
         except ParseException as details:
             print(details)
             return False
 
     def analyse_seq_decl(self, node):
-        if node.type == AST_TYPE.SEQ_INT_VAL or node.type == AST_TYPE.BS_SEQ_INT_VAL:
+        if node.type == DATA_TYPE.SEQ_INT_VAL or node.type == DATA_TYPE.BS_SEQ_INT_VAL:
             return self.analyse_int_seq(node)
-        elif node.type == AST_TYPE.SEQ_BIT_VAL:
+        elif node.type == DATA_TYPE.SEQ_BIT_VAL:
             return self.analyse_bit_seq(node)
         else:
             print("Unknown Sequence Type")
             return False
 
     def analyse_bit_seq(self, node):
-        if self.analyse_array_size(node) is True:
-            if self.expr_type_is(node.value) != AST_TYPE.SEQ_BIT_VAL:
-                return False
-        self.sym_table.add_id(node.ID, node.node_type)
-        return True
+        if node.value is None:
+            decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID)
+        else:
+            decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value))
+            if decl.value.type != DATA_TYPE.SEQ_BIT_VAL:
+                raise ParseException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
+        self.sym_table.add_id(node.ID, decl.ID.type)
+        # self.IR.add(decl)
+        return decl
 
     def analyse_int_seq(self, node):
-        if self.analyse_array_size(node) is True:
-            try:
-                if self.expr_type_is(node.bit_constraints) != AST_TYPE.INT_VAL or self.expr_type_is(node.value) != AST_TYPE.SEQ_INT_VAL:
-                    return False
-            except AttributeError:
-                pass
+        if node.value is None:
+            decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, constraints=self.expr_type_is(node.bit_constraints))
+        else:
+            decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value), self.expr_type_is(node.bit_constraints))
+
+        if decl.constraints.type != DATA_TYPE.INT_VAL:
+            if node.value is not None:
+                if decl.value.type != DATA_TYPE.SEQ_INT_VAL or decl.value.type != DATA_TYPE.BS_SEQ_INT_VAL:
+                    raise ParseException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
         self.sym_table.add_id(node.ID, node.node_type)
-        # self.translator.translate_int_seq_decl(node, self.sym_table)
-        return True
+        # self.IR.add(decl)
+        return decl
+
+    def analyse_array_size(self, node):
+        size = []
+        for size_param in node.size:
+            size.append(self.expr_type_is(size_param))
+            if size[-1].type != DATA_TYPE.INT_VAL:
+                raise ParseException("Sequence Size Parameter Must be Literal Integers")
+        return size
 
     def seq_type_is(self, seq_value):
+        # print("CHECKING NEW SEQ TYPE")
         values = []
+        val = Seq_val()
         for i in seq_value.value:
             # print("CURR SEQUENCE MEMBER:")
             # print(i)
             # print("______")
             curr = self.expr_type_is(i)
+            val.add_element(curr)
             # print("SEQUENCE TYPE")
             # print(curr)
             # print("_____")
-            if curr == AST_TYPE.SEQ_VAL:
-                values += self.seq_value_type(i)
-            else:
-                values.append(curr)
-        # print("SEQ VAL")
-        # print(set(values))
-        return set(values)
+            values.append(curr.type)
+        val.type = self.analyse_seq_val_type(list(set(values)))
+        return val
 
     def analyse_seq_val_type(self, seq_val):
-        seq_type = self.seq_type_is(seq_val)
-        seq_val.seq_type = list(seq_type)[0]
-        if len(seq_type) > 1:
+        if len(seq_val) > 1:
             raise ParseException("Combined Types in sequence")
-        elif list(seq_type)[0] == AST_TYPE.INT_VAL:
-            return AST_TYPE.SEQ_INT_VAL
-        elif list(seq_type)[0] == AST_TYPE.BIT_VAL:
-            return AST_TYPE.SEQ_BIT_VAL
-        elif list(seq_type)[0] == AST_TYPE.SEQ_INT_VAL or list(seq_type)[0] == AST_TYPE.SEQ_BIT_VAL:
-            return list(seq_type)[0]
+        elif seq_val[0] == DATA_TYPE.INT_VAL:
+            seq_val = DATA_TYPE.SEQ_INT_VAL
+        elif seq_val[0] == DATA_TYPE.BIT_VAL:
+            seq_val = DATA_TYPE.SEQ_BIT_VAL
+        elif seq_val[0] == DATA_TYPE.SEQ_INT_VAL or seq_val[0] == DATA_TYPE.SEQ_BIT_VAL:
+            seq_val = seq_val[0]
         else:
             raise ParseException("Unknown Sequence Type")
-
-    def analyse_array_size(self, node):
-        for size_param in node.size:
-            if self.expr_type_is(size_param) != AST_TYPE.INT_VAL:
-                return False
-        return True
-
-    def analyse_ID_set(self, node):
-        if self.value_matches_expected(self.expr_type_is(node.value), self.sym_table.id_type(node.ID)) is False:
-            raise ParseException(str(self.expr_type_is(node.value)) + " cannot be assigned to variable of type " + str(self.sym_table.id_type(node.ID)))
-            return False
-        return True
+        return seq_val
 
     def expr_type_is(self, expression):
+        """Performs Semantic analysis on expression, building IR node"""
         # print("WHOLE EXPR TO ANAL")
         # print(expression.expressions)
         # print("_______")
@@ -159,26 +181,30 @@ class Semantic_analyser(object):
             # print("CURR OPERAND:")
             # print(expr)
             # print("_______")
-            if expr.node_type == AST_TYPE.INT_VAL:
-                expr_types["OPERAND_" + str(len(expr_types))] = AST_TYPE.INT_VAL
+            if expr.node_type == DATA_TYPE.INT_VAL:
+                expr_types["OPERAND_" + str(len(expr_types))] = DATA_TYPE.INT_VAL
                 IR_expression.append(Int_literal(expr.value))
-            elif expr.node_type == AST_TYPE.SEQ_VAL:
-                expr_types["OPERAND_" + str(len(expr_types))] = self.analyse_seq_val_type(expr)
-            elif expr.node_type == AST_TYPE.BIT_VAL:
-                expr_types["OPERAND_" + str(len(expr_types))] = AST_TYPE.BIT_VAL
-            elif expr.node_type == AST_TYPE.SHIFT_OP or expr.node_type == AST_TYPE.ARITH_OP or expr.node_type == AST_TYPE.BITWISE_OP or expr.node_type == AST_TYPE.COMP_OP:
+            elif expr.node_type == DATA_TYPE.SEQ_VAL:
+                IR_expression.append(self.seq_type_is(expr))
+                expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
+            elif expr.node_type == DATA_TYPE.BIT_VAL:
+                expr_types["OPERAND_" + str(len(expr_types))] = DATA_TYPE.BIT_VAL
+                IR_expression.append(Bit_literal(expr.value))
+            elif expr.node_type == DATA_TYPE.SHIFT_OP or expr.node_type == DATA_TYPE.ARITH_OP or expr.node_type == DATA_TYPE.BITWISE_OP or expr.node_type == DATA_TYPE.COMP_OP:  # NOQA
                 expr_types["OP"] = expr.node_type
                 IR_expression.append(Binary_operation(expr.node_type, expr.operator))
-            elif expr.node_type == AST_TYPE.EXPR:
-                expr.ret_type = self.expr_type_is(expr)
-                expr_types["OPERAND_" + str(len(expr_types))] = expr.ret_type
-            elif expr.node_type == AST_TYPE.ID:
-                expr.ID_type = self.sym_table.id_type(expr.ID)
-                expr_types["OPERAND_" + str(len(expr_types))] = expr.ID_type
-            elif expr.node_type == AST_TYPE.FUNCTION_CALL:
-                expr_types["OPERAND_" + str(len(expr_types))] = self.analyse_func_call(expr)
-            elif expr.node_type == AST_TYPE.CAST:
-                expr_types["OPERAND_" + str(len(expr_types))] = self.analyse_cast(expr)
+            elif expr.node_type == DATA_TYPE.EXPR:
+                IR_expression.append(self.expr_type_is(expr))
+                expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
+            elif expr.node_type == DATA_TYPE.ID:
+                IR_expression.append(Name(expr.ID, self.sym_table.id_type(expr.ID)))
+                expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
+            elif expr.node_type == DATA_TYPE.FUNCTION_CALL:
+                IR_expression.append(self.analyse_func_call(expr))
+                expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
+            elif expr.node_type == DATA_TYPE.CAST:
+                IR_expression.append(self.analyse_cast(expr))
+                expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
             if len(expr_types) == 3:
                 if self.sub_expr_valid(expr_types) is True:
                     expr_types = self.reduce_sub_expr(expr_types)
@@ -186,67 +212,70 @@ class Semantic_analyser(object):
                 else:
                     raise ParseException("cannot combine a " + str(expr_types['OPERAND_0']) + " value with a " +
                                          str(expr_types['OPERAND_2']) + " in " + str(expr_types['OP']) + " Operation")
-        if len(expr_types) != 1:
+        if len(IR_expression) != 1:
             print(expr_types)
             raise ParseException("Internal Error")
-
-        return expr_types["OPERAND_0"]
+        return IR_expression[0]
 
     def clean_up_expr(self, IR_expressions, result_type):
         """Reorders collected expression nodes"""
-        IR_expressions[1].left = IR_expressions[0]
-        IR_expressions[1].right = IR_expressions[2]
-        IR_expressions[1].result = result_type
+        left = IR_expressions.pop(0)
+        right = IR_expressions.pop(1)
+        IR_expressions[0].left = left
+        IR_expressions[0].right = right
+        IR_expressions[0].type = result_type['OPERAND_0']
 
     def analyse_cast(self, node):
-        cast_target_type = self.expr_type_is(node.target)
-        # print(cast_target_type)
-        return node.cast_operation.target_type
+        cast = Cast(Cast_operation(node.cast_operation.target_type, node.cast_operation.constraints, node.cast_operation.seq_size), self.expr_type_is(node.target))  # NOQA
+        return cast
 
 
     def analyse_func_call(self, node):
+        f_call = Call(node.ID, self.sym_table.f_table[node.ID]['return_type'])
         for i, p in enumerate(node.parameters):
-            if self.value_matches_expected(self.expr_type_is(p), self.sym_table.f_table[node.ID]['parameters'][i].node_type) is False:
+            f_call.add_parameter(self.expr_type_is(p))
+            if self.value_matches_expected(f_call[i].type, self.sym_table.f_table[node.ID]['parameters'][i].node_type) is False:
                 raise ParseException(str(self.expr_type_is(p)) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i].node_type))
                 return False
-        return self.sym_table.f_table[node.ID]['return_type']
+        return f_call
 
     def value_matches_expected(self, result_value, expected_value):
-        allowed_values = {AST_TYPE.INT_DECL: [AST_TYPE.INT_VAL, AST_TYPE.BS_INT_VAL],
-                          AST_TYPE.BIT_DECL: [AST_TYPE.BIT_VAL],
-                          AST_TYPE.BS_INT_DECL: [AST_TYPE.INT_VAL, AST_TYPE.BS_INT_VAL],
-                          AST_TYPE.BS_INT_VAL: [AST_TYPE.INT_VAL, AST_TYPE.BS_INT_VAL],
-                          AST_TYPE.INT_VAL: [AST_TYPE.INT_VAL, AST_TYPE.BS_INT_VAL],
-                          AST_TYPE.BIT_VAL: [AST_TYPE.BIT_VAL]}
+        allowed_values = {DATA_TYPE.INT_DECL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
+                          DATA_TYPE.BIT_DECL: [DATA_TYPE.BIT_VAL],
+                          DATA_TYPE.BS_INT_DECL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
+                          DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
+                          DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
+                          DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL]}
         if result_value in allowed_values[expected_value]:
             return True
         return False
 
     def analyse_if_stmt_decl(self, node):
         self.sym_table.add_scope()
-        for c in node.condition:
-            self.expr_type_is(c)
+        if len(node.condition) > 1:
+            raise ParseException("Internal Error: If stmt has more than one condition token")
+        if_stmt = If_stmt(self.expr_type_is(node.condition[0]))
         for stmt in node.body:
-            if Semantic_analyser.node_type_lookup[stmt.node_type](self, stmt) is False:
-                    return False
+            if_stmt.add_stmt(self.analyse_sub_stmt(stmt))
         self.sym_table.leave_scope()
-        return True
+        return if_stmt
 
     def analyse_for_loop_decl(self, node):
         self.sym_table.add_scope()
+        for_loop = For_loop()
+
         for i in node.initializer:
-            if Semantic_analyser.node_type_lookup[i.node_type](self, i) is False:
-                return False
+            for_loop.initializer.append(self.analyse_sub_stmt(i))
+
         for t in node.terminator:
-            self.expr_type_is(t)
+            for_loop.terminator.append(self.expr_type_is(t))
 
         for i in node.increment:
-            if self.analyse_ID_set(i) is False:
-                return False
+            for_loop.increment.append(self.analyse_ID_set(i))
 
         for stmt in node.body:
-            if Semantic_analyser.node_type_lookup[stmt.node_type](self, stmt) is False:
-                return False
+            for_loop.body.append(self.analyse_sub_stmt(stmt))
+
         # self.translator.translate_for_loop(node, self.sym_table)
         self.sym_table.leave_scope()
         return True
@@ -255,13 +284,13 @@ class Semantic_analyser(object):
         return self.call_stack.peek()
 
     def sub_expr_valid(self, expression):
-        if expression['OP'] is AST_TYPE.ARITH_OP:
+        if expression['OP'] is DATA_TYPE.ARITH_OP:
             return self.arith_expr_valid(expression)
-        elif expression['OP'] is AST_TYPE.SHIFT_OP:
+        elif expression['OP'] is DATA_TYPE.SHIFT_OP:
             return self.shift_expr_valid(expression)
-        elif expression['OP'] is AST_TYPE.BITWISE_OP:
+        elif expression['OP'] is DATA_TYPE.BITWISE_OP:
             return self.bitwise_expr_valid(expression)
-        elif expression['OP'] is AST_TYPE.COMP_OP:
+        elif expression['OP'] is DATA_TYPE.COMP_OP:
             return self.comp_expr_valid(expression)
         else:
             raise ParseException("Invalid Operand")
@@ -275,7 +304,7 @@ class Semantic_analyser(object):
             return True
 
     def shift_expr_valid(self, expression):
-        if expression['OPERAND_2'] == AST_TYPE.INT_VAL or expression['OPERAND_2'] == AST_TYPE.BS_INT_VAL:
+        if expression['OPERAND_2'] == DATA_TYPE.INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL:
             return True
 
     def arith_expr_valid(self, expression):
@@ -284,22 +313,22 @@ class Semantic_analyser(object):
             return True
 
     def reduce_sub_expr(self, expression):
-        if expression['OP'] is AST_TYPE.ARITH_OP:
+        if expression['OP'] is DATA_TYPE.ARITH_OP:
             return {'OPERAND_0': self.reduce_arith_op(expression)}
-        if expression['OP'] is AST_TYPE.SHIFT_OP:
+        if expression['OP'] is DATA_TYPE.SHIFT_OP:
             return {'OPERAND_0': expression['OPERAND_0']}
-        if expression['OP'] is AST_TYPE.BITWISE_OP:
+        if expression['OP'] is DATA_TYPE.BITWISE_OP:
             return {'OPERAND_0': expression['OPERAND_0']}
-        if expression['OP'] is AST_TYPE.COMP_OP:
-            return {'OPERAND_0': AST_TYPE.BIT_VAL}
+        if expression['OP'] is DATA_TYPE.COMP_OP:
+            return {'OPERAND_0': DATA_TYPE.BIT_VAL}
         else:
             raise ParseException("Unrecognised operator")
 
     def reduce_arith_op(self, expression):
-        if expression['OPERAND_0'] == AST_TYPE.BS_INT_VAL or expression['OPERAND_2'] == AST_TYPE.BS_INT_VAL:
-            return AST_TYPE.BS_INT_VAL
+        if expression['OPERAND_0'] == DATA_TYPE.BS_INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL:
+            return DATA_TYPE.BS_INT_VAL
         else:
-            return AST_TYPE.INT_VAL
+            return DATA_TYPE.INT_VAL
 
     def analyse_func_decl(self, node):
         self.sym_table.add_scope()
@@ -310,11 +339,20 @@ class Semantic_analyser(object):
         self.sym_table.leave_scope()
         return True
 
+    def analyse_sub_stmt(self, node):
+        stmt = Semantic_analyser.node_type_lookup[node.node_type](self, node)
+        if stmt is False:
+            raise ParseException("Error in sub statement")
+        return stmt
+
     def analyse(self, AST):
         try:
             for node in AST.tree:
-                if Semantic_analyser.node_type_lookup[node.node_type](self, node) is False:
+                result = Semantic_analyser.node_type_lookup[node.node_type](self, node)
+                if result is False:
                     return False
+                else:
+                    self.IR.add(result)
         except ParseException as details:
             print(details)
             return False
