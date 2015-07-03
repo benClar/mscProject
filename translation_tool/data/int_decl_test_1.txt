@@ -1,3 +1,0 @@
-Int a, b, c;
-Int d = 10;
-Int(10) e = 20;

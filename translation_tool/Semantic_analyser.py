@@ -5,7 +5,7 @@ from Stack import Stack
 from pyparsing import ParseException
 from AST_TYPE import AST_TYPE
 from Translator import Translator
-
+from IR import Int_literal, Name, Int_decl, Binary_operation, IR
 
 class Semantic_analyser(object):
 
@@ -154,18 +154,21 @@ class Semantic_analyser(object):
         # print(expression.expressions)
         # print("_______")
         expr_types = {}
+        IR_expression = []
         for i, expr in enumerate(expression.expressions):
             # print("CURR OPERAND:")
             # print(expr)
             # print("_______")
             if expr.node_type == AST_TYPE.INT_VAL:
                 expr_types["OPERAND_" + str(len(expr_types))] = AST_TYPE.INT_VAL
+                IR_expression.append(Int_literal(expr.value))
             elif expr.node_type == AST_TYPE.SEQ_VAL:
                 expr_types["OPERAND_" + str(len(expr_types))] = self.analyse_seq_val_type(expr)
             elif expr.node_type == AST_TYPE.BIT_VAL:
                 expr_types["OPERAND_" + str(len(expr_types))] = AST_TYPE.BIT_VAL
             elif expr.node_type == AST_TYPE.SHIFT_OP or expr.node_type == AST_TYPE.ARITH_OP or expr.node_type == AST_TYPE.BITWISE_OP or expr.node_type == AST_TYPE.COMP_OP:
                 expr_types["OP"] = expr.node_type
+                IR_expression.append(Binary_operation(expr.node_type, expr.operator))
             elif expr.node_type == AST_TYPE.EXPR:
                 expr.ret_type = self.expr_type_is(expr)
                 expr_types["OPERAND_" + str(len(expr_types))] = expr.ret_type
@@ -179,16 +182,21 @@ class Semantic_analyser(object):
             if len(expr_types) == 3:
                 if self.sub_expr_valid(expr_types) is True:
                     expr_types = self.reduce_sub_expr(expr_types)
+                    self.clean_up_expr(IR_expression, expr_types)
                 else:
                     raise ParseException("cannot combine a " + str(expr_types['OPERAND_0']) + " value with a " +
                                          str(expr_types['OPERAND_2']) + " in " + str(expr_types['OP']) + " Operation")
         if len(expr_types) != 1:
             print(expr_types)
             raise ParseException("Internal Error")
-        # print("RETURNING")
-        # print(expr_types["OPERAND_0"])
-        # print("____")
+
         return expr_types["OPERAND_0"]
+
+    def clean_up_expr(self, IR_expressions, result_type):
+        """Reorders collected expression nodes"""
+        IR_expressions[1].left = IR_expressions[0]
+        IR_expressions[1].right = IR_expressions[2]
+        IR_expressions[1].result = result_type
 
     def analyse_cast(self, node):
         cast_target_type = self.expr_type_is(node.target)

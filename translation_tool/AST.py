@@ -690,7 +690,7 @@ class Cast_type_ast(object):
                 for s in operation[1]:
                     self._seq_size.append(Expr_ast(s))
                 self._target_type = AST_TYPE.convert(operation[0], "Seq")
-        elif operation[0] == "Int":
+        elif operation[0] == "Int" or operation[0] == "@Int":
             self._constraints = Expr_ast(operation[1])
             if len(operation) == 2:
                 self._target_type = AST_TYPE.convert(operation[0])
@@ -699,7 +699,8 @@ class Cast_type_ast(object):
                 for s in operation[2]:
                     self._seq_size.append(Expr_ast(s))
                 self._target_type = AST_TYPE.convert(operation[0], "Seq")
-
+        # print(">>>")
+        # print(self._target_type)
         try:
             self._elements = Expr_ast(operation[1])
             if len(operation[2]) > 1:
