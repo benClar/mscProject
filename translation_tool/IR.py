@@ -1,5 +1,5 @@
 from DATA_TYPE import DATA_TYPE
-
+from pyparsing import ParseException
 
 class IR(object):
 
@@ -84,6 +84,57 @@ class Cast_operation(object):
         return self._type
 
 
+class Index_set(object):
+
+    def __init__(self, var_ID, indices, value, id_type):
+        self._ID = Name(var_ID, id_type)
+        self._value = value
+        self.node_type = DATA_TYPE.INDEX_SET
+        self._indices = indices
+
+    @property
+    def ID(self):
+        return self._ID
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def indices(self):
+        return self._indices
+
+
+class Index_select(object):
+
+    def __init__(self, var_id, indices, var_type, base_dim):
+        self._ID = Name(var_id, var_type)
+        self._indices = indices
+        self._base_dim = base_dim
+        self.node_type = DATA_TYPE.INDEX_SEL
+
+    @property
+    def base_dim(self):
+        return self._base_dim
+
+    @property
+    def ID(self):
+        return self._ID
+
+    @property
+    def indices(self):
+        return self._indices
+
+    @property
+    def type(self):
+        if len(self.indices) == self.base_dim:
+            return DATA_TYPE.seq_to_index_sel(self.ID.type)
+        elif len(self.indices) < self.base_dim:
+            return self.ID.type
+        else:
+            raise ParseException("Internal error with index selection")
+
+
 class ID_set(object):
 
     def __init__(self, var_id, value, id_type):
@@ -138,6 +189,7 @@ class Seq_val(object):
             self._value.append(value)
 
         self._type = s_type
+        self.node_type = DATA_TYPE.SEQ_VAL
 
     @property
     def value(self):
@@ -201,6 +253,7 @@ class Int_literal(object):
     def __init__(self, value):
         self.value = value
         self.type = DATA_TYPE.INT_VAL
+        self.node_type = DATA_TYPE.INT_LITERAL
 
 
 class Bit_literal(object):
@@ -208,6 +261,7 @@ class Bit_literal(object):
     def __init__(self, value):
         self.value = value
         self.type = DATA_TYPE.BIT_VAL
+        self.node_type = DATA_TYPE.BIT_LITERAL
 
 
 class Name(object):

@@ -136,11 +136,13 @@ class AST(object):
 
     def id_set(self, tokens):
         token = tokens[0]
-        # print(token.dump())
         if token[0][0] == "index_select":
+            index = []
+            for i in token[0][1][2]:
+                index.append(Expr_ast(i))
             self.add_statement(ID_set_ast(token[0][1][1][0],
                                token[2],
-                               token[0][1][2]))
+                               index))
         else:
             self.add_statement(ID_set_ast(token[AST.ID], token[AST.ID_SET_VALUE]))
 
@@ -324,7 +326,7 @@ class ID_set_ast(object):
         self._value = Expr_ast(value)
 
         if elements is not None:
-            self._elements = Expr_ast(elements)
+            self._elements = elements
         else:
             self._elements = None
 

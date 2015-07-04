@@ -2,6 +2,8 @@ import unittest
 from pyparsing import ParseException
 from DATA_TYPE import DATA_TYPE
 from Stack import Stack
+import traceback
+import sys
 
 class Symbol_Table(object):
 
@@ -52,10 +54,18 @@ class Symbol_Table(object):
                 return scope[ID]
         raise ParseException("Tried to update nonexistent ID")
 
-    def add_id(self, ID, id_type):
+    def add_id(self, ID, id_type, size=None):
         if ID not in self.symbols.peek():
             self.symbols.peek()[ID] = {}
             self.symbols.peek()[ID]['type'] = id_type
+            if size is not None and DATA_TYPE.is_seq_type(id_type):
+                self.symbols.peek()[ID]['dimension'] = size
+            elif DATA_TYPE.is_seq_type(id_type) is False:
+                pass
+            else:
+                # traceback.print_stack(file=sys.stdout)
+                raise ParseException("Internal Error: " + str(id_type) + " " + ID + " Created with no dimension")
+
         else:
             raise ParseException("Redeclaration of symbol")
 
@@ -76,7 +86,7 @@ class Symbol_Table(object):
             self.f_table[func_ID]["parameters"] = []
             for p in parameters:
                 self.f_table[func_ID]["parameters"].append(p)
-                self.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type))
+                # self.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type))
         else:
             raise ParseException("Redeclaration of function")
 

@@ -6,6 +6,9 @@ import unittest
 from nose.tools import assert_equals
 from Semantic_analyser import Semantic_analyser
 from AST import *
+import traceback
+import sys
+
 ParserElement.enablePackrat()
 
 class Parser(object):
@@ -119,7 +122,7 @@ class Parser(object):
             Suppress(self.r_bracket) + (self.expr)("target")
 
         self.seq_index_select << (self.ID("ID") ^ (Suppress(self.l_bracket) + self.cast + Suppress(self.r_bracket))) + ~White() +\
-            Suppress(self.l_sq_b) + Group(delimitedList(self.expr ^ Group(Group(self.seq_range))))("index") + Suppress(self.r_sq_b)
+            Group(OneOrMore(Suppress(self.l_sq_b) + Group(delimitedList(self.expr ^ Group(Group(self.seq_range))))("index") + Suppress(self.r_sq_b)))
         #  ####### Declarations
 
         self.id_set = Group((Group(self.seq_index_select) | self.ID_) + self.eq_set + self.expr)
@@ -529,9 +532,9 @@ class TestASTTree(unittest.TestCase):
         assert_equals(par.parse_test_unit("Int(10) z = b[1 * 4];")[1], True)
         assert_equals(par.AST.tree[6].ID, "z")
         assert_equals(par.AST.tree[6].value.expressions[0].ID, "b")
-        assert_equals(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[0].value, "1")
-        assert_equals(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[1].operator, "*")
-        assert_equals(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[2].value, "4")
+        assert_equals(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[0].expressions[0].value, "1")
+        assert_equals(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[0].expressions[1].operator, "*")
+        assert_equals(par.AST.tree[6].value.expressions[0].indices[0].expressions[0].expressions[0].expressions[2].value, "4")
         assert_equals(par.parse_test_unit("Int(10) a = 2;")[1], True)
 
     def test_bit_seq_decl(self):
@@ -555,10 +558,11 @@ class TestASTTree(unittest.TestCase):
         assert_equals(par.AST.tree[0].value.expressions[0].expressions[2].parameters[0].expressions[0].ID, "a")
         assert_equals(par.AST.tree[0].value.expressions[0].expressions[2].parameters[1].expressions[0].ID, "b")
         assert_equals(par.parse_test_unit("a[1,2,3,4:5] = (Bit[4]) b + 10 * function(a, b);")[1], True)
-        assert_equals(par.AST.tree[2].elements.expressions[0].expressions[0].value, "1")
-        assert_equals(par.AST.tree[2].elements.expressions[1].expressions[0].value, "2")
-        assert_equals(par.AST.tree[2].elements.expressions[3].expressions[0].start.expressions[0].value, "4")
+        assert_equals(par.AST.tree[2].elements[0].expressions[0].expressions[0].value, "1")
+        assert_equals(par.AST.tree[2].elements[0].expressions[1].expressions[0].value, "2")
+        assert_equals(par.AST.tree[2].elements[0].expressions[3].expressions[0].start.expressions[0].value, "4")
         assert_equals(par.AST.tree[2].value.expressions[0].target.expressions[0].expressions[2].node_type, DATA_TYPE.FUNCTION_CALL)
+        assert_equals(par.parse_test_unit("a[1,2][1,2,3,4:5] = (Bit[4]) b + 10 * function(a, b);")[1], True)
 
     def test_func_decl(self):
         par = Parser()
@@ -600,7 +604,7 @@ class TestASTTree(unittest.TestCase):
         par = Parser()
         assert_equals(par.parse_test_unit("a =(@Int(10)) a;")[1], True)
 
-class TestSemanticAnalysisTree(unittest.TestCase):
+class TestSemanticAnalysis(unittest.TestCase):
     pass
     def test_int_decl(self):
         par = Parser()
@@ -671,6 +675,14 @@ class TestSemanticAnalysisTree(unittest.TestCase):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1,2,3,4] ^ [1,2,3,4];")), True)
         par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] ^ [1,2,3,4]);")), True)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] << 4);")), True)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([[1],[2],[3],[4]] << 4);")), False)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] b = [1,2]; Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] << b[0]);")), True)
+        par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Int(10)[2] a = [b,2,c,4] ^ [1,2,b * 2,4];")), True)
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Bit d = False; Int(10)[2] a = [b,d,c,4] ^ [1,2,b,4];")), False)  # NOQA
@@ -688,6 +700,10 @@ class TestSemanticAnalysisTree(unittest.TestCase):
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit[4] a = [1,False,True,False];")), False)
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit[4][4] a = [[True,False,True,False],[True,False,True,False]];")), True)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[2][2] a = [[[1],[2]],[[1],[2]]];")), False)  # NOQA
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[2][2][1] a = [[[1],[2]],[[1],[2]]];")), True)  # NOQA
 
     def test_bs_seq_decl(self):
         par = Parser()
@@ -819,6 +835,20 @@ class test_IR_generation(unittest.TestCase):
         assert_equals(par.semantic_analyser.IR.IR[0].parameters[3].ID.type, DATA_TYPE.BS_INT_VAL)
         assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.type, DATA_TYPE.BS_INT_VAL)
         assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.left.type, DATA_TYPE.INT_VAL)
+
+    def test_index_setting(self):
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][8] a = [[1,2,3,4],[5,6,7,8]]; a[3][2] = 5;")), True)  # NOQA
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8] a = [1,2,3,4,5,6,7,8]; a[3][2] = 5;")), False)  # NOQA
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8] a = [1,2,3,4,5,6,7,8]; a[3] = [1,2,3,4,5,5];")), False)  # NOQA
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][2] a = [[1,2,3,4],[5,6,7,8]]; a[3] = [1,2];")), True)  # NOQA
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][2][1] a = [[[1]],[[5]]]; a[3][3][3] = 1;")), True)  # NOQA
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][2] a = [1,2,3,4,5,6,7,8]; a[3][3][3] = 1;")), False)  # NOQA
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)
