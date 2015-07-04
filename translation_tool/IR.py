@@ -14,6 +14,26 @@ class IR(object):
         return self._IR
 
 
+class Function_decl(object):
+
+    def __init__(self, return_type):
+        self._return_value = return_type
+        self._parameters = []
+        self._body = []
+
+    @property
+    def return_type(self):
+        return self._return_type
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+    @property
+    def body(self):
+        return self._body
+
+
 class If_stmt(object):
 
     def __init__(self, condition, body=None):
@@ -238,6 +258,11 @@ class For_loop(object):
         self._terminator = []
         self._increment = []
         self._body = []
+        self._node_type = DATA_TYPE.FOR_LOOP
+
+    @property
+    def node_type(self):
+        return self._node_type
 
     @property
     def initializer(self):

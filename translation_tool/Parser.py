@@ -710,28 +710,28 @@ class TestSemanticAnalysisTree(unittest.TestCase):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit b; for(Int(10) i = 5; b != True; i = i + 5) { b = True; } b = 10;")), False)
 
-    # def test_func_decl(self):
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) test_func(Int(8) a) { Int(10) d = 1;  Bit b = False; }")), True)
-    #     assert_equals(par.semantic_analyser.sym_table.f_table['test_func']['return_type'], DATA_TYPE.INT_VAL)
+    def test_func_decl(self):
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) test_func(Int(8) a, Bit c, Bit[5] e) { Int(10) d = 1;  Bit b = False; }")), True)
+        assert_equals(par.semantic_analyser.sym_table.f_table['test_func']['return_type'], DATA_TYPE.INT_VAL)
 
-    # def test_func_call(self):
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) test_func(Int(10) a) { Int(10) d = test_func(test_func(10)) + 20; }")), True)
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit test_func(Int(10) a) { Int(10) d = 10; }")), True)
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit test_func1(Int(10) a) { a = a + 10; }\
-    #                                                                         Int(10) test_func(Int(10) a) { Int(10) d = test_func(test_func1(10)) + 20; }")), False)
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) test_func2(Bit a) { Int(10) d = 39; }\
-    #                                                                         Bit test_func1(Bit a) { Int(10) d = 10; }\
-    #                                                                         Int(10) test_func(Int(10) a) { Int(10) d = test_func(test_func2(test_func1(False))) + 20; }")), True)  # NOQA
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) test_func2(Bit a) { Int(10) d = 39; }\
-    #                                                                         void test_func3(Bit a) { @Int(10) i = test_func2(False); }")), True)
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) test_func2(@Int(8) c) { c = 4 + 39; }")), True)
+    def test_func_call(self):
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) test_func(Int(10) a) { Int(10) d = test_func(test_func(10)) + 20; }")), True)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit test_func(Int(10) a) { Int(10) d = 10; }")), True)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit test_func1(Int(10) a) { a = a + 10; }\
+                                                                            Int(10) test_func(Int(10) a) { Int(10) d = test_func(test_func1(10)) + 20; }")), False)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) test_func2(Bit a) { Int(10) d = 39; }\
+                                                                            Bit test_func1(Bit a) { Int(10) d = 10; }\
+                                                                            Int(10) test_func(Int(10) a) { Int(10) d = test_func(test_func2(test_func1(False))) + 20; }")), True)  # NOQA
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) test_func2(Bit a) { Int(10) d = 39; }\
+                                                                            void test_func3(Bit a) { @Int(10) i = test_func2(False); }")), True)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) test_func2(@Int(8) c) { c = 4 + 39; }")), True)
 
     def test_casting(self):
         par = Parser()
@@ -778,7 +778,7 @@ class test_IR_generation(unittest.TestCase):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Int(10)[2][2] a = [[b << 3,5],[c / 5, 5]];")), True)
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit d = False; Int(10) b = 3; Int(10)c = 4; Int(10)[2][2] a = [[b << d,5],[c / 5, 5]];")), False)
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit d = False; Int(10) b = 3; Int(10)c = 4; Int(10)[2][2] a = [[b << d,5],[c / 5, 5]];")), False)  # NOQA
 
     def test_if_stmt(self):
         par = Parser()
@@ -791,6 +791,34 @@ class test_IR_generation(unittest.TestCase):
         assert_equals(par.semantic_analyser.IR.IR[1].condition.left.type, DATA_TYPE.BIT_VAL)
         assert_equals(par.semantic_analyser.IR.IR[1].condition.left.left.value, "4")
 
+    def test_for_loop(self):
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("for(Int(8) d, Int(8) a = 0, Int(8)[5] e = [1,2,3,4,5], Bit[4] f; a < 10; a = a + 1, d = d * a) {\
+                                                                            d = d << 10;\
+                                                                            e = e << 4;\
+                                                                            f = f << 4;\
+                                                                         }")), True)
+        assert_equals(par.semantic_analyser.IR.IR[0].node_type, DATA_TYPE.FOR_LOOP)
+        assert_equals(par.semantic_analyser.IR.IR[0].initializer[0].node_type, DATA_TYPE.INT_DECL)
+        assert_equals(par.semantic_analyser.IR.IR[0].initializer[0].ID.name, "d")
+        assert_equals(par.semantic_analyser.IR.IR[0].terminator[0].operator, "<")
+        assert_equals(par.semantic_analyser.IR.IR[0].terminator[0].left.name, "a")
+        assert_equals(par.semantic_analyser.IR.IR[0].terminator[0].left.type, DATA_TYPE.INT_VAL)
+        assert_equals(par.semantic_analyser.IR.IR[0].increment[1].node_type, DATA_TYPE.ID_SET)
+        assert_equals(par.semantic_analyser.IR.IR[0].increment[1].value.operator, "*")
+        assert_equals(par.semantic_analyser.IR.IR[0].increment[1].value.left.name, "d")
+        assert_equals(par.semantic_analyser.IR.IR[0].body[0].node_type, DATA_TYPE.ID_SET)
+        assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.type, DATA_TYPE.INT_VAL)
+        assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.left.name, "d")
+        assert_equals(par.semantic_analyser.IR.IR[0].body[2].value.type, DATA_TYPE.SEQ_BIT_VAL)
+        assert_equals(par.semantic_analyser.IR.IR[0].body[2].value.right.value, "4")
+
+    def test_func_decl(self):
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) test_func(Int(8) a, Bit c, Bit[5] e, @Int(64) f) { Int(10) d = (1 + 3) + f;  Bit b = False; }")), True)  # NOQA
+        assert_equals(par.semantic_analyser.IR.IR[0].parameters[3].ID.type, DATA_TYPE.BS_INT_VAL)
+        assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.type, DATA_TYPE.BS_INT_VAL)
+        assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.left.type, DATA_TYPE.INT_VAL)
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)

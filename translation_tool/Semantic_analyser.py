@@ -5,7 +5,8 @@ from Stack import Stack
 from pyparsing import ParseException
 from DATA_TYPE import DATA_TYPE
 from IR import Int_literal, Name, Int_decl, ID_set, Bit_literal, Binary_operation,\
-    Cast_operation, Cast, IR, Call, Bit_decl, Seq_decl, Seq_val, If_stmt, For_loop
+    Cast_operation, Cast, IR, Call, Bit_decl, Seq_decl, Seq_val, If_stmt, For_loop,\
+    Function_decl
 
 
 class Semantic_analyser(object):
@@ -128,7 +129,7 @@ class Semantic_analyser(object):
             if node.value is not None:
                 if decl.value.type != DATA_TYPE.SEQ_INT_VAL or decl.value.type != DATA_TYPE.BS_SEQ_INT_VAL:
                     raise ParseException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
-        self.sym_table.add_id(node.ID, node.node_type)
+        self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
         # self.IR.add(decl)
         return decl
 
@@ -229,23 +230,26 @@ class Semantic_analyser(object):
         cast = Cast(Cast_operation(node.cast_operation.target_type, node.cast_operation.constraints, node.cast_operation.seq_size), self.expr_type_is(node.target))  # NOQA
         return cast
 
-
     def analyse_func_call(self, node):
         f_call = Call(node.ID, self.sym_table.f_table[node.ID]['return_type'])
         for i, p in enumerate(node.parameters):
             f_call.add_parameter(self.expr_type_is(p))
-            if self.value_matches_expected(f_call[i].type, self.sym_table.f_table[node.ID]['parameters'][i].node_type) is False:
+            if self.value_matches_expected(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i].node_type) is False:
                 raise ParseException(str(self.expr_type_is(p)) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i].node_type))
                 return False
         return f_call
 
     def value_matches_expected(self, result_value, expected_value):
+        """Lookup for allowed assignment types"""
+        # Value type -> Allowed to be [ these value types ]
         allowed_values = {DATA_TYPE.INT_DECL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.BIT_DECL: [DATA_TYPE.BIT_VAL],
                           DATA_TYPE.BS_INT_DECL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
-                          DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL]}
+                          DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
+                          DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL],
+                          DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL]}
         if result_value in allowed_values[expected_value]:
             return True
         return False
@@ -278,7 +282,7 @@ class Semantic_analyser(object):
 
         # self.translator.translate_for_loop(node, self.sym_table)
         self.sym_table.leave_scope()
-        return True
+        return for_loop
 
     def scope(self):
         return self.call_stack.peek()
@@ -331,13 +335,31 @@ class Semantic_analyser(object):
             return DATA_TYPE.INT_VAL
 
     def analyse_func_decl(self, node):
+        """Performs Semantic Analysis on function declaration and body, creating an IR node if successful"""
         self.sym_table.add_scope()
+        func_decl = Function_decl(node.return_value)
         self.sym_table.add_function(node.ID, node.parameters, node.return_value)
         for s in node.stmts:
-            if Semantic_analyser.node_type_lookup[s.node_type](self, s) is False:
-                    return False
+            func_decl.body.append(self.analyse_sub_stmt(s))
+        for p in node.parameters:
+            func_decl.parameters.append(self.AST_func_param_to_IR(p))
         self.sym_table.leave_scope()
-        return True
+        return func_decl
+
+    def AST_func_param_to_IR(self, old_decl):
+        """Converts AST param node to equivilent IR node"""
+        decl = None
+        if old_decl.node_type == DATA_TYPE.INT_DECL or old_decl.node_type == DATA_TYPE.BS_INT_DECL:
+            decl = Int_decl(old_decl.node_type, self.expr_type_is(old_decl.bit_constraints), old_decl.ID)
+        elif old_decl.node_type == DATA_TYPE.SEQ_BIT_DECL:
+            decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID)
+        elif old_decl.node_type == DATA_TYPE.SEQ_INT_VAL or old_decl.node_type == DATA_TYPE.BS_SEQ_INT_VAL:
+            decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID, constraints=self.expr_type_is(old_decl.bit_constraints))
+        elif old_decl.node_type == DATA_TYPE.BIT_DECL:
+            decl = Bit_decl(old_decl.ID)
+        else:
+            raise ParseException("Internal Error: Unknown Parameter Type " + str(old_decl.node_type))
+        return decl
 
     def analyse_sub_stmt(self, node):
         stmt = Semantic_analyser.node_type_lookup[node.node_type](self, node)
