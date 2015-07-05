@@ -340,7 +340,7 @@ class ID_set_ast(object):
 
     @property
     def ID(self):
-        print(self._ID)
+        # print(self._ID)
         if self._ID.node_type == DATA_TYPE.ID:
             return self._ID.ID
         elif self._ID.node_type == DATA_TYPE.EXPR:
@@ -529,7 +529,12 @@ class Expr_ast(object):
             except IndexError:
                 self.expressions.append(seq_value_ast())
         elif operand_type == DATA_TYPE.INDEX_SEL:
-            self.add_expr(Seq_index_select_ast(token[Expr_ast.CONTENT][1][0], token[Expr_ast.CONTENT][2]))
+            ID = None
+            if token[1][0] == "cast":
+                ID = Expr_ast([token[1]])
+            elif token[1][0] == "ID":
+                ID = ID_ast(token[1][1][0])
+            self.add_expr(Seq_index_select_ast(ID, token[Expr_ast.CONTENT][2]))
         elif operand_type == DATA_TYPE.BIT_VAL:
             self.expressions.append(Bit_literal_ast(token[Expr_ast.CONTENT][0]))
         elif operand_type == DATA_TYPE.INDEX_RANGE:
@@ -679,15 +684,24 @@ class Seq_index_select_ast(object):
 
     node_type = DATA_TYPE.INDEX_SEL
 
-    def __init__(self, index_sel_id, indices):
-        self._ID = ID_ast(index_sel_id)
+    def __init__(self, target, indices):
+        self._target = target
         self._indices = []
         for i in indices:
             self._indices.append(Expr_ast(i))
 
     @property
+    def target(self):
+            return self._target
+
+    @property
     def ID(self):
-        return self._ID.ID
+        if self._target.node_type == DATA_TYPE.ID:
+            return self._target.ID
+
+    @property
+    def target_type(self):
+        return self._target.node_type
 
     @property
     def indices(self):

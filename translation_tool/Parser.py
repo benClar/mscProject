@@ -873,6 +873,33 @@ class test_IR_generation(unittest.TestCase):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) a = 8; ((Bit[4]) a)[4][4] = True;")), False)  # NOQA
 
+    def test_LFSR_syntax(self):
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4)[4] a = [1,2,3,4]; a[1] = a[5] ^ a[5] ^ a[5];")), True)  # NOQA
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit lfsr(@Int(8) state) {\
+                                                                            Int(1) output;\
+                                                                            Int(1) input;\
+                                                                            for(Int(5) i = 0; i < 32; i = i + 1) {\
+                                                                                output = ((Int(1)) ((Bit[8]) state)[0]);\
+                                                                                input =  ((Int(4)) (((Bit[8]) state)[0] ^ ((Bit[8]) state)[4] ^ ((Bit[8]) state)[5] ^ ((Bit[8]) state)[6]));\
+                                                                                state = state << 1;\
+                                                                                ((Bit[8]) state)[7] = (Bit) input;\
+                                                                            }\
+                                                                        }")), True)  # NOQA
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit lfsr(@Int(8) state) {\
+                                                                            Bit output;\
+                                                                            Bit input;\
+                                                                            for(Int(5) i = 0; i < 32; i = i + 1) {\
+                                                                                output = ((Bit[8]) state)[0];\
+                                                                                input =  ((Bit[8]) state)[0] ^ ((Bit[8]) state)[4] ^ ((Bit[8]) state)[5] ^ ((Bit[8]) state)[6];\
+                                                                                state = state << 1;\
+                                                                                ((Bit[8]) state)[7] = input;\
+                                                                            }\
+                                                                        }")), True)  # NOQA
+
+
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)
     unittest.TextTestRunner(verbosity=0).run(suite)

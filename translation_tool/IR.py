@@ -73,6 +73,7 @@ class Cast(object):
         return self._cast_op
 
 
+
 class Cast_operation(object):
 
     def __init__(self, c_type, constraints, size):
@@ -123,8 +124,8 @@ class Index_set(object):
 
 class Index_select(object):
 
-    def __init__(self, var_id, indices, var_type, base_dim):
-        self._ID = Name(var_id, var_type)
+    def __init__(self, target, indices, base_dim):
+        self._ID = target
         self._indices = indices
         self._base_dim = base_dim
         self.node_type = DATA_TYPE.INDEX_SEL

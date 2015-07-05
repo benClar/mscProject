@@ -62,7 +62,6 @@ class Semantic_analyser(object):
         return indices
 
     def seq_index_set(self, node):
-        print(">>>>")
         id_set = None
         if node.set_type() == DATA_TYPE.ID:
             id_set = Index_set(Name(node.ID, self.sym_table.id_type(node.ID)), self.collect_indices(node), self.expr_type_is(node.value))
@@ -286,17 +285,24 @@ class Semantic_analyser(object):
         return IR_expression[0]
 
     def analyse_index_sel(self, node):
-        """Check result type of index select against target ID"""
-        target_id = self.sym_table.id(node.ID)
+        """Check result type of index select against target ID, returning IR node"""
         ir_indices = []
         for i in node.indices:
             ir_indices.append(self.expr_type_is(i))
 
-        if target_id['dimension'] >= len(node.indices):
-            return Index_select(node.ID, ir_indices, target_id['type'], target_id['dimension'])
-        elif len(node.indices) > target_id['dimension']:
-            raise ParseException(str(target_id['type']) + "[]" * len(node.indices) + " cannot be selected from " + str(target_id['type']) + (target_id['dimension'] * "[]"))
-
+        if node.target_type != DATA_TYPE.ID:
+            target = self.expr_type_is(node.target)
+            index_sel = Index_select(target, ir_indices, 1)
+            if(len(ir_indices) > 1):
+                raise ParseException(str(target.type) + ("[]" * len(ir_indices)) + "Cannot be selected from" + str(target.type) + "[]")
+            else:
+                return index_sel
+        else:
+            target_id = self.sym_table.id(node.ID)
+            if target_id['dimension'] >= len(node.indices):
+                return Index_select(Name(node.ID, target_id['type']), ir_indices, target_id['dimension'])
+            elif len(node.indices) > target_id['dimension']:
+                raise ParseException(str(target_id['type']) + "[]" * len(node.indices) + " cannot be selected from " + str(target_id['type']) + (target_id['dimension'] * "[]"))
 
     def clean_up_expr(self, IR_expressions, result_type):
         """Reorders collected expression nodes"""
@@ -351,7 +357,6 @@ class Semantic_analyser(object):
         if len(node.condition) > 1:
             raise ParseException("Internal Error: If stmt has more than one condition token")
         if_stmt = If_stmt(self.expr_type_is(node.condition[0]))
-        print(node.body)
         for stmt in node.body:
             if_stmt.add_stmt(self.analyse_sub_stmt(stmt))
         self.sym_table.leave_scope()
