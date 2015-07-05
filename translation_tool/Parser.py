@@ -849,6 +849,16 @@ class test_IR_generation(unittest.TestCase):
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][2][1] a = [[[1]],[[5]]]; a[3][3][3] = 1;")), True)  # NOQA
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][2] a = [1,2,3,4,5,6,7,8]; a[3][3][3] = 1;")), False)  # NOQA
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][8] a = [[1,2,3,4],[5,6,7,8]]; a[3][2] = (1 * ((Int(4)) [True, False, True, False])) << 4;")), True)  # NOQA
+        assert_equals(par.semantic_analyser.IR.IR[1].value.operator, "<<")
+        assert_equals(par.semantic_analyser.IR.IR[1].value.left.right.type, DATA_TYPE.INT_VAL)
+        assert_equals(par.semantic_analyser.IR.IR[1].value.left.right.target.value[0].value, "True")
+        assert_equals(par.semantic_analyser.IR.IR[1].value.left.right.target.value[1].value, "False")
+        assert_equals(par.semantic_analyser.IR.IR[1].value.left.right.target.value[2].value, "True")
+        assert_equals(par.semantic_analyser.IR.IR[1].value.left.right.target.value[3].value, "False")
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][8] a = [[1,2,3,4],[5,6,7,8]]; a[3] = (1 * ((Int(4)) [True, False, True, True])) << 4;")), False)  # NOQA
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)

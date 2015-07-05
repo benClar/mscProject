@@ -139,7 +139,9 @@ class AST(object):
         if token[0][0] == "index_select":
             index = []
             for i in token[0][1][2]:
+                print(i)
                 index.append(Expr_ast(i))
+            print(index[0].expressions)
             self.add_statement(ID_set_ast(token[0][1][1][0],
                                token[2],
                                index))
@@ -326,6 +328,9 @@ class ID_set_ast(object):
         self._value = Expr_ast(value)
 
         if elements is not None:
+            print("ELES")
+            print(elements)
+
             self._elements = elements
         else:
             self._elements = None

@@ -76,6 +76,7 @@ class Symbol_Table(object):
     #     for i in id_type["seq_size"]:
     #         seq.append(i)
 
+
     #     print(seq)
     #     self.table[scope][ID[0]]["dimension"] = seq
 
@@ -111,6 +112,7 @@ class Symbol_Table(object):
     #     self.table[scope][ID]["value"] = value
 
     def id_type(self, ID):
+        # print(ID)
         for scope in self.symbols.stack:
             if ID in scope:
                 return scope[ID]["type"]

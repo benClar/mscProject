@@ -1,6 +1,7 @@
 from DATA_TYPE import DATA_TYPE
 from pyparsing import ParseException
 
+
 class IR(object):
 
     def __init__(self):
@@ -63,6 +64,10 @@ class Cast(object):
     def type(self):
         return self._cast_op.type
 
+    @property
+    def target(self):
+        return self._cast_target
+
 
 class Cast_operation(object):
 
@@ -70,6 +75,7 @@ class Cast_operation(object):
         self._type = c_type
         self._constraints = constraints
         self._seq_size = size
+        self.node_type = DATA_TYPE.CAST
 
     @property
     def seq_size(self):
