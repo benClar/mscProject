@@ -62,7 +62,21 @@ class Semantic_analyser(object):
         return indices
 
     def seq_index_set(self, node):
-        id_set = Index_set(node.ID, self.collect_indices(node), self.expr_type_is(node.value), self.sym_table.id_type(node.ID))
+        print(">>>>")
+        id_set = None
+        if node.set_type() == DATA_TYPE.ID:
+            id_set = Index_set(Name(node.ID, self.sym_table.id_type(node.ID)), self.collect_indices(node), self.expr_type_is(node.value))
+            self.validate_id_seq_set(id_set, node)
+        else:
+            id_set = Index_set(self.expr_type_is(node.ID), self.collect_indices(node), self.expr_type_is(node.value))
+            self.validate_cast_seq_set(id_set)
+        return id_set
+
+    def validate_cast_seq_set(self, id_set):
+        if len(id_set.indices) > 1:
+            raise ParseException(str(id_set.ID.type) + len(id_set.indices) * "[]" + " cannot set " + str(id_set.ID.type) + "[]")
+
+    def validate_id_seq_set(self, id_set, node):
         if len(id_set.indices) == self.sym_table.id(node.ID)['dimension']:
             if self.value_matches_expected(DATA_TYPE.seq_to_index_sel(id_set.ID.type), id_set.value.type) is False:
                 raise ParseException(str(DATA_TYPE.seq_to_index_sel(id_set.ID.type)) + " Cannot be set to " + str(id_set.value.type))
@@ -71,11 +85,9 @@ class Semantic_analyser(object):
         else:
             if self.value_matches_expected(id_set.ID.type, id_set.value.type) is False:
                 raise ParseException(str(id_set.ID.type) + " Cannot be set to " + str(id_set.value.type))
-        return id_set
 
 
     def analyse_ID_set(self, node):
-
         if node.elements is not None:
             return self.seq_index_set(node)
         else:
@@ -295,7 +307,19 @@ class Semantic_analyser(object):
         IR_expressions[0].type = result_type['OPERAND_0']
 
     def analyse_cast(self, node):
-        cast = Cast(Cast_operation(node.cast_operation.target_type, node.cast_operation.constraints, node.cast_operation.seq_size), self.expr_type_is(node.target))  # NOQA
+        size = []
+        cnst = []
+        try:
+            for i in node.cast_operation.seq_size:
+                size.append(self.expr_type_is(i))
+        except TypeError:
+            pass
+        try:
+            for c in node.cast_operation.constraints:
+                cnst.append(self.expr_type_is(c))
+        except TypeError:
+            pass
+        cast = Cast(Cast_operation(node.cast_operation.target_type, cnst, size), self.expr_type_is(node.target))  # NOQA
         return cast
 
     def analyse_func_call(self, node):

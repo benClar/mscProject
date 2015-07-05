@@ -68,13 +68,23 @@ class Cast(object):
     def target(self):
         return self._cast_target
 
+    @property
+    def operation(self):
+        return self._cast_op
+
 
 class Cast_operation(object):
 
     def __init__(self, c_type, constraints, size):
         self._type = c_type
-        self._constraints = constraints
-        self._seq_size = size
+        if len(constraints) > 0:
+            self._constraints = constraints
+        else:
+            self._constraints = None
+        if len(size) > 0:
+            self._seq_size = size
+        else:
+            self._constraints = None
         self.node_type = DATA_TYPE.CAST
 
     @property
@@ -92,8 +102,8 @@ class Cast_operation(object):
 
 class Index_set(object):
 
-    def __init__(self, var_ID, indices, value, id_type):
-        self._ID = Name(var_ID, id_type)
+    def __init__(self, target, indices, value):
+        self._ID = target
         self._value = value
         self.node_type = DATA_TYPE.INDEX_SET
         self._indices = indices

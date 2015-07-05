@@ -121,7 +121,7 @@ class Parser(object):
         self.cast << Suppress(self.l_bracket) + Group((self.seq_ | self.int_size | self.bit_)) +\
             Suppress(self.r_bracket) + (self.expr)("target")
 
-        self.seq_index_select << (self.ID("ID") ^ (Suppress(self.l_bracket) + self.cast + Suppress(self.r_bracket))) + ~White() +\
+        self.seq_index_select << (self.ID("ID") ^ (Suppress(self.l_bracket) + self.cast + Suppress(self.r_bracket))("cast")) + ~White() +\
             Group(OneOrMore(Suppress(self.l_sq_b) + Group(delimitedList(self.expr ^ Group(Group(self.seq_range))))("index") + Suppress(self.r_sq_b)))
         #  ####### Declarations
 
@@ -271,7 +271,7 @@ class Parser(object):
 
 
 class TestParser(unittest.TestCase):
-    pass
+
     def test_int_decl_parsing(self):
         par = Parser()
         assert_equals(par.parse_test_unit("Int(10) varName;")[1], True)
@@ -463,7 +463,7 @@ class TestParser(unittest.TestCase):
 
 
 class TestASTTree(unittest.TestCase):
-    pass
+
     def test_bit_decl(self):
         par = Parser()
         assert_equals(par.parse_test_unit("Bit c, d = 3 + (1 + 2 + 3) * (2 + (Bit) 3 + 2);")[1], True)
@@ -604,8 +604,13 @@ class TestASTTree(unittest.TestCase):
         par = Parser()
         assert_equals(par.parse_test_unit("a =(@Int(10)) a;")[1], True)
 
+    def test_indexing(self):
+        par = Parser()
+        assert_equals(par.parse_test_unit("((Bit[4]) ((Int(5)) a))[5] = True;")[1], True)
+        assert_equals(par.parse_test_unit("a[5] = True;")[1], True)
+
 class TestSemanticAnalysis(unittest.TestCase):
-    pass
+
     def test_int_decl(self):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 4 << [1,2,3,4] << 2;")), False)
@@ -757,7 +762,7 @@ class TestSemanticAnalysis(unittest.TestCase):
 
 
 class test_IR_generation(unittest.TestCase):
-    pass
+
     def test_int_decl(self):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 10;")), True)
@@ -859,6 +864,14 @@ class test_IR_generation(unittest.TestCase):
         assert_equals(par.semantic_analyser.IR.IR[1].value.left.right.target.value[3].value, "False")
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][8] a = [[1,2,3,4],[5,6,7,8]]; a[3] = (1 * ((Int(4)) [True, False, True, True])) << 4;")), False)  # NOQA
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) a = 8; ((Bit[4]) a)[4] = True;")), True)  # NOQA
+        assert_equals(par.semantic_analyser.IR.IR[1].node_type, DATA_TYPE.INDEX_SET)
+        assert_equals(par.semantic_analyser.IR.IR[1].ID.target.name, "a")
+        assert_equals(par.semantic_analyser.IR.IR[1].ID.target.name, "a")
+        assert_equals(par.semantic_analyser.IR.IR[1].ID.operation.seq_size[0].value, "4")
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) a = 8; ((Bit[4]) a)[4][4] = True;")), False)  # NOQA
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)

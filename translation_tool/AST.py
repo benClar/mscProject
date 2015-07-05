@@ -137,16 +137,18 @@ class AST(object):
     def id_set(self, tokens):
         token = tokens[0]
         if token[0][0] == "index_select":
+            if token[0][1][0] == "cast":
+                ID = Expr_ast([token[0][1]])
+            elif token[0][1][0] == "ID":
+                ID = ID_ast(token[0][1][1][0])
             index = []
             for i in token[0][1][2]:
-                print(i)
                 index.append(Expr_ast(i))
-            print(index[0].expressions)
-            self.add_statement(ID_set_ast(token[0][1][1][0],
+            self.add_statement(ID_set_ast(ID,
                                token[2],
                                index))
         else:
-            self.add_statement(ID_set_ast(token[AST.ID], token[AST.ID_SET_VALUE]))
+            self.add_statement(ID_set_ast(ID_ast(token[AST.ID]), token[AST.ID_SET_VALUE]))
 
     def function_decl(self, tokens):
         token = tokens[0]
@@ -324,13 +326,10 @@ class ID_set_ast(object):
     node_type = DATA_TYPE.ID_SET
 
     def __init__(self, set_id, value, elements=None):
-        self._ID = ID_ast(set_id)
+        self._ID = set_id
         self._value = Expr_ast(value)
 
         if elements is not None:
-            print("ELES")
-            print(elements)
-
             self._elements = elements
         else:
             self._elements = None
@@ -341,7 +340,16 @@ class ID_set_ast(object):
 
     @property
     def ID(self):
-        return self._ID.ID
+        print(self._ID)
+        if self._ID.node_type == DATA_TYPE.ID:
+            return self._ID.ID
+        elif self._ID.node_type == DATA_TYPE.EXPR:
+            return self._ID
+        else:
+            raise ParseException("Internal Error: Unknown ID type")
+
+    def set_type(self):
+        return self._ID.node_type
 
     @property
     def elements(self):
