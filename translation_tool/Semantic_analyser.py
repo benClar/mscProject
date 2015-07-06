@@ -63,10 +63,13 @@ class Semantic_analyser(object):
 
     def seq_index_set(self, node):
         id_set = None
+        print(node.elements[1].expressions[3].expressions)
         if node.set_type() == DATA_TYPE.ID:
+            #Setting an ID or sequence element
             id_set = Index_set(Name(node.ID, self.sym_table.id_type(node.ID)), self.collect_indices(node), self.expr_type_is(node.value))
             self.validate_id_seq_set(id_set, node)
         else:
+            #Setting a casted value
             id_set = Index_set(self.expr_type_is(node.ID), self.collect_indices(node), self.expr_type_is(node.value))
             self.validate_cast_seq_set(id_set)
         return id_set

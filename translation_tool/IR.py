@@ -21,6 +21,7 @@ class Function_decl(object):
         self._return_value = return_type
         self._parameters = []
         self._body = []
+        self._node_type = DATA_TYPE.FUNC_DECL
 
     @property
     def return_type(self):
@@ -33,6 +34,10 @@ class Function_decl(object):
     @property
     def body(self):
         return self._body
+
+    @property
+    def node_type(self):
+        return self._node_type
 
 
 class If_stmt(object):

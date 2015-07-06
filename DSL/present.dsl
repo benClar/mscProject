@@ -43,8 +43,8 @@ generate_round_keys(@Int(80) key, Int(4)[16] sBox)	{
 	for(Int(5) round = 0; round < 32; round = round + 1)	{
 		round_keys[round] = (Bit[80]) key[79:16];
 		key = key <<< 61;
-		((Bit[80]) key)[79:76] = sBox.sBox((Bit[80]) key[0:3]);
-		((Bit[80]) key)[19 : 15] ^= (Bit[5]) round;
+		((Bit[80]) key)[79 : 76] = sBox.sBox(((Bit[80]) key)[79 : 76]);
+		((Bit[80]) key)[19 : 15] = ((Bit[80]) key)[19 : 15] ^ (Bit[5]) round;
 	}
 	return round_keys;
 }
