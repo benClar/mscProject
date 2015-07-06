@@ -39,7 +39,8 @@ class DATA_TYPE(Enum):
     SEQ_BIT_DECL = 33,
     INDEX_SET = 34,
     INT_LITERAL = 35,
-    BIT_LITERAL = 36
+    BIT_LITERAL = 36,
+    SEQ_SELECT = 37
 
     def is_seq_type(type_input):
         sequence_types = [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_SEQ_INT_VAL]

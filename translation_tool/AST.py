@@ -135,18 +135,15 @@ class AST(object):
             self.add_statement(Seq_decl_ast(DATA_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token[AST.BIT_SEQ_SIZE]))
 
     def id_set(self, tokens):
+
         token = tokens[0]
+        # print(token)
         if token[0][0] == "index_select":
             if token[0][1][0] == "cast":
-                ID = Expr_ast([token[0][1]])
+                set_target = Seq_index_select_ast(Expr_ast([token[0][1]]), token[0][1][2])
             elif token[0][1][0] == "ID":
-                ID = ID_ast(token[0][1][1][0])
-            index = []
-            for i in token[0][1][2]:
-                index.append(Expr_ast(i))
-            self.add_statement(ID_set_ast(ID,
-                               token[2],
-                               index))
+                set_target = Seq_index_select_ast(ID_ast(token[0][1][1][0]), token[0][1][2])
+            self.add_statement(ID_set_ast(set_target, token[2]))
         else:
             self.add_statement(ID_set_ast(ID_ast(token[AST.ID]), token[AST.ID_SET_VALUE]))
 
@@ -325,35 +322,34 @@ class ID_set_ast(object):
 
     node_type = DATA_TYPE.ID_SET
 
-    def __init__(self, set_id, value, elements=None):
-        self._ID = set_id
+    def __init__(self, target, value):
+        self._target = target
         self._value = Expr_ast(value)
-
-        if elements is not None:
-            self._elements = elements
-        else:
-            self._elements = None
 
     @property
     def value(self):
         return self._value
 
+    # @property
+    # def ID(self):
+    #     # print(self._ID)
+    #     if self._ID.node_type == DATA_TYPE.ID:
+    #         return self._ID.ID
+    #     elif self._ID.node_type == DATA_TYPE.EXPR:
+    #         return self._ID
+    #     else:
+    #         raise ParseException("Internal Error: Unknown ID type")
+
     @property
-    def ID(self):
-        # print(self._ID)
-        if self._ID.node_type == DATA_TYPE.ID:
-            return self._ID.ID
-        elif self._ID.node_type == DATA_TYPE.EXPR:
-            return self._ID
-        else:
-            raise ParseException("Internal Error: Unknown ID type")
+    def target(self):
+        return self._target
 
     def set_type(self):
-        return self._ID.node_type
+        return self.target.node_type
 
-    @property
-    def elements(self):
-        return self._elements
+    # @property
+    # def elements(self):
+    #     return self._elements
 
 
 class Seq_decl_ast(object):
@@ -569,7 +565,6 @@ class Seq_range_ast(object):
     node_type = DATA_TYPE.INDEX_RANGE
 
     def __init__(self, seq_range):
-
         self._start = Expr_ast(seq_range[0])
         self._finish = Expr_ast(seq_range[1])
 

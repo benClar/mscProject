@@ -58,6 +58,23 @@ class If_stmt(object):
     def add_stmt(self, stmt):
         self._body.append(stmt)
 
+class Seq_range(object):
+
+    node_type = DATA_TYPE.INDEX_RANGE
+
+    def __init__(self, start, finish):
+        self._start = start
+        self._finish = finish
+        self.type = None
+
+    @property
+    def start(self):
+        return self._start
+
+    @property
+    def finish(self):
+        return self._finish
+
 
 class Cast(object):
 
@@ -76,7 +93,6 @@ class Cast(object):
     @property
     def operation(self):
         return self._cast_op
-
 
 
 class Cast_operation(object):
@@ -104,27 +120,6 @@ class Cast_operation(object):
     @property
     def type(self):
         return self._type
-
-
-class Index_set(object):
-
-    def __init__(self, target, indices, value):
-        self._ID = target
-        self._value = value
-        self.node_type = DATA_TYPE.INDEX_SET
-        self._indices = indices
-
-    @property
-    def ID(self):
-        return self._ID
-
-    @property
-    def value(self):
-        return self._value
-
-    @property
-    def indices(self):
-        return self._indices
 
 
 class Index_select(object):
@@ -157,16 +152,50 @@ class Index_select(object):
             raise ParseException("Internal error with index selection")
 
 
-class ID_set(object):
+class Seq_select(object):
 
-    def __init__(self, var_id, value, id_type):
-        self._ID = Name(var_id, id_type)
+    def __init__(self, target, indices):
+        self.target = target
+        self.indices = indices
+        self.node_type = DATA_TYPE.SEQ_SELECT
+
+    @property
+    def type(self):
+        return self.target.type
+    
+
+class Index_set(object):
+    """Depracated"""
+    def __init__(self, target, indices, value):
+        self._ID = target
         self._value = value
-        self.node_type = DATA_TYPE.ID_SET
+        self.node_type = DATA_TYPE.INDEX_SET
+        self._indices = indices
 
     @property
     def ID(self):
         return self._ID
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def indices(self):
+        return self._indices
+
+class Set(object):
+
+    def __init__(self, target, value):
+        self._target = target
+        # self._ID = Name(var_id, id_type)
+        self._value = value
+        self.node_type = DATA_TYPE.ID_SET
+
+    @property
+    def target(self):
+        return self._target
+
 
     @property
     def value(self):

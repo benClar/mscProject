@@ -4,9 +4,9 @@ from Stack import Stack
 #     Tree
 from pyparsing import ParseException
 from DATA_TYPE import DATA_TYPE
-from IR import Int_literal, Name, Int_decl, ID_set, Bit_literal, Binary_operation,\
+from IR import Int_literal, Name, Int_decl, Set, Bit_literal, Binary_operation,\
     Cast_operation, Cast, IR, Call, Bit_decl, Seq_decl, Seq_val, If_stmt, For_loop,\
-    Function_decl, Index_set, Index_select
+    Function_decl, Index_set, Index_select, Seq_select, Seq_range
 
 class Semantic_analyser(object):
 
@@ -55,50 +55,61 @@ class Semantic_analyser(object):
         else:
             return str(int(val)).zfill((len(val)) - len(int(val)))
 
-    def collect_indices(self, node):
-        indices = []
-        for i in node.elements:
-            indices.append(self.expr_type_is(i))
-        return indices
+    def collect_indices(self, indices):
+        collected_indices = []
+        for i in indices:
+            if len(i.expressions) > 1:
+                indices_list = []
+                for ele in i.expressions:
+                    indices_list.append(self.expr_type_is(ele))
+                collected_indices.append(indices_list)
+            else:
+                collected_indices.append(self.expr_type_is(i))
+        return collected_indices
 
     def seq_index_set(self, node):
         id_set = None
-        print(node.elements[1].expressions[3].expressions)
-        if node.set_type() == DATA_TYPE.ID:
+        # print(node.elements[1].expressions[3].expressions)
+        print(node.target.target.node_type)
+        if node.target.target.node_type == DATA_TYPE.ID:
             #Setting an ID or sequence element
-            id_set = Index_set(Name(node.ID, self.sym_table.id_type(node.ID)), self.collect_indices(node), self.expr_type_is(node.value))
+            # id_set = Index_set(Name(node.target.ID, self.sym_table.id_type(node.ID)), self.collect_indices(node), self.expr_type_is(node.value))
+            # print(node.target.ID)
+            id_set = Set(Seq_select(Name(node.target.ID, self.sym_table.id_type(node.target.ID)), self.collect_indices(node.target.indices)),  self.expr_type_is(node.value))
             self.validate_id_seq_set(id_set, node)
         else:
             #Setting a casted value
-            id_set = Index_set(self.expr_type_is(node.ID), self.collect_indices(node), self.expr_type_is(node.value))
+            id_set = Set(Seq_select(self.expr_type_is(node.target.target), self.collect_indices(node.target.indices)),  self.expr_type_is(node.value))
             self.validate_cast_seq_set(id_set)
         return id_set
 
     def validate_cast_seq_set(self, id_set):
-        if len(id_set.indices) > 1:
-            raise ParseException(str(id_set.ID.type) + len(id_set.indices) * "[]" + " cannot set " + str(id_set.ID.type) + "[]")
+        if len(id_set.target.indices) > 1:
+            raise ParseException(str(id_set.target.type) + len(id_set.target.indices) * "[]" + " cannot set " + str(id_set.target.type) + "[]")
 
     def validate_id_seq_set(self, id_set, node):
-        if len(id_set.indices) == self.sym_table.id(node.ID)['dimension']:
-            if self.value_matches_expected(DATA_TYPE.seq_to_index_sel(id_set.ID.type), id_set.value.type) is False:
-                raise ParseException(str(DATA_TYPE.seq_to_index_sel(id_set.ID.type)) + " Cannot be set to " + str(id_set.value.type))
-        elif len(id_set.indices) > self.sym_table.id(node.ID)['dimension']:
-            raise ParseException(str(self.sym_table.id(node.ID)['type']) + str("[]" * int(self.sym_table.id(node.ID)['dimension'])) + " cannot be set to " + "[]" * len(id_set.indices))  # NOQA
+        print(id_set.target)
+        if len(id_set.target.indices) == self.sym_table.id(node.target.ID)['dimension']:
+            if self.value_matches_expected(DATA_TYPE.seq_to_index_sel(id_set.target.type), id_set.value.type) is False:
+                raise ParseException(str(DATA_TYPE.seq_to_index_sel(id_set.target.type)) + " Cannot be set to " + str(id_set.value.type))
+        elif len(id_set.target.indices) > self.sym_table.id(node.target.ID)['dimension']:
+            raise ParseException(str(self.sym_table.id(node.target.ID)['type']) + str("[]" * int(self.sym_table.id(node.target.ID)['dimension'])) + " cannot be set to " + "[]" * len(id_set.target.indices))  # NOQA
         else:
-            if self.value_matches_expected(id_set.ID.type, id_set.value.type) is False:
-                raise ParseException(str(id_set.ID.type) + " Cannot be set to " + str(id_set.value.type))
-
+            if self.value_matches_expected(id_set.target.target.type, id_set.value.type) is False:
+                raise ParseException(str(id_set.target.target.type) + " Cannot be set to " + str(id_set.value.type))
 
     def analyse_ID_set(self, node):
-        if node.elements is not None:
+        if node.target.node_type == DATA_TYPE.ID:
+            return self.basic_id_set(node)
+        elif node.target.node_type == DATA_TYPE.INDEX_SEL:
             return self.seq_index_set(node)
         else:
-            return self.basic_id_set(node)
+            raise ParseException("Internal Error: Unknown type " + node.target.node_type)
 
     def basic_id_set(self, node):
-        id_set = ID_set(node.ID, self.expr_type_is(node.value), self.sym_table.id_type(node.ID))
-        if self.value_matches_expected(id_set.value.type, id_set.ID.type) is False:
-            raise ParseException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.ID.type))
+        id_set = Set(Name(node.target.ID, self.sym_table.id_type(node.target.ID)), self.expr_type_is(node.value))
+        if self.value_matches_expected(id_set.value.type, id_set.target.type) is False:
+            raise ParseException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
         return id_set
 
     def analyse_int_decl(self, node):
@@ -273,6 +284,8 @@ class Semantic_analyser(object):
             elif expr.node_type == DATA_TYPE.INDEX_SEL:
                 IR_expression.append(self.analyse_index_sel(expr))
                 expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
+            elif expr.node_type == DATA_TYPE.INDEX_RANGE:
+                IR_expression.append(self.analyse_index_range(expr))
             else:
                 raise ParseException(str(expr.node_type) + " Is an unknown type")
             if len(expr_types) == 3:
@@ -286,6 +299,13 @@ class Semantic_analyser(object):
             print(expr_types)
             raise ParseException("Internal Error")
         return IR_expression[0]
+
+    def analyse_index_range(self, node):
+        start = self.expr_type_is(node.start)
+        finish = self.expr_type_is(node.finish)
+        if start.type != DATA_TYPE.INT_VAL or finish.type != DATA_TYPE.INT_VAL:
+            raise ParseException("Can only use integers to select sequence elements")
+        return Seq_range(self.expr_type_is(node.start), self.expr_type_is(node.finish))
 
     def analyse_index_sel(self, node):
         """Check result type of index select against target ID, returning IR node"""
