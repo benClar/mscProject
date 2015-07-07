@@ -142,14 +142,23 @@ class Index_select(object):
     def indices(self):
         return self._indices
 
+    def is_range(self, indices):
+        for i in indices:
+            try:
+                if len(i) > 1:
+                    return True
+            except TypeError:
+                pass
+        return False
+
     @property
     def type(self):
-        if len(self.indices) == self.base_dim:
-            return DATA_TYPE.seq_to_index_sel(self.ID.type)
-        elif len(self.indices) < self.base_dim:
+        if len(self.indices) < self.base_dim or self.is_range(self.indices):
             return self.ID.type
+        elif len(self.indices) == self.base_dim:
+            return DATA_TYPE.seq_to_index_sel(self.ID.type)
         else:
-            raise ParseException("Internal error with index selection")
+            raise ParseException("Internal error with determing type of selection throw index size")
 
 
 class Seq_select(object):
@@ -162,27 +171,6 @@ class Seq_select(object):
     @property
     def type(self):
         return self.target.type
-    
-
-class Index_set(object):
-    """Depracated"""
-    def __init__(self, target, indices, value):
-        self._ID = target
-        self._value = value
-        self.node_type = DATA_TYPE.INDEX_SET
-        self._indices = indices
-
-    @property
-    def ID(self):
-        return self._ID
-
-    @property
-    def value(self):
-        return self._value
-
-    @property
-    def indices(self):
-        return self._indices
 
 class Set(object):
 

@@ -40,7 +40,8 @@ class DATA_TYPE(Enum):
     INDEX_SET = 34,
     INT_LITERAL = 35,
     BIT_LITERAL = 36,
-    SEQ_SELECT = 37
+    SEQ_SELECT = 37,
+    LOG_OP = 38
 
     def is_seq_type(type_input):
         sequence_types = [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_SEQ_INT_VAL]
@@ -49,7 +50,7 @@ class DATA_TYPE(Enum):
         return False
 
     def is_op_type(type_input):
-        op_types = [DATA_TYPE.ARITH_OP, DATA_TYPE.BITWISE_OP, DATA_TYPE.SHIFT_OP, DATA_TYPE.COMP_OP]
+        op_types = [DATA_TYPE.ARITH_OP, DATA_TYPE.BITWISE_OP, DATA_TYPE.SHIFT_OP, DATA_TYPE.COMP_OP, DATA_TYPE.LOG_OP]
         if type_input in op_types:
             return True
         return False

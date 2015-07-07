@@ -6,7 +6,9 @@ from pyparsing import ParseException
 from DATA_TYPE import DATA_TYPE
 from IR import Int_literal, Name, Int_decl, Set, Bit_literal, Binary_operation,\
     Cast_operation, Cast, IR, Call, Bit_decl, Seq_decl, Seq_val, If_stmt, For_loop,\
-    Function_decl, Index_set, Index_select, Seq_select, Seq_range
+    Function_decl, Index_select, Seq_select, Seq_range
+import sys
+
 
 class Semantic_analyser(object):
 
@@ -69,12 +71,9 @@ class Semantic_analyser(object):
 
     def seq_index_set(self, node):
         id_set = None
-        # print(node.elements[1].expressions[3].expressions)
-        print(node.target.target.node_type)
         if node.target.target.node_type == DATA_TYPE.ID:
             #Setting an ID or sequence element
             # id_set = Index_set(Name(node.target.ID, self.sym_table.id_type(node.ID)), self.collect_indices(node), self.expr_type_is(node.value))
-            # print(node.target.ID)
             id_set = Set(Seq_select(Name(node.target.ID, self.sym_table.id_type(node.target.ID)), self.collect_indices(node.target.indices)),  self.expr_type_is(node.value))
             self.validate_id_seq_set(id_set, node)
         else:
@@ -88,7 +87,6 @@ class Semantic_analyser(object):
             raise ParseException(str(id_set.target.type) + len(id_set.target.indices) * "[]" + " cannot set " + str(id_set.target.type) + "[]")
 
     def validate_id_seq_set(self, id_set, node):
-        print(id_set.target)
         if len(id_set.target.indices) == self.sym_table.id(node.target.ID)['dimension']:
             if self.value_matches_expected(DATA_TYPE.seq_to_index_sel(id_set.target.type), id_set.value.type) is False:
                 raise ParseException(str(DATA_TYPE.seq_to_index_sel(id_set.target.type)) + " Cannot be set to " + str(id_set.value.type))
@@ -107,6 +105,8 @@ class Semantic_analyser(object):
             raise ParseException("Internal Error: Unknown type " + node.target.node_type)
 
     def basic_id_set(self, node):
+        # print("BASIC")
+        # print(node.value.expressions[0].node)
         id_set = Set(Name(node.target.ID, self.sym_table.id_type(node.target.ID)), self.expr_type_is(node.value))
         if self.value_matches_expected(id_set.value.type, id_set.target.type) is False:
             raise ParseException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
@@ -266,7 +266,7 @@ class Semantic_analyser(object):
             elif expr.node_type == DATA_TYPE.BIT_VAL:
                 expr_types["OPERAND_" + str(len(expr_types))] = DATA_TYPE.BIT_VAL
                 IR_expression.append(Bit_literal(expr.value))
-            elif expr.node_type == DATA_TYPE.SHIFT_OP or expr.node_type == DATA_TYPE.ARITH_OP or expr.node_type == DATA_TYPE.BITWISE_OP or expr.node_type == DATA_TYPE.COMP_OP:  # NOQA
+            elif DATA_TYPE.is_op_type(expr.node_type):  # NOQA
                 expr_types["OP"] = expr.node_type
                 IR_expression.append(Binary_operation(expr.node_type, expr.operator))
             elif expr.node_type == DATA_TYPE.EXPR:
@@ -296,9 +296,9 @@ class Semantic_analyser(object):
                     raise ParseException("cannot combine a " + str(expr_types['OPERAND_0']) + " value with a " +
                                          str(expr_types['OPERAND_2']) + " in " + str(expr_types['OP']) + " Operation")
         if len(IR_expression) != 1:
-            print(expr_types)
-            raise ParseException("Internal Error")
+            raise ParseException("Internal Error with expression")
         return IR_expression[0]
+
 
     def analyse_index_range(self, node):
         start = self.expr_type_is(node.start)
@@ -309,11 +309,11 @@ class Semantic_analyser(object):
 
     def analyse_index_sel(self, node):
         """Check result type of index select against target ID, returning IR node"""
-        ir_indices = []
-        for i in node.indices:
-            ir_indices.append(self.expr_type_is(i))
-
+        ir_indices = self.collect_indices(node.indices)
+        # for i in node.indices:
+        #     ir_indices.append(self.expr_type_is(i))
         if node.target_type != DATA_TYPE.ID:
+            # Target of index select is not an ID.  Probably a cast, thus base dimension will always be 1 : Cant cast into multi-dimensional array
             target = self.expr_type_is(node.target)
             index_sel = Index_select(target, ir_indices, 1)
             if(len(ir_indices) > 1):
@@ -369,7 +369,8 @@ class Semantic_analyser(object):
                           DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
-                          DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL],
+                          DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
+                          DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
                           DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL]}
         if result_value in allowed_values[expected_value]:
             return True
@@ -417,16 +418,24 @@ class Semantic_analyser(object):
             return self.bitwise_expr_valid(expression)
         elif expression['OP'] is DATA_TYPE.COMP_OP:
             return self.comp_expr_valid(expression)
+        elif expression['OP'] is DATA_TYPE.LOG_OP:
+            return self.log_expr_valid(expression)
         else:
-            raise ParseException("Invalid Operand")
+            raise ParseException("Internal error: Invalid Operand")
+
+    def log_expr_valid(self, expression):
+        if expression['OPERAND_2'] == DATA_TYPE.BIT_VAL or expression['OPERAND_2'] == DATA_TYPE.BIT_VAL:
+            return True
+        return False
 
     def comp_expr_valid(self, expression):
         if expression['OPERAND_0'] == expression['OPERAND_2']:
             return True
 
     def bitwise_expr_valid(self, expression):
-        if expression['OPERAND_0'] == expression['OPERAND_2']:
-            return True
+        # if expression['OPERAND_0'] == expression['OPERAND_2']:
+        #     return True
+        return self.value_matches_expected(expression['OPERAND_0'], expression['OPERAND_2'])
 
     def shift_expr_valid(self, expression):
         if expression['OPERAND_2'] == DATA_TYPE.INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL:
@@ -445,6 +454,8 @@ class Semantic_analyser(object):
         if expression['OP'] is DATA_TYPE.BITWISE_OP:
             return {'OPERAND_0': expression['OPERAND_0']}
         if expression['OP'] is DATA_TYPE.COMP_OP:
+            return {'OPERAND_0': DATA_TYPE.BIT_VAL}
+        if expression['OP'] is DATA_TYPE.LOG_OP:
             return {'OPERAND_0': DATA_TYPE.BIT_VAL}
         else:
             raise ParseException("Unrecognised operator")
@@ -479,7 +490,7 @@ class Semantic_analyser(object):
             decl = Int_decl(old_decl.node_type, self.expr_type_is(old_decl.bit_constraints), old_decl.ID)
         elif old_decl.node_type == DATA_TYPE.SEQ_BIT_DECL:
             decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID)
-        elif old_decl.node_type == DATA_TYPE.SEQ_INT_VAL or old_decl.node_type == DATA_TYPE.BS_SEQ_INT_VAL:
+        elif old_decl.node_type == DATA_TYPE.SEQ_INT_DECL or old_decl.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
             decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID, constraints=self.expr_type_is(old_decl.bit_constraints))
         elif old_decl.node_type == DATA_TYPE.BIT_DECL:
             decl = Bit_decl(old_decl.ID)

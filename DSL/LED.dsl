@@ -1,24 +1,16 @@
 void main()	{
 
-	Bit[16][4] key = (
-	(false,false,false,false),(false,false,false,false),(false,false,false,false),(false,false,false,false),
-	(false,false,false,false),(false,false,false,false),(false,false,false,false),(false,false,false,false),
-	(false,false,false,false),(false,false,false,false),(false,false,false,false),(false,false,false,false),
-	(false,false,false,false),(false,false,false,false),(false,false,false,false),(false,false,false,false));
+	sbox(4)[16] s = (0xC, 0x5, 0x6, 0xB, 0x9, 0x0, 0xA, 0xD, 0x3, 0xE, 0xF, 0x8, 0x4, 0x7, 0x1, 0x2);
 
-	Bit[16][4] state =( 
-	(false,false,false,false),(false,false,false,false),(false,false,false,false),(false,false,false,false),
-	(false,false,false,false),(false,false,false,false),(false,false,false,false),(false,false,false,false),
-	(false,false,false,false),(false,false,false,false),(false,false,false,false),(false,false,false,false),
-	(false,false,false,false),(false,false,false,false),(false,false,false,false),(false,false,false,false));
-
-	Int[16](4) sBox(0xC, 0x5, 0x6, 0xB, 0x9, 0x0, 0xA, 0xD, 0x3, 0xE, 0xF, 0x8, 0x4, 0x7, 0x1, 0x2);
-
-	Int[16] MDS(0x4,0x1,0x2,0x2,0x8,0x6,0x5,0x6,0xB,0xE,0xA,0x9,0x2,0x2,0xF,0xB);
+	Int(4)[16] MDS = [0x4,0x1,0x2,0x2,0x8,0x6,0x5,0x6,0xB,0xE,0xA,0x9,0x2,0x2,0xF,0xB];
 }
 
-void sub_cells(Bit[] state, Int[] sBox)	{
-	state = sBox.sBox(state);
+void enc(@Int(4)[16] state, @Int(4)[16] key) {
+
+}
+
+void sub_cells(@Int(4)[16] state, sbox s)	{
+	state = s[state];
 }
 
 void shift_row(Bit[] state)	{
@@ -52,7 +44,7 @@ void MixColumnSerial(Bit[][] state, Int[] MDS)	{
 		for(int r = 0; r < 4; r++)	{
 			state[(4*c) + r] = gmMult(MDS[4 * c],(Int) column[0:3]) ^ 
 											gmMult(MDS[(4 * c) + 1],(Int) column[4:7]) ^ 
-											gmMult(MDS4[(4 * c) + 2],(Int) column[8:11]) ^ 
+											gmMult(MDS[(4 * c) + 2],(Int) column[8:11]) ^ 
 											gmMult(MDS[(4 * c) + 3)],(Int) column[12:15]);
 		}
 	}

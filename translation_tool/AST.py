@@ -156,14 +156,14 @@ class AST(object):
             if decl_type == DATA_TYPE.INT_DECL or decl_type == DATA_TYPE.BS_INT_DECL:
                 params.append(Int_decl_ast(decl_type, p[2][1][0], p[1]))
             elif decl_type == DATA_TYPE.SEQ_INT_DECL or decl_type == DATA_TYPE.BS_SEQ_INT_DECL:
-                params.append(Seq_decl_ast(decl_type, p[3][1][0], p[2]))
+                params.append(Seq_decl_ast(decl_type, p[3][1][0], p[2], constraints=p[1]))
             elif decl_type == DATA_TYPE.SEQ_BIT_DECL:
                 params.append(Seq_decl_ast(decl_type, p[2][1][0], p[1]))
             elif decl_type == DATA_TYPE.BIT_DECL:
                 params.append(Bit_decl_ast(p[1][1][0]))
             else:
                 raise ParseException("Unknown Param Type")
-        
+
         self.add_function_node(function_declaration_ast(self.return_type(token[0]), token['func_ID'][1][0], params))
         self.tree[-1].stmts += self.statements[:]
         self.statements.clear()
@@ -367,6 +367,8 @@ class Seq_decl_ast(object):
 
         if constraints is not None:
             self._bit_constraints = Expr_ast(constraints)
+        else:
+            self._bit_constraints = None
 
     @property
     def size(self):
@@ -454,7 +456,9 @@ class Expr_ast(object):
                  '<=': DATA_TYPE.COMP_OP,
                  '&&': DATA_TYPE.COMP_OP,
                  '==': DATA_TYPE.COMP_OP,
-                 '!=': DATA_TYPE.COMP_OP}
+                 '!=': DATA_TYPE.COMP_OP,
+                 '||': DATA_TYPE.LOG_OP,
+                 '&&': DATA_TYPE.LOG_OP}
 
     operand_lookup = {'Seq_val': DATA_TYPE.SEQ_VAL,
                       'index_select': DATA_TYPE.INDEX_SEL,
@@ -541,6 +545,7 @@ class Expr_ast(object):
             sys.exit(1)
 
     def is_operator(self, token):
+        # print(token)
         try:
             return token in Expr_ast.op_lookup
         except TypeError:
