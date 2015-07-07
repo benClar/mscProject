@@ -954,20 +954,6 @@ class test_IR_generation(unittest.TestCase):
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4) gmMult(@Int(4) a, @Int(4) b) {\
                                                                             Int(4) g = 0;\
                                                                             for(Int(4) i = 0; i < 4; i = i + 1)   {\
-                                                                                if(b[0] == True)   {\
-                                                                                    g = g ^ a;\
-                                                                                }\
-                                                                                a = a << 1;\
-                                                                                if(a[3] == True)   {\
-                                                                                    a = a ^ 0x13;\
-                                                                                }\
-                                                                                b = b >> 1;\
-                                                                            }\
-                                                                        }")), True)
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4) gmMult(@Int(4) a, @Int(4) b) {\
-                                                                            Int(4) g = 0;\
-                                                                            for(Int(4) i = 0; i < 4; i = i + 1)   {\
                                                                                 if(((Bit[4]) b)[0] == True)   {\
                                                                                     g = g ^ a;\
                                                                                 }\
@@ -1006,10 +992,10 @@ class test_IR_generation(unittest.TestCase):
                                                                             state = state ^ roundConstant;\
                                                                         }\
                                                                         @Int(4)[16] shift_row(@Int(4)[16] state)   {\
-                                                                            state[0 : 3] <<< 0;\
-                                                                            state[4 : 7] <<< 1;\
-                                                                            state[8 : 11] <<< 2;\
-                                                                            state[12 : 15] <<< 3;\
+                                                                            state[0 : 3 ] = state[0 : 3] <<< 0;\
+                                                                            state[4 : 7] = state[4 : 7] <<< 1;\
+                                                                            state[8 : 11] = state[8 : 11] <<< 2;\
+                                                                            state[12 : 15] = state[12 : 15] <<< 3;\
                                                                         }")), True)
 
 # if __name__ == "__main__":
