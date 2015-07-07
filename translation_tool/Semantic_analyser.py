@@ -81,7 +81,17 @@ class Semantic_analyser(object):
             # print(">>>>")
             # print(node.target)
         id_set = Set(self.analyse_index_sel(node.target), self.expr_type_is(node.value))
-        if self.value_matches_expected(id_set.value.type, id_set.target.type) is False:
+
+        print(id_set.target.type)
+        print(id_set.value.type)
+        if DATA_TYPE.is_seq_type(id_set.target.type) and DATA_TYPE.is_seq_type(id_set.value.type):
+            pass
+            #If both values are sequences, user is trying to set a sequence to the value of another sequence.  For now allow ranges.
+            # for dimension in id_set.target.indices:
+            #     for element in dimension:
+            #         if element.node_type == DATA_TYPE.INDEX_RANGE:
+            #             raise ParseException("Cannot use ranges to assign multiple elements inside a sequence")
+        if self.can_assign_type(id_set.target.type, id_set.value.type) is False:
             raise ParseException(str(id_set.value.type) + " Cannot be assigned to " + str(id_set.target.type))
         # else:
             # Setting a casted value
@@ -108,6 +118,17 @@ class Semantic_analyser(object):
         if self.value_matches_expected(id_set.value.type, id_set.target.type) is False:
             raise ParseException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
 
+    def can_assign_type(self, target_type, value_type):
+        allowed_values = {DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
+                          DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
+                          DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL],
+                          DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
+                          DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
+                          DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL]}
+        if value_type in allowed_values[target_type]:
+            return True
+        return False
+
     def is_range(self, indices):
         if(len(indices) > 1):
             return True
@@ -125,7 +146,6 @@ class Semantic_analyser(object):
                 raise ParseException(str(DATA_TYPE.seq_to_index_sel(id_set.target.type)) + " Cannot be set to " + str(id_set.value.type))
         elif len(id_set.target.indices) > self.sym_table.id(node.target.ID)['dimension']:
             if (id_set.target.type == DATA_TYPE.BS_SEQ_INT_VAL or id_set.target.type == DATA_TYPE.SEQ_INT_VAL) and (len(node.indices) == len(id_set.target.indices) + 1):
-                print("HERE")
                 pass
             else:
                 raise ParseException(str(self.sym_table.id(node.target.ID)['type']) + str("[]" * int(self.sym_table.id(node.target.ID)['dimension'])) + " cannot be set to " + "[]" * len(id_set.target.indices))  # NOQA
@@ -380,7 +400,10 @@ class Semantic_analyser(object):
         if target_id['dimension'] > len(ir_indices):
             return Index_select(Name(node.ID, target_id['type']), ir_indices)
         elif target_id['dimension'] == len(ir_indices):
-            return Index_select(Name(node.ID, DATA_TYPE.seq_to_index_sel(target_id['type'])), ir_indices)
+            if self.is_range(ir_indices[-1]):
+                return Index_select(Name(node.ID, target_id['type']), ir_indices, target_id['type'])
+            else:
+                return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.seq_to_index_sel(target_id['type']))
         elif target_id['dimension'] < len(ir_indices):
             if (target_id['type'] == DATA_TYPE.BS_SEQ_INT_VAL or target_id['type'] == DATA_TYPE.SEQ_INT_VAL) and (len(ir_indices) == target_id['dimension'] + 1):
                 if self.is_range(ir_indices[-1]):
@@ -432,9 +455,9 @@ class Semantic_analyser(object):
                           DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
-                          DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
+                          DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.INT_VAL],
                           DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
-                          DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL]}
+                          DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BIT_VAL]}
         if result_value in allowed_values[expected_value]:
             return True
         return False

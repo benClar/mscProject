@@ -755,7 +755,7 @@ class Parser(object):
 
 #     def test_seq_operations(self):
 #         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 10; Bit[2][10] a; a[1][1,2,3,4:5] = ((Bit[4]) (b + 10))[2];")), True)
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 10; Bit[2][10] a; a[1][1,2,3,4:5] = [((Bit[4]) (b + 10))[2]];")), True)
 
 
 class test_IR_generation(unittest.TestCase):
@@ -875,11 +875,17 @@ class test_IR_generation(unittest.TestCase):
     #     par = Parser()
     #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) a = 8; ((Bit[4]) a)[4][4] = True;")), False)  # NOQA
     #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) b = 4; Int(4)[5] a = [1,2,3,4,5]; a[b * 4: 4] = 10;")), True)  # NOQA
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) b = 4; Int(4)[5] a = [1,2,3,4,5]; a[b * 4: 4] = [10];")), True)  # NOQA
+    #     assert_equals(par.semantic_analyser.IR.IR[2].target.type, DATA_TYPE.SEQ_INT_VAL)
+    #     assert_equals(par.semantic_analyser.IR.IR[2].value.type, DATA_TYPE.SEQ_INT_VAL)
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) b = 4; Int(4)[5] a = [1,2,3,4,5]; a[b * 4: 4] = 10;")), False)  # NOQA Must assign sequence to range value
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) b = 4; Int(4)[5] a = [1,2,3,4,5]; a[b * 4: 4] = [1,2,3];")), True)  # NOQA
     #     par = Parser()
     #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit b = True; Int(4)[5] a = [1,2,3,4,5]; a[b: 4] = 10;")), False)  # NOQA
     #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit b = True; Int(4)[5] a = [1,2,3,4,5]; a[((Int(1)) b): 4] = 10;")), True)  # NOQA
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit b = True; Int(4)[5] a = [1,2,3,4,5]; a[((Int(1)) b): 4] = [10];")), True)  # NOQA
     #     assert_equals(par.semantic_analyser.IR.IR[2].target.indices[0][0].start.target.name, "b")
 
     # def test_int_index_select(self):
@@ -900,98 +906,111 @@ class test_IR_generation(unittest.TestCase):
     #     assert_equals(par.semantic_analyser.IR.IR[1].value.type, DATA_TYPE.BIT_VAL)
     #     par = Parser()
     #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) a = 10; a[1] = 1;")), False)  # NOQA
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4)[5] a = [1,2,3,4,5]; a[1,2,3][5 : 8] = [True,False,True];")), True)  # NOQA
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4)[5] a = [1,2,3,4,5]; a[1,2,3][5 : 8][4] = [True,False,True];")), False)  # NOQA
 
     # def test_casting(self):
     #     par = Parser()
     #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit[4] output; Int(4) Input; Input[0] = ((Int(4)) output)[0];")), True)
 
-    def test_LFSR_syntax(self):
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4)[4] a = [1,2,3,4]; a[1] = a[5] ^ a[5] ^ a[5];")), True)  # NOQA
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
-                                                                            Int(1) output;\
-                                                                            Int(1) input;\
-                                                                            for(Int(5) i = 0; i < 32; i = i + 1) {\
-                                                                                output[0] = state[0];\
-                                                                                input[0] =  state[0] ^ state[4] ^ state[5] ^ state[6];\
-                                                                                state = state << 1;\
-                                                                                state[7] = input[0];\
-                                                                             }\
-                                                                        }")), True)  # NOQA
-        assert_equals(par.semantic_analyser.IR.IR[0].node_type, DATA_TYPE.FUNC_DECL)
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
-                                                                            Bit output;\
-                                                                            Bit input;\
-                                                                            for(Int(5) i = 0; i < 32; i = i + 1) {\
-                                                                                output = state[0];\
-                                                                                input = state[0] ^ state[4] ^ state[5] ^ state[6];\
-                                                                                state = state << 1;\
-                                                                                state[7] = input;\
-                                                                            }\
-                                                                        }")), True)  # NOQA
+    # def test_LFSR_syntax(self):
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4)[4] a = [1,2,3,4]; a[1] = a[5] ^ a[5] ^ a[5];")), True)  # NOQA
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
+    #                                                                         Int(1) output;\
+    #                                                                         Int(1) input;\
+    #                                                                         for(Int(5) i = 0; i < 32; i = i + 1) {\
+    #                                                                             output[0] = state[0];\
+    #                                                                             input[0] =  state[0] ^ state[4] ^ state[5] ^ state[6];\
+    #                                                                             state = state << 1;\
+    #                                                                             state[7] = input[0];\
+    #                                                                          }\
+    #                                                                     }")), True)  # NOQA
+    #     assert_equals(par.semantic_analyser.IR.IR[0].node_type, DATA_TYPE.FUNC_DECL)
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
+    #                                                                         Bit output;\
+    #                                                                         Bit input;\
+    #                                                                         for(Int(5) i = 0; i < 32; i = i + 1) {\
+    #                                                                             output = state[0];\
+    #                                                                             input = state[0] ^ state[4] ^ state[5] ^ state[6];\
+    #                                                                             state = state << 1;\
+    #                                                                             state[7] = input;\
+    #                                                                         }\
+    #                                                                     }")), True)  # NOQA
 
-    # def test_LED_syntax(self):
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4)[16] shift_row(@Int(4)[16] state)  {\
-    #                                                                         state[0 : 3 ] = state[0 : 3] <<< 0;\
-    #                                                                         state[4 : 7] = state[4 : 7] <<< 1;\
-    #                                                                         state[8 : 11] = state[8 : 11] <<< 2;\
-    #                                                                         state[12 : 15] = state[12 : 15] <<< 3;\
-    #                                                                      }")), True)
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4) gmMult(@Int(4) a, @Int(4) b) {\
-    #                                                                         Int(4) g = 0;\
-    #                                                                         for(Int(4) i = 0; i < 4; i = i + 1)   {\
-    #                                                                             if(((Bit[4]) b)[0] == True)   {\
-    #                                                                                 g = g ^ a;\
-    #                                                                             }\
-    #                                                                             a = a << 1;\
-    #                                                                             if(((Bit[4]) a)[3] == True)   {\
-    #                                                                                 a = a ^ 0x13;\
-    #                                                                             }\
-    #                                                                             b = b >> 1;\
-    #                                                                         }\
-    #                                                                     }")), True)
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4) gmMult(@Int(4) a, @Int(4) b) {\
-    #                                                                         Int(4) g = 0;\
-    #                                                                         for(Int(4) i = 0; i < 4; i = i + 1)   {\
-    #                                                                             if(((Bit[4]) b)[0] == True)   {\
-    #                                                                                 g = g ^ a;\
-    #                                                                             }\
-    #                                                                             a = a << 1;\
-    #                                                                             if(((Bit[4]) a)[3] == True)   {\
-    #                                                                                 a = a ^ 0x13;\
-    #                                                                             }\
-    #                                                                             b = b >> 1;\
-    #                                                                         }\
-    #                                                                     }\
-    #                                                                     \
-    #                                                                     @Int(4) MixColumnSerial(@Int(4)[16] state, Int(4)[16] MDS) {\
-    #                                                                         Int(4)[4] column;\
-    #                                                                         for(Int(4) c = 0; c < 4; c = c + 1)  {\
-    #                                                                             column = state[c,c + 4,c + 8,c + 12];\
-    #                                                                             for(Int(4) r = 0; r < 4; r = r + 4)  {\
-    #                                                                                 state[(4*c) + r] = gmMult(MDS[4 * c], column[0]) ^\
-    #                                                                                     gmMult(MDS[(4 * c) + 1],column[1]) ^\
-    #                                                                                     gmMult(MDS[(4 * c) + 2],column[2]) ^\
-    #                                                                                     gmMult(MDS[(4 * c) + 3],column[3]);\
-    #                                                                             }\
-    #                                                                         }\
-    #                                                                     }\
-    #                                                                     @Int(64) addConstants(@Int(4)[16] state, @Int(5) constant)  {\
-    #                                                                         Int(4)[16] roundConstant;\
-    #                                                                         for(Int(4) row = 0; row < 4; row = row + 1)  {\
-    #                                                                             if(row == 0 || row == 2)    {\
-    #                                                                                 roundConstant[(row * 4)] = ((Bit[4]) constant)[5];\
-    #                                                                                 roundConstant[(row * 4) + 1] = ((Bit[4]) constant)[4];\
-    #                                                                                 roundConstant[(row * 4) + 2] = ((Bit[4]) constant)[3];\
-    #                                                                             \
-    #                                                                             }\
-    #                                                                         }\
-    #                                                                     }")), True)
+    def test_LED_syntax(self):
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4)[16] shift_row(@Int(4)[16] state)  {\
+                                                                            state[0 : 3 ] = state[0 : 3] <<< 0;\
+                                                                            state[4 : 7] = state[4 : 7] <<< 1;\
+                                                                            state[8 : 11] = state[8 : 11] <<< 2;\
+                                                                            state[12 : 15] = state[12 : 15] <<< 3;\
+                                                                         }")), True)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4) gmMult(@Int(4) a, @Int(4) b) {\
+                                                                            Int(4) g = 0;\
+                                                                            for(Int(4) i = 0; i < 4; i = i + 1)   {\
+                                                                                if(b[0] == True)   {\
+                                                                                    g = g ^ a;\
+                                                                                }\
+                                                                                a = a << 1;\
+                                                                                if(a[3] == True)   {\
+                                                                                    a = a ^ 0x13;\
+                                                                                }\
+                                                                                b = b >> 1;\
+                                                                            }\
+                                                                        }")), True)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4) gmMult(@Int(4) a, @Int(4) b) {\
+                                                                            Int(4) g = 0;\
+                                                                            for(Int(4) i = 0; i < 4; i = i + 1)   {\
+                                                                                if(((Bit[4]) b)[0] == True)   {\
+                                                                                    g = g ^ a;\
+                                                                                }\
+                                                                                a = a << 1;\
+                                                                                if(((Bit[4]) a)[3] == True)   {\
+                                                                                    a = a ^ 0x13;\
+                                                                                }\
+                                                                                b = b >> 1;\
+                                                                            }\
+                                                                        }\
+                                                                        @Int(4) MixColumnSerial(@Int(4)[16] state, Int(4)[16] MDS) {\
+                                                                            Int(4)[4] column;\
+                                                                            for(Int(4) c = 0; c < 4; c = c + 1)  {\
+                                                                                column = state[c,c + 4,c + 8,c + 12];\
+                                                                                for(Int(4) r = 0; r < 4; r = r + 4)  {\
+                                                                                    state[(4*c) + r] = gmMult(MDS[4 * c], column[0]) ^\
+                                                                                        gmMult(MDS[(4 * c) + 1],column[1]) ^\
+                                                                                        gmMult(MDS[(4 * c) + 2],column[2]) ^\
+                                                                                        gmMult(MDS[(4 * c) + 3],column[3]);\
+                                                                                }\
+                                                                            }\
+                                                                        }\
+                                                                        @Int(4)[16] addConstants(@Int(4)[16] state, @Int(5) constant)  {\
+                                                                            Int(4)[16] roundConstant;\
+                                                                            for(Int(4) row = 0; row < 4; row = row + 1)  {\
+                                                                                roundConstant[row * 4] = row;\
+                                                                                if(row == 0 || row == 2)    {\
+                                                                                    roundConstant[(row * 4) + 1] = (Int(4)) constant[3:5];\
+                                                                                }\
+                                                                                if(row == 1 || row == 3) {\
+                                                                                    roundConstant[(row * 4) + 1] = (Int(4)) constant[0:2];\
+                                                                                }\
+                                                                                roundConstant[(row * 4) + 2] = 0;\
+                                                                                roundConstant[(row * 4) + 3] = 0;\
+                                                                            }\
+                                                                            state = state ^ roundConstant;\
+                                                                        }\
+                                                                        @Int(4)[16] shift_row(@Int(4)[16] state)   {\
+                                                                            state[0 : 3] <<< 0;\
+                                                                            state[4 : 7] <<< 1;\
+                                                                            state[8 : 11] <<< 2;\
+                                                                            state[12 : 15] <<< 3;\
+                                                                        }")), True)
 
 # if __name__ == "__main__":
 #     suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)
