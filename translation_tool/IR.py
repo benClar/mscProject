@@ -58,7 +58,7 @@ class If_stmt(object):
     def add_stmt(self, stmt):
         self._body.append(stmt)
 
-class Seq_range(object):
+class Element_range(object):
 
     node_type = DATA_TYPE.INDEX_RANGE
 
@@ -122,55 +122,64 @@ class Cast_operation(object):
         return self._type
 
 
+# class Index_select(object):
+
+#     def __init__(self, target, indices, base_dim):
+#         self._ID = target
+#         self._indices = indices
+#         self._base_dim = base_dim
+#         self.node_type = DATA_TYPE.INDEX_SEL
+
+#     @property
+#     def base_dim(self):
+#         return self._base_dim
+
+#     @property
+#     def ID(self):
+#         return self._ID
+
+#     @property
+#     def indices(self):
+#         return self._indices
+
+#     def is_range(self, indices):
+#         for i in indices:
+#             try:
+#                 if len(i) > 1:
+#                     return True
+#             except TypeError:
+#                 pass
+#         return False
+
+    # @property
+    # def type(self):
+    #     if len(self.indices) < self.base_dim or self.is_range(self.indices):
+    #         return self.ID.type
+    #     elif len(self.indices) == self.base_dim:
+    #         return DATA_TYPE.seq_to_index_sel(self.ID.type)
+    #     else:
+    #         raise ParseException("Internal error with determing type of selection throw index size")
+
+
 class Index_select(object):
 
-    def __init__(self, target, indices, base_dim):
-        self._ID = target
-        self._indices = indices
-        self._base_dim = base_dim
-        self.node_type = DATA_TYPE.INDEX_SEL
-
-    @property
-    def base_dim(self):
-        return self._base_dim
-
-    @property
-    def ID(self):
-        return self._ID
-
-    @property
-    def indices(self):
-        return self._indices
-
-    def is_range(self, indices):
-        for i in indices:
-            try:
-                if len(i) > 1:
-                    return True
-            except TypeError:
-                pass
-        return False
-
-    @property
-    def type(self):
-        if len(self.indices) < self.base_dim or self.is_range(self.indices):
-            return self.ID.type
-        elif len(self.indices) == self.base_dim:
-            return DATA_TYPE.seq_to_index_sel(self.ID.type)
-        else:
-            raise ParseException("Internal error with determing type of selection throw index size")
-
-
-class Seq_select(object):
-
-    def __init__(self, target, indices):
+    def __init__(self, target, indices, output_type=None):
         self.target = target
         self.indices = indices
         self.node_type = DATA_TYPE.SEQ_SELECT
+        if output_type is None:
+            self._type = self.target.type
+        else:
+            self._type = output_type
 
     @property
     def type(self):
-        return self.target.type
+        return self._type
+
+    @type.setter
+    def type(self, value):
+        self._type = value
+
 
 class Set(object):
 

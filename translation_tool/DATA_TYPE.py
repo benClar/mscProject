@@ -43,6 +43,11 @@ class DATA_TYPE(Enum):
     SEQ_SELECT = 37,
     LOG_OP = 38
 
+    def is_int_val(type_input):
+        sequence_types = [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL]
+        if type_input in sequence_types:
+            return True
+        return False
     def is_seq_type(type_input):
         sequence_types = [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_SEQ_INT_VAL]
         if type_input in sequence_types:
@@ -82,6 +87,11 @@ class DATA_TYPE(Enum):
             return DATA_TYPE.BIT_VAL
         elif type_input == DATA_TYPE.BS_SEQ_INT_VAL:
             return DATA_TYPE.BS_INT_VAL
+        elif type_input == DATA_TYPE.INT_VAL or type_input == DATA_TYPE.BS_INT_VAL:
+            return DATA_TYPE.BIT_VAL
+        else:
+            raise ParseException("Internal Errror: Tried to convert unknown type to sequence selection type")
+
 
     def decl_to_value(type_input):
         if type_input == DATA_TYPE.BS_INT_DECL:

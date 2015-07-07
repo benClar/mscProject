@@ -6,7 +6,7 @@ from pyparsing import ParseException
 from DATA_TYPE import DATA_TYPE
 from IR import Int_literal, Name, Int_decl, Set, Bit_literal, Binary_operation,\
     Cast_operation, Cast, IR, Call, Bit_decl, Seq_decl, Seq_val, If_stmt, For_loop,\
-    Function_decl, Index_select, Seq_select, Seq_range
+    Function_decl, Index_select, Index_select, Element_range
 import sys
 
 
@@ -66,21 +66,54 @@ class Semantic_analyser(object):
                     indices_list.append(self.expr_type_is(ele))
                 collected_indices.append(indices_list)
             else:
-                collected_indices.append(self.expr_type_is(i))
+                collected_indices.append([self.expr_type_is(i)])
         return collected_indices
 
     def index_set(self, node):
         id_set = None
-        if node.target.target.node_type == DATA_TYPE.ID:
-            #Setting an ID or sequence element
+        # if node.target.target.node_type == DATA_TYPE.ID:
+            # Setting an ID or sequence element
             # id_set = Index_set(Name(node.target.ID, self.sym_table.id_type(node.ID)), self.collect_indices(node), self.expr_type_is(node.value))
-            id_set = Set(Seq_select(Name(node.target.ID, self.sym_table.id_type(node.target.ID)), self.collect_indices(node.target.indices)),  self.expr_type_is(node.value))
-            self.validate_id_seq_set(id_set, node)
-        else:
-            #Setting a casted value
-            id_set = Set(Seq_select(self.expr_type_is(node.target.target), self.collect_indices(node.target.indices)),  self.expr_type_is(node.value))
-            self.validate_cast_seq_set(id_set)
+            # if DATA_TYPE.is_seq_type(self.sym_table.id_type(node.target.ID)):
+            #     id_set = self.analyse_seq_index_set(node)
+            # elif DATA_TYPE.is_int_val(self.sym_table.id_type(node.target.ID)):
+            #     id_set = self.analyse_int_index_set(node)
+            # print(">>>>")
+            # print(node.target)
+        id_set = Set(self.analyse_index_sel(node.target), self.expr_type_is(node.value))
+        if self.value_matches_expected(id_set.value.type, id_set.target.type) is False:
+            raise ParseException(str(id_set.value.type) + " Cannot be assigned to " + str(id_set.target.type))
+        # else:
+            # Setting a casted value
+            # id_set = Set(Index_select(self.expr_type_is(node.target.target), self.collect_indices(node.target.indices)),  self.expr_type_is(node.value))
+            # self.validate_cast_seq_set(id_set)
         return id_set
+
+    def analyse_seq_index_set(self, ast_node):
+        id_set = Set(self.build_seq_index_ir(ast_node.target, self.collect_indices(ast_node.target.indices)),  self.expr_type_is(ast_node.value))
+        self.validate_id_seq_set(id_set, ast_node)
+        return id_set
+
+    def index_set_type(self, ID, indices):
+        ID_type = self.sym_table.id_type(ID)
+
+    def analyse_int_index_set(self, ast_node):
+        id_set = Set(Index_select(Name(ast_node.target.ID, self.sym_table.id_type(ast_node.target.ID)), self.collect_indices(ast_node.target.indices)),  self.expr_type_is(ast_node.value))
+        if self.is_range(id_set.target.indices[0]):
+            id_set.target.type = DATA_TYPE.SEQ_BIT_VAL
+        elif len(id_set.target.indices) > 1:
+            raise ("Cannot treat Integer value as a 2d bit array")
+        else:
+            id_set.target.type = DATA_TYPE.BIT_VAL
+        if self.value_matches_expected(id_set.value.type, id_set.target.type) is False:
+            raise ParseException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
+
+    def is_range(self, indices):
+        if(len(indices) > 1):
+            return True
+        if indices[0].node_type == DATA_TYPE.INDEX_RANGE:
+                return True
+        return False
 
     def validate_cast_seq_set(self, id_set):
         if len(id_set.target.indices) > 1:
@@ -91,7 +124,11 @@ class Semantic_analyser(object):
             if self.value_matches_expected(DATA_TYPE.seq_to_index_sel(id_set.target.type), id_set.value.type) is False:
                 raise ParseException(str(DATA_TYPE.seq_to_index_sel(id_set.target.type)) + " Cannot be set to " + str(id_set.value.type))
         elif len(id_set.target.indices) > self.sym_table.id(node.target.ID)['dimension']:
-            raise ParseException(str(self.sym_table.id(node.target.ID)['type']) + str("[]" * int(self.sym_table.id(node.target.ID)['dimension'])) + " cannot be set to " + "[]" * len(id_set.target.indices))  # NOQA
+            if (id_set.target.type == DATA_TYPE.BS_SEQ_INT_VAL or id_set.target.type == DATA_TYPE.SEQ_INT_VAL) and (len(node.indices) == len(id_set.target.indices) + 1):
+                print("HERE")
+                pass
+            else:
+                raise ParseException(str(self.sym_table.id(node.target.ID)['type']) + str("[]" * int(self.sym_table.id(node.target.ID)['dimension'])) + " cannot be set to " + "[]" * len(id_set.target.indices))  # NOQA
         else:
             if self.value_matches_expected(id_set.target.target.type, id_set.value.type) is False:
                 raise ParseException(str(id_set.target.target.type) + " Cannot be set to " + str(id_set.value.type))
@@ -101,12 +138,11 @@ class Semantic_analyser(object):
             return self.basic_id_set(node)
         elif node.target.node_type == DATA_TYPE.INDEX_SEL:
             return self.index_set(node)
+            pass
         else:
             raise ParseException("Internal Error: Unknown type " + node.target.node_type)
 
     def basic_id_set(self, node):
-        # print("BASIC")
-        # print(node.value.expressions[0].node)
         id_set = Set(Name(node.target.ID, self.sym_table.id_type(node.target.ID)), self.expr_type_is(node.value))
         if self.value_matches_expected(id_set.value.type, id_set.target.type) is False:
             raise ParseException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
@@ -179,7 +215,6 @@ class Semantic_analyser(object):
                 dimensions.append(self.seq_expr_dimension(expr.left))
             elif DATA_TYPE.is_seq_type(expr.left.type):
                 dimensions.append(self.seq_value_dimension(expr.left))
-
             if DATA_TYPE.is_op_type(expr.right.node_type):
                 dimensions.append(self.seq_expr_dimension(expr.right))
             elif DATA_TYPE.is_seq_type(expr.right.type):
@@ -305,27 +340,55 @@ class Semantic_analyser(object):
         finish = self.expr_type_is(node.finish)
         if start.type != DATA_TYPE.INT_VAL or finish.type != DATA_TYPE.INT_VAL:
             raise ParseException("Can only use integers to select sequence elements")
-        return Seq_range(self.expr_type_is(node.start), self.expr_type_is(node.finish))
+        return Element_range(self.expr_type_is(node.start), self.expr_type_is(node.finish))
 
     def analyse_index_sel(self, node):
         """Check result type of index select against target ID, returning IR node"""
         ir_indices = self.collect_indices(node.indices)
-        # for i in node.indices:
-        #     ir_indices.append(self.expr_type_is(i))
         if node.target_type != DATA_TYPE.ID:
             # Target of index select is not an ID.  Probably a cast, thus base dimension will always be 1 : Cant cast into multi-dimensional array
             target = self.expr_type_is(node.target)
-            index_sel = Index_select(target, ir_indices, 1)
+            index_sel = Index_select(target, ir_indices)
             if(len(ir_indices) > 1):
                 raise ParseException(str(target.type) + ("[]" * len(ir_indices)) + "Cannot be selected from" + str(target.type) + "[]")
+            elif len(ir_indices[-1]) > 1 or ir_indices[-1][0].type == DATA_TYPE.INDEX_RANGE:
+                # selection is of type sequence
+                pass
             else:
-                return index_sel
+                #Selection is single element out of base
+                index_sel.type = DATA_TYPE.seq_to_index_sel(index_sel.type)
+            return index_sel
         else:
-            target_id = self.sym_table.id(node.ID)
-            if target_id['dimension'] >= len(node.indices):
-                return Index_select(Name(node.ID, target_id['type']), ir_indices, target_id['dimension'])
-            elif len(node.indices) > target_id['dimension']:
-                raise ParseException(str(target_id['type']) + "[]" * len(node.indices) + " cannot be selected from " + str(target_id['type']) + (target_id['dimension'] * "[]"))
+            if DATA_TYPE.is_seq_type(self.sym_table.id(node.ID)['type']):
+                return self.build_seq_index_ir(node, ir_indices)
+            elif DATA_TYPE.is_int_val(self.sym_table.id(node.ID)['type']):
+                return self.build_int_index_ir(node, ir_indices)
+            else:
+                raise ParseException("Trying to do index selection on invalid " + self.sym_table.id(node.ID)['type'] + " type")
+
+    def build_int_index_ir(self, node, ir_indices):
+        target_id = self.sym_table.id(node.ID)
+        if self.is_range(ir_indices[-1]):
+            return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.SEQ_BIT_VAL)
+        elif len(ir_indices) == 1:
+            return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)
+        elif (len(ir_indices) > 1 and DATA_TYPE.is_int_val(self.sym_table.id(node.ID)['type'])):
+            raise ParseException("Cannot select 2d element from integer")
+
+    def build_seq_index_ir(self, node, ir_indices):
+        target_id = self.sym_table.id(node.ID)
+        if target_id['dimension'] > len(ir_indices):
+            return Index_select(Name(node.ID, target_id['type']), ir_indices)
+        elif target_id['dimension'] == len(ir_indices):
+            return Index_select(Name(node.ID, DATA_TYPE.seq_to_index_sel(target_id['type'])), ir_indices)
+        elif target_id['dimension'] < len(ir_indices):
+            if (target_id['type'] == DATA_TYPE.BS_SEQ_INT_VAL or target_id['type'] == DATA_TYPE.SEQ_INT_VAL) and (len(ir_indices) == target_id['dimension'] + 1):
+                if self.is_range(ir_indices[-1]):
+                    return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.SEQ_BIT_VAL)
+                else:
+                    return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)    # Selecting a bit value of an integer element in an integer array
+            else:
+                raise ParseException(str(target_id['type']) + "[]" * len(ir_indices) + " cannot be selected from " + str(target_id['type']) + (target_id['dimension'] * "[]"))
 
     def clean_up_expr(self, IR_expressions, result_type):
         """Reorders collected expression nodes"""
