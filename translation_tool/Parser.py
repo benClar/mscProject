@@ -80,7 +80,7 @@ class Parser(object):
         self.int_value = self.b_2_num ^ self.b_16_num ^ self.b_10_num
         self.expr = Forward()
         self.function_call = Forward()
-        self.seq_index_select = Forward()
+        self.index_select = Forward()
         self.seq_ = Forward()
         self.operand = Forward()
         self.seq_range = Forward()
@@ -89,9 +89,9 @@ class Parser(object):
         self.sbox_call = Group((self.ID ^ self.seq_val) + ~White() + Literal(".") + ~White() + self.sbox_ + ~White() +
                                self.l_bracket + (self.ID ^ self.int_value) + self.r_bracket)
 
-        self.operand = self.seq_index_select | self.seq_val | self.function_call | self.ID | self.int_value | self.cast | self.bit_val
+        self.operand = self.index_select | self.seq_val | self.function_call | self.ID | self.int_value | self.cast | self.bit_val
         self.seq_val.setParseAction(lambda t: ['Seq_val'] + [t.asList()])
-        self.seq_index_select.setParseAction(lambda t: ['index_select'] + [t.asList()])
+        self.index_select.setParseAction(lambda t: ['index_select'] + [t.asList()])
         self.function_call.setParseAction(lambda t: ['function_call'] + [t.asList()])
         self.ID.setParseAction(lambda t: ['ID'] + [t.asList()])
         self.int_value.setParseAction(lambda t: ['Int_val'] + [t.asList()])
@@ -121,11 +121,11 @@ class Parser(object):
         self.cast << Suppress(self.l_bracket) + Group((self.seq_ | self.int_size | self.bit_)) +\
             Suppress(self.r_bracket) + (self.expr)("target")
 
-        self.seq_index_select << (self.ID("ID") ^ (Suppress(self.l_bracket) + self.cast + Suppress(self.r_bracket))("cast")) + ~White() +\
+        self.index_select << (self.ID("ID") ^ (Suppress(self.l_bracket) + self.cast + Suppress(self.r_bracket))("cast")) + ~White() +\
             Group(OneOrMore(Suppress(self.l_sq_b) + Group(delimitedList(self.expr ^ Group(Group(self.seq_range))))("index") + Suppress(self.r_sq_b)))
         #  ####### Declarations
 
-        self.id_set = Group((Group(self.seq_index_select) | self.ID_) + self.eq_set + self.expr)
+        self.id_set = Group((Group(self.index_select) | self.ID_) + self.eq_set + self.expr)
         self.id_set.setParseAction(self.AST.id_set)
 
         self.int_decl = Group(self.int_size + delimitedList(Group((self.ID_("ID") + self.eq_set + self.expr("set_value")) |

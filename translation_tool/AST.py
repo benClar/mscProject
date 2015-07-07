@@ -140,9 +140,9 @@ class AST(object):
         # print(token)
         if token[0][0] == "index_select":
             if token[0][1][0] == "cast":
-                set_target = Seq_index_select_ast(Expr_ast([token[0][1]]), token[0][1][2])
+                set_target = index_select_ast(Expr_ast([token[0][1]]), token[0][1][2])
             elif token[0][1][0] == "ID":
-                set_target = Seq_index_select_ast(ID_ast(token[0][1][1][0]), token[0][1][2])
+                set_target = index_select_ast(ID_ast(token[0][1][1][0]), token[0][1][2])
             self.add_statement(ID_set_ast(set_target, token[2]))
         else:
             self.add_statement(ID_set_ast(ID_ast(token[AST.ID]), token[AST.ID_SET_VALUE]))
@@ -534,7 +534,7 @@ class Expr_ast(object):
                 ID = Expr_ast([token[1]])
             elif token[1][0] == "ID":
                 ID = ID_ast(token[1][1][0])
-            self.add_expr(Seq_index_select_ast(ID, token[Expr_ast.CONTENT][2]))
+            self.add_expr(index_select_ast(ID, token[Expr_ast.CONTENT][2]))
         elif operand_type == DATA_TYPE.BIT_VAL:
             self.expressions.append(Bit_literal_ast(token[Expr_ast.CONTENT][0]))
         elif operand_type == DATA_TYPE.INDEX_RANGE:
@@ -680,7 +680,7 @@ class Bit_literal_ast(object):
         return self._value
 
 
-class Seq_index_select_ast(object):
+class index_select_ast(object):
 
     node_type = DATA_TYPE.INDEX_SEL
 

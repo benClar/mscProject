@@ -69,7 +69,7 @@ class Semantic_analyser(object):
                 collected_indices.append(self.expr_type_is(i))
         return collected_indices
 
-    def seq_index_set(self, node):
+    def index_set(self, node):
         id_set = None
         if node.target.target.node_type == DATA_TYPE.ID:
             #Setting an ID or sequence element
@@ -100,7 +100,7 @@ class Semantic_analyser(object):
         if node.target.node_type == DATA_TYPE.ID:
             return self.basic_id_set(node)
         elif node.target.node_type == DATA_TYPE.INDEX_SEL:
-            return self.seq_index_set(node)
+            return self.index_set(node)
         else:
             raise ParseException("Internal Error: Unknown type " + node.target.node_type)
 
