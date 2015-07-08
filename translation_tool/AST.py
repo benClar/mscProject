@@ -75,8 +75,9 @@ class AST(object):
     def seq_decl(self, tokens):
         token = tokens[0]
         # print(token.dump())
-        if token['type'] == "Int" or token['type'] == "@Int":
-            self.int_seq_decl(token)
+
+        if token['type'] == "Int" or token['type'] == "@Int" or token['type'] == "Sbox":
+            self.bit_constrained_seq_decl(token)
         elif token['type'] == "Bit":
             self.bit_seq_decl(token)
         else:
@@ -111,13 +112,15 @@ class AST(object):
             token = tokens[0]
             self.add_statement(Expr_ast(token))
 
-    def int_seq_decl(self, token):
+    def bit_constrained_seq_decl(self, token):
         seq_decl_type = None
         # print(token.dump())
         if token['type'] == "@Int":
             seq_decl_type = DATA_TYPE.BS_SEQ_INT_DECL
         elif token['type'] == "Int":
             seq_decl_type = DATA_TYPE.SEQ_INT_DECL
+        elif token['type'] == "Sbox":
+            seq_decl_type = DATA_TYPE.SBOX_DECL
         else:
             raise ParseException("Unknown Int Seq Type")
         # seq_decl_type
@@ -155,7 +158,7 @@ class AST(object):
             decl_type = self.param_type(p)
             if decl_type == DATA_TYPE.INT_DECL or decl_type == DATA_TYPE.BS_INT_DECL:
                 params.append(Int_decl_ast(decl_type, p[2][1][0], p[1]))
-            elif decl_type == DATA_TYPE.SEQ_INT_DECL or decl_type == DATA_TYPE.BS_SEQ_INT_DECL:
+            elif decl_type == DATA_TYPE.SEQ_INT_DECL or decl_type == DATA_TYPE.BS_SEQ_INT_DECL or decl_type == DATA_TYPE.SBOX_DECL:
                 params.append(Seq_decl_ast(decl_type, p[3][1][0], p[2], constraints=p[1]))
             elif decl_type == DATA_TYPE.SEQ_BIT_DECL:
                 params.append(Seq_decl_ast(decl_type, p[2][1][0], p[1]))
@@ -184,6 +187,11 @@ class AST(object):
                 return DATA_TYPE.SEQ_BIT_DECL
             else:
                 return DATA_TYPE.BIT_DECL
+        elif param[0] == "Sbox":
+            if self.is_sequence(param):
+                return DATA_TYPE.SBOX_DECL
+            else:
+                raise ParseException("Sbox type must be sequence of integers")
 
     def return_type(self, param):
         if param[0] == "@Int":

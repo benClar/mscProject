@@ -41,7 +41,9 @@ class DATA_TYPE(Enum):
     INT_LITERAL = 35,
     BIT_LITERAL = 36,
     SEQ_SELECT = 37,
-    LOG_OP = 38
+    LOG_OP = 38,
+    CAST_OP = 39,
+    SBOX_DECL = 40
 
     def is_int_val(type_input):
         sequence_types = [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL]
@@ -49,7 +51,7 @@ class DATA_TYPE(Enum):
             return True
         return False
     def is_seq_type(type_input):
-        sequence_types = [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_SEQ_INT_VAL]
+        sequence_types = [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.SBOX_DECL]
         if type_input in sequence_types:
             return True
         return False
@@ -89,6 +91,8 @@ class DATA_TYPE(Enum):
             return DATA_TYPE.BS_INT_VAL
         elif type_input == DATA_TYPE.INT_VAL or type_input == DATA_TYPE.BS_INT_VAL:
             return DATA_TYPE.BIT_VAL
+        elif type_input == DATA_TYPE.SBOX_DECL:
+            return DATA_TYPE.INT_VAL
         else:
             raise ParseException("Internal Errror: Tried to convert unknown type to sequence selection type")
 
@@ -106,5 +110,7 @@ class DATA_TYPE(Enum):
             return DATA_TYPE.BS_SEQ_INT_VAL
         elif type_input == DATA_TYPE.SEQ_BIT_DECL:
             return DATA_TYPE.SEQ_BIT_VAL
+        elif type_input == DATA_TYPE.SBOX_DECL:
+            return DATA_TYPE.SEQ_INT_VAL
         else:
             raise ParseException("Unknown Value Type")

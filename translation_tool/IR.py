@@ -24,8 +24,8 @@ class Function_decl(object):
         self._node_type = DATA_TYPE.FUNC_DECL
 
     @property
-    def return_type(self):
-        return self._return_type
+    def return_value(self):
+        return self._return_value
 
     @property
     def parameters(self):
@@ -81,7 +81,7 @@ class Cast(object):
     def __init__(self, c_op, c_target):
         self._cast_target = c_target
         self._cast_op = c_op
-
+        self.node_type = DATA_TYPE.CAST
     @property
     def type(self):
         return self._cast_op.type
@@ -107,7 +107,7 @@ class Cast_operation(object):
             self._seq_size = size
         else:
             self._constraints = None
-        self.node_type = DATA_TYPE.CAST
+        self.node_type = DATA_TYPE.CAST_OP
 
     @property
     def seq_size(self):
@@ -270,12 +270,16 @@ class Bit_decl(object):
     def value(self):
         return self._value
 
+    @property
+    def ID(self):
+        return self._ID
+    
 
 class Int_decl(object):
 
     def __init__(self, n_type, constraints, var_id, value=None):
         self._constraints = Int_literal(constraints)
-        self._ID = Name(var_id, DATA_TYPE.decl_to_value(n_type))
+        self._ID = var_id
         self._value = value
         self._node_type = n_type
 
@@ -317,6 +321,7 @@ class Name(object):
     def __init__(self, name, id_type):
         self._name = name
         self._type = id_type
+        self.node_type = DATA_TYPE.ID
 
     @property
     def name(self):

@@ -18,10 +18,11 @@ class Semantic_analyser(object):
                         DATA_TYPE.FUNC_DECL: lambda self, node: self.analyse_func_decl(node),
                         DATA_TYPE.IF_STMT: lambda self, node: self.analyse_if_stmt_decl(node),
                         DATA_TYPE.FOR_LOOP: lambda self, node: self.analyse_for_loop_decl(node),
-                        DATA_TYPE.SEQ_INT_DECL: lambda self, node: self.analyse_int_seq(node),
+                        DATA_TYPE.SEQ_INT_DECL: lambda self, node: self.analyse_bit_cnst_seq(node),
                         DATA_TYPE.SEQ_BIT_DECL: lambda self, node: self.analyse_bit_seq(node),
-                        DATA_TYPE.BS_SEQ_INT_DECL: lambda self, node: self.analyse_int_seq(node),
-                        DATA_TYPE.BS_INT_DECL: lambda self, node: self.analyse_int_decl(node)}
+                        DATA_TYPE.BS_SEQ_INT_DECL: lambda self, node: self.analyse_bit_cnst_seq(node),
+                        DATA_TYPE.BS_INT_DECL: lambda self, node: self.analyse_int_decl(node),
+                        DATA_TYPE.SBOX_DECL: lambda self, node: self.analyse_bit_cnst_seq(node)}
 
     def __init__(self):
         self.initialise()
@@ -63,11 +64,25 @@ class Semantic_analyser(object):
             if len(i.expressions) > 1:
                 indices_list = []
                 for ele in i.expressions:
-                    indices_list.append(self.expr_type_is(ele))
+                    new_ind = self.expr_type_is(ele)
+                    if self.allowed_index_range(new_ind.type):
+                        indices_list.append(new_ind)
+                    else:
+                        raise ParseException("Cannot use " + new_ind.type + " as Lookup value in Sequence")
                 collected_indices.append(indices_list)
             else:
-                collected_indices.append([self.expr_type_is(i)])
+                new_ind = self.expr_type_is(i)
+                if self.allowed_index_range(new_ind.type):
+                    collected_indices.append([new_ind])
+                else:
+                    raise ParseException("Cannot use " + str(new_ind.type) + " as Lookup value in Sequence")
         return collected_indices
+
+    def allowed_index_range(self, type_input):
+        allowed_index_range = [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, None]
+        if type_input in allowed_index_range:
+            return True
+        return False
 
     def index_set(self, node):
         id_set = None
@@ -81,9 +96,6 @@ class Semantic_analyser(object):
             # print(">>>>")
             # print(node.target)
         id_set = Set(self.analyse_index_sel(node.target), self.expr_type_is(node.value))
-
-        print(id_set.target.type)
-        print(id_set.value.type)
         if DATA_TYPE.is_seq_type(id_set.target.type) and DATA_TYPE.is_seq_type(id_set.value.type):
             pass
             #If both values are sequences, user is trying to set a sequence to the value of another sequence.  For now allow ranges.
@@ -170,9 +182,9 @@ class Semantic_analyser(object):
 
     def analyse_int_decl(self, node):
         if node.value is not None:
-            decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), node.ID, self.expr_type_is(node.value))
+            decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)), self.expr_type_is(node.value))
         else:
-            decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), node.ID)
+            decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)))
 
         try:
             if decl.constraints.value.type == DATA_TYPE.INT_VAL:
@@ -205,7 +217,7 @@ class Semantic_analyser(object):
 
     def analyse_seq_decl(self, node):
         if node.type == DATA_TYPE.SEQ_INT_VAL or node.type == DATA_TYPE.BS_SEQ_INT_VAL:
-            return self.analyse_int_seq(node)
+            return self.analyse_bit_cnst_seq(node)
         elif node.type == DATA_TYPE.SEQ_BIT_VAL:
             return self.analyse_bit_seq(node)
         else:
@@ -247,7 +259,8 @@ class Semantic_analyser(object):
         else:
             return dimensions[0]
 
-    def analyse_int_seq(self, node):
+    def analyse_bit_cnst_seq(self, node):
+        """Analyse Sequences that have bit constraints set on their members and build IR node"""
         if node.value is None:
             decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, constraints=self.expr_type_is(node.bit_constraints))
         else:
@@ -255,10 +268,12 @@ class Semantic_analyser(object):
             if self.seq_expr_dimension(decl.value) != len(decl.size):
                 raise ParseException((str(decl.value.type) + "[]" * self.seq_value_dimension(decl.value)) +
                                      " Cannot be assigned to " + str(decl.value.type) + ("[]" * len(decl.size)))
-        if decl.constraints.type != DATA_TYPE.INT_VAL:
-            if node.value is not None:
-                if decl.value.type != DATA_TYPE.SEQ_INT_VAL or decl.value.type != DATA_TYPE.BS_SEQ_INT_VAL:
-                    raise ParseException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
+        # print(decl.constraints.node_type)
+        if decl.constraints.node_type != DATA_TYPE.INT_LITERAL:
+            raise ParseException("Must use an Integer literal to declare word length")
+        # if node.value is not None:
+        #     if decl.value.type != DATA_TYPE.SEQ_INT_VAL or decl.value.type != DATA_TYPE.BS_SEQ_INT_VAL:
+        #         raise ParseException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
         self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type), len(decl.size))
         # self.IR.add(decl)
         return decl
@@ -441,7 +456,8 @@ class Semantic_analyser(object):
         f_call = Call(node.ID, self.sym_table.f_table[node.ID]['return_type'])
         for i, p in enumerate(node.parameters):
             f_call.add_parameter(self.expr_type_is(p))
-            if self.value_matches_expected(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i].node_type) is False:
+            # print(f_call.parameters[i])
+            if self.value_matches_expected(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i].ID.type) is False:
                 raise ParseException(str(self.expr_type_is(p)) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i].node_type))
                 return False
         return f_call
@@ -556,9 +572,11 @@ class Semantic_analyser(object):
         """Performs Semantic Analysis on function declaration and body, creating an IR node if successful"""
         self.sym_table.add_scope()
         func_decl = Function_decl(node.return_value)
-        self.sym_table.add_function(node.ID, node.parameters, node.return_value)
+        self.sym_table.add_function(node.ID)
+        self.sym_table.add_function_return(node.ID, func_decl.return_value)
         for p in node.parameters:
             func_decl.parameters.append(self.AST_func_param_to_IR(p))
+            self.sym_table.add_function_parameter(node.ID, func_decl.parameters[-1])
             if DATA_TYPE.is_seq_type(DATA_TYPE.decl_to_value(p.node_type)):
                 self.sym_table.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type), len(func_decl.parameters[-1].size))
             else:
@@ -573,10 +591,10 @@ class Semantic_analyser(object):
         """Converts AST param node to equivilent IR node"""
         decl = None
         if old_decl.node_type == DATA_TYPE.INT_DECL or old_decl.node_type == DATA_TYPE.BS_INT_DECL:
-            decl = Int_decl(old_decl.node_type, self.expr_type_is(old_decl.bit_constraints), old_decl.ID)
+            decl = Int_decl(old_decl.node_type, self.expr_type_is(old_decl.bit_constraints), Name(old_decl.ID, DATA_TYPE.decl_to_value(old_decl.node_type)))
         elif old_decl.node_type == DATA_TYPE.SEQ_BIT_DECL:
             decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID)
-        elif old_decl.node_type == DATA_TYPE.SEQ_INT_DECL or old_decl.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
+        elif old_decl.node_type == DATA_TYPE.SEQ_INT_DECL or old_decl.node_type == DATA_TYPE.BS_SEQ_INT_DECL or old_decl.node_type == DATA_TYPE.SBOX_DECL:
             decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID, constraints=self.expr_type_is(old_decl.bit_constraints))
         elif old_decl.node_type == DATA_TYPE.BIT_DECL:
             decl = Bit_decl(old_decl.ID)

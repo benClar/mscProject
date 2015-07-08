@@ -22,7 +22,7 @@ class Parser(object):
         self.false_ = Keyword('False')
         self.true_ = Keyword('True')
         self.bit_ = Keyword('Bit')
-        self.sbox_ = Keyword('sbox')
+        self.sbox_ = Keyword('Sbox')
         self.l_shift_ = Keyword('<<')
         self.r_shift_ = Keyword('>>')
         self.circ_l_shift_ = Keyword('<<<')
@@ -32,8 +32,8 @@ class Parser(object):
         self.for_ = Keyword('for')
         self.return_ = Keyword('return')
         self.void_ = Keyword('void')
-        self.ID = NotAny(self.int_ ^ self.bit_ ^ self.false_ ^ self.true_ ^ self.if_ ^ self.for_ ^ self.sbox_) + Word(alphas + '_', alphanums + '_')  # NOQA
-        self.ID_ = NotAny(self.int_ ^ self.bit_ ^ self.false_ ^ self.true_ ^ self.if_ ^ self.for_ ^ self.sbox_) + Word(alphas + '_', alphanums + '_')
+        self.ID = NotAny(self.sbox_ ^ self.int_ ^ self.bit_ ^ self.false_ ^ self.true_ ^ self.if_ ^ self.for_ ^ self.sbox_) + Word(alphas + '_', alphanums + '_')  # NOQA
+        self.ID_ = NotAny(self.sbox_ ^ self.int_ ^ self.bit_ ^ self.false_ ^ self.true_ ^ self.if_ ^ self.for_ ^ self.sbox_) + Word(alphas + '_', alphanums + '_')
         # Other Tokens
         self.l_bracket = Literal('(')
         self.r_bracket = Literal(')')
@@ -108,11 +108,13 @@ class Parser(object):
         # self.expr.setParseAction(self.expr_p)
         self.int_size = Combine(Optional(Literal("@")) + self.int_)("decl") + ~White() + Suppress(self.l_bracket) + self.expr + Suppress(self.r_bracket)
 
+        self.sbox_size = self.sbox_ + ~White() + Suppress(self.l_bracket) + self.expr + Suppress(self.r_bracket)
+
         self.seq_range << self.expr + Suppress(Literal(":")) + self.expr
 
         self.seq_val << Suppress(self.l_sq_b) + Optional(Group(delimitedList(self.expr))) + Suppress(self.r_sq_b)
 
-        self.seq_ << (self.int_size ^ self.bit_)("type") +\
+        self.seq_ << (self.int_size | self.bit_ | self.sbox_size)("type") +\
             Group(OneOrMore(~White() + Suppress(self.l_sq_b) + self.expr + Suppress(self.r_sq_b)))("seq_size")
 
         self.function_call << self.ID("function_name") + ~White() + Suppress(self.l_bracket) +\
@@ -136,6 +138,7 @@ class Parser(object):
         self.bit_decl.setParseAction(self.AST.bit_decl)
         self.seq_decl = Group(self.seq_("decl") + Group(self.ID)("ID") + Optional(self.eq_set + Group(self.expr))("value"))
         self.seq_decl.setParseAction(self.AST.seq_decl)
+
         self.decl = self.bit_decl | self.int_decl | self.seq_decl
 
         # ###### Statements
@@ -604,6 +607,10 @@ class Parser(object):
 #         assert_equals(par.parse_test_unit("((Bit[4]) ((Int(5)) a))[5] = True;")[1], True)
 #         assert_equals(par.parse_test_unit("a[5] = True;")[1], True)
 
+#     def test_sbox(self):
+#         par = Parser()
+#         assert_equals(par.parse_test_unit("Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4];")[1], True)
+
 # class TestSemanticAnalysis(unittest.TestCase):
 
 #     def test_int_decl(self):
@@ -915,6 +922,12 @@ class test_IR_generation(unittest.TestCase):
     #     par = Parser()
     #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit[4] output; Int(4) Input; Input[0] = ((Int(4)) output)[0];")), True)
 
+    # def test_sbox(self):
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4]; Int(64) a = 10;\
+    #                                                                         a[0:4] = (Bit[4]) prince[a[0:4]];")), True)
+    #     assert_equals(par.semantic_analyser.IR.IR[2].value.target.indices[0][0].type, DATA_TYPE.SEQ_BIT_VAL)
+
     # def test_LFSR_syntax(self):
     #     par = Parser()
     #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4)[4] a = [1,2,3,4]; a[1] = a[5] ^ a[5] ^ a[5];")), True)  # NOQA
@@ -950,8 +963,17 @@ class test_IR_generation(unittest.TestCase):
                                                                             state[8 : 11] = state[8 : 11] <<< 2;\
                                                                             state[12 : 15] = state[12 : 15] <<< 3;\
                                                                          }")), True)
+        assert_equals(par.semantic_analyser.IR.IR[0].node_type, DATA_TYPE.FUNC_DECL)
+        assert_equals(par.semantic_analyser.IR.IR[0].body[0].target.target.name, "state")
+        assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.operator, "<<<")
+        assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.type, DATA_TYPE.BS_SEQ_INT_VAL)
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4) gmMult(@Int(4) a, @Int(4) b) {\
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64) sBox_layer(@Int(4)[16] state, Sbox(4)[16] s)  {\
+                                                                            for(Int(4) i = 0; i < 16; i = i + 1){\
+                                                                                state[i] = s[state[i]];\
+                                                                            }\
+                                                                         }\
+                                                                        @Int(4) gmMult(@Int(4) a, @Int(4) b) {\
                                                                             Int(4) g = 0;\
                                                                             for(Int(4) i = 0; i < 4; i = i + 1)   {\
                                                                                 if(((Bit[4]) b)[0] == True)   {\
@@ -996,6 +1018,114 @@ class test_IR_generation(unittest.TestCase):
                                                                             state[4 : 7] = state[4 : 7] <<< 1;\
                                                                             state[8 : 11] = state[8 : 11] <<< 2;\
                                                                             state[12 : 15] = state[12 : 15] <<< 3;\
+                                                                        }")), True)
+
+    def test_PRESENT_syntax(self):
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64) pLayer(@Int(64) state) {\
+                                                                            Int(8) target_bit;\
+                                                                            @Int(64) temp = state;\
+                                                                            for(Int(8) bit = 0; bit < 64; bit = bit + 1)    {\
+                                                                                target_bit = (16*bit) % 63;\
+                                                                                if(bit == 63)   {\
+                                                                                    target_bit = 63;\
+                                                                                }\
+                                                                                state[target_bit] = temp[bit];\
+                                                                            }\
+                                                                        }\
+                                                                            void sBox_layer(@Int(64) state, Sbox(4)[16] s)  {\
+                                                                                for(Int(4) i = 0; i < 16; i = i + 1){\
+                                                                                    state[(i * 4) : (i * 4) + 4] = (Bit[4]) s[state[(i * 4) : (i * 4) + 4]];\
+                                                                                }\
+                                                                            }\
+                                                                        @Int(64)[32] generate_round_keys(@Int(80) key, Int(4)[16] sBox) {\
+                                                                            @Int(64)[32] round_keys;\
+                                                                            for(Int(5) round = 0; round < 32; round = round + 1)    {\
+                                                                                round_keys[round][0: 63] = key[16:79];\
+                                                                                key = key <<< 61;\
+                                                                                key[76 : 79] = sBox[key[79:76]][0 : 4];\
+                                                                                key[15 : 19] = key[15 : 19] ^ round[0 : 5];\
+                                                                            }\
+                                                                        }")), True)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64)[32] generate_round_keys(@Int(80) key, Int(4)[16] sBox) {\
+                                                                            @Int(64)[32] round_keys;\
+                                                                            for(Int(5) round = 0; round < 32; round = round + 1)    {\
+                                                                                round_keys[round][0: 63] = key[16:79];\
+                                                                                key = key <<< 61;\
+                                                                                key[76 : 79] = (Bit[4]) sBox[key[76:79]];\
+                                                                                key[15 : 19] = key[15 : 19] ^ round[0 : 5];\
+                                                                            }\
+                                                                        }")), True)
+
+    def test_PRINCE_syntax(self):
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64) enc(@Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
+                                                                            Int(64)[11] RC= [0x0000000000000000,\
+                                                                                            0x13198a2e03707344,\
+                                                                                            0xa4093822299f31d0,\
+                                                                                            0x082efa98ec4e6c89,\
+                                                                                            0x452821e638d01377,\
+                                                                                            0xbe5466cf34e90c6c,\
+                                                                                            0x7ef84f78fd955cb1,\
+                                                                                            0x85840851f1ac43aa,\
+                                                                                            0xc882d32f25323c54,\
+                                                                                            0x64a51195e0e3610d,\
+                                                                                            0xd3b5a399ca0c2399,\
+                                                                                            0xc0ac29b7c97c50dd];\
+                                                                            @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
+                                                                                state = state ^ key_1;\
+                                                                                state = state ^ RC[0];\
+                                                                        }\
+                                                                        void sBox_layer(@Int(64) state, Sbox(4)[16] s)  {\
+                                                                            for(Int(4) i = 0; i < 16; i = i + 1){\
+                                                                                state[(i * 4) : (i * 4) + 4] = (Bit[4]) s[state[(i * 4) : (i * 4) + 4]];\
+                                                                            }\
+                                                                        }\
+                                                                        Bit[16] m1(Bit[16] state)   {\
+                                                                            Bit[16] output;\
+                                                                            output[ 0] = state[0] ^ state[ 4] ^ state[ 8];\
+                                                                            output[ 1] = state[5] ^ state[ 9] ^ state[13];\
+                                                                            output[ 2] = state[2] ^ state[10] ^ state[14];\
+                                                                            output[ 3] = state[3] ^ state[ 7] ^ state[15];\
+                                                                            output[ 4] = state[0] ^ state[ 4] ^ state[12];\
+                                                                            output[ 5] = state[1] ^ state[ 5] ^ state[ 9];\
+                                                                            output[ 6] = state[6] ^ state[10] ^ state[14];\
+                                                                            output[ 7] = state[3] ^ state[11] ^ state[15];\
+                                                                            output[ 8] = state[0] ^ state[ 8] ^ state[12];\
+                                                                            output[ 9] = state[1] ^ state[ 5] ^ state[13];\
+                                                                            output[10] = state[2] ^ state[ 6] ^ state[10];\
+                                                                            output[11] = state[7] ^ state[11] ^ state[15];\
+                                                                            output[12] = state[4] ^ state[ 8] ^ state[12];\
+                                                                            output[13] = state[1] ^ state[ 9] ^ state[13];\
+                                                                            output[14] = state[2] ^ state[ 6] ^ state[14];\
+                                                                            output[15] = state[3] ^ state[ 7] ^ state[11];\
+                                                                        }\
+                                                                        \
+                                                                        Bit[16] m0(Bit[16] state)   {\
+                                                                            Bit[16] output;\
+                                                                            output[ 0] = state[4] ^ state[ 8] ^ state[12];\
+                                                                            output[ 1] = state[1] ^ state[ 9] ^ state[13];\
+                                                                            output[ 2] = state[2] ^ state[ 6] ^ state[14];\
+                                                                            output[ 3] = state[3] ^ state[ 7] ^ state[11];\
+                                                                            output[ 4] = state[0] ^ state[ 4] ^ state[ 8];\
+                                                                            output[ 5] = state[5] ^ state[ 9] ^ state[13];\
+                                                                            output[ 6] = state[2] ^ state[10] ^ state[14];\
+                                                                            output[ 7] = state[3] ^ state[ 7] ^ state[15];\
+                                                                            output[ 8] = state[0] ^ state[ 4] ^ state[12];\
+                                                                            output[ 9] = state[1] ^ state[ 5] ^ state[ 9];\
+                                                                            output[10] = state[6] ^ state[10] ^ state[14];\
+                                                                            output[11] = state[3] ^ state[11] ^ state[15];\
+                                                                            output[12] = state[0] ^ state[ 8] ^ state[12];\
+                                                                            output[13] = state[1] ^ state[ 5] ^ state[13];\
+                                                                            output[14] = state[2] ^ state[ 6] ^ state[10];\
+                                                                            output[15] = state[7] ^ state[11] ^ state[15];\
+                                                                        }\
+                                                                        void mPrime(@Int(64) state)    {\
+                                                                            state[0:15] = m0(state[0:15]);\
+                                                                            state[16:31] = m1(state[16:31]);\
+                                                                            state[32:47] = m1(state[32:47]);\
+                                                                            state[48:63] = m0(state[48:63]);\
                                                                         }")), True)
 
 # if __name__ == "__main__":

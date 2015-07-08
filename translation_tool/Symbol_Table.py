@@ -80,16 +80,20 @@ class Symbol_Table(object):
     #     print(seq)
     #     self.table[scope][ID[0]]["dimension"] = seq
 
-    def add_function(self, func_ID, parameters, return_type):
+    def add_function(self, func_ID):
         if func_ID not in self.f_table:
             self.f_table[func_ID] = {}
-            self.f_table[func_ID]["return_type"] = return_type
+            self.f_table[func_ID]["return_type"] = None
             self.f_table[func_ID]["parameters"] = []
-            for p in parameters:
-                self.f_table[func_ID]["parameters"].append(p)
                 # self.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type))
         else:
             raise ParseException("Redeclaration of function")
+
+    def add_function_parameter(self, func_ID, parameter):
+        self.f_table[func_ID]["parameters"].append(parameter)
+
+    def add_function_return(self, func_ID, return_type):
+        self.f_table[func_ID]["return_type"] = return_type
 
     def link_node(self, ID, node):
         for scope in self.symbols.stack:
