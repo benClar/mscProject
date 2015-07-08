@@ -6,7 +6,7 @@ from pyparsing import ParseException
 from DATA_TYPE import DATA_TYPE
 from IR import Int_literal, Name, Int_decl, Set, Bit_literal, Binary_operation,\
     Cast_operation, Cast, IR, Call, Bit_decl, Seq_decl, Seq_val, If_stmt, For_loop,\
-    Function_decl, Index_select, Index_select, Element_range
+    Function_decl, Index_select, Index_select, Element_range, Return
 import sys
 
 
@@ -23,7 +23,6 @@ class Semantic_analyser(object):
                         DATA_TYPE.BS_SEQ_INT_DECL: lambda self, node: self.analyse_bit_cnst_seq(node),
                         DATA_TYPE.BS_INT_DECL: lambda self, node: self.analyse_int_decl(node),
                         DATA_TYPE.SBOX_DECL: lambda self, node: self.analyse_bit_cnst_seq(node)}
-
     def __init__(self):
         self.initialise()
 
@@ -258,6 +257,12 @@ class Semantic_analyser(object):
             raise ParseException("Cannot Combine Sequence Types")
         else:
             return dimensions[0]
+
+    def analyse_return_stmt(self, ast_node, func_decl):
+        ret = Return(self.expr_type_is(ast_node.expr))
+        if ret.type != func_decl.return_value:
+            raise ParseException("Function " + str(func_decl.ID.name) + " returns " + str(ret.type) + ". requires return value " + str(func_decl.return_value))
+        return ret
 
     def analyse_bit_cnst_seq(self, node):
         """Analyse Sequences that have bit constraints set on their members and build IR node"""
@@ -571,9 +576,10 @@ class Semantic_analyser(object):
     def analyse_func_decl(self, node):
         """Performs Semantic Analysis on function declaration and body, creating an IR node if successful"""
         self.sym_table.add_scope()
-        func_decl = Function_decl(node.return_value)
+        func_decl = Function_decl(node.ID, node.return_value)
         self.sym_table.add_function(node.ID)
         self.sym_table.add_function_return(node.ID, func_decl.return_value)
+        ret_pres = False
         for p in node.parameters:
             func_decl.parameters.append(self.AST_func_param_to_IR(p))
             self.sym_table.add_function_parameter(node.ID, func_decl.parameters[-1])
@@ -582,8 +588,14 @@ class Semantic_analyser(object):
             else:
                 self.sym_table.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type))
         for s in node.stmts:
-            func_decl.body.append(self.analyse_sub_stmt(s))
+            if s.node_type == DATA_TYPE.RETURN_STMT:
+                ret_pres = True
+                func_decl.body.append(self.analyse_return_stmt(s, func_decl))
+            else:
+                func_decl.body.append(self.analyse_sub_stmt(s))
 
+        if func_decl.return_value != DATA_TYPE.VOID and ret_pres is False:
+            raise ParseException("Function " + str(func_decl.ID.name) + " requires return value " + str(func_decl.return_value))
         self.sym_table.leave_scope()
         return func_decl
 

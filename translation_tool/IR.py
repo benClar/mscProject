@@ -17,8 +17,9 @@ class IR(object):
 
 class Function_decl(object):
 
-    def __init__(self, return_type):
-        self._return_value = return_type
+    def __init__(self, ID, return_type):
+        self._ID = Name(ID, return_type)
+        self._return_value = self._ID.type
         self._parameters = []
         self._body = []
         self._node_type = DATA_TYPE.FUNC_DECL
@@ -38,6 +39,11 @@ class Function_decl(object):
     @property
     def node_type(self):
         return self._node_type
+
+    @property
+    def ID(self):
+        return self._ID
+    
 
 
 class If_stmt(object):
@@ -197,6 +203,20 @@ class Set(object):
     @property
     def value(self):
         return self._value
+
+class Return(object):
+    def __init__(self, expr):
+        self._target = expr
+        self._type = expr.type
+        self.node_type = DATA_TYPE.RETURN_STMT
+
+    @property
+    def target(self):
+        return self._target
+
+    @property
+    def type(self):
+        return self._type
 
 
 class Seq_decl(object):

@@ -962,18 +962,21 @@ class test_IR_generation(unittest.TestCase):
                                                                             state[4 : 7] = state[4 : 7] <<< 1;\
                                                                             state[8 : 11] = state[8 : 11] <<< 2;\
                                                                             state[12 : 15] = state[12 : 15] <<< 3;\
+                                                                            return state;\
                                                                          }")), True)
         assert_equals(par.semantic_analyser.IR.IR[0].node_type, DATA_TYPE.FUNC_DECL)
         assert_equals(par.semantic_analyser.IR.IR[0].body[0].target.target.name, "state")
         assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.operator, "<<<")
         assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.type, DATA_TYPE.BS_SEQ_INT_VAL)
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64) sBox_layer(@Int(4)[16] state, Sbox(4)[16] s)  {\
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4)[16] sBox_layer(@Int(4)[16] state, Sbox(4)[16] s)  {\
                                                                             for(Int(4) i = 0; i < 16; i = i + 1){\
                                                                                 state[i] = s[state[i]];\
                                                                             }\
+                                                                            return state;\
                                                                          }\
-                                                                        @Int(4) gmMult(@Int(4) a, @Int(4) b) {\
+                                                                         \
+                                                                        Int(4) gmMult(@Int(4) a, @Int(4) b) {\
                                                                             Int(4) g = 0;\
                                                                             for(Int(4) i = 0; i < 4; i = i + 1)   {\
                                                                                 if(((Bit[4]) b)[0] == True)   {\
@@ -985,8 +988,9 @@ class test_IR_generation(unittest.TestCase):
                                                                                 }\
                                                                                 b = b >> 1;\
                                                                             }\
+                                                                            return g;\
                                                                         }\
-                                                                        @Int(4) MixColumnSerial(@Int(4)[16] state, Int(4)[16] MDS) {\
+                                                                        @Int(4)[16] MixColumnSerial(@Int(4)[16] state, Int(4)[16] MDS) {\
                                                                             Int(4)[4] column;\
                                                                             for(Int(4) c = 0; c < 4; c = c + 1)  {\
                                                                                 column = state[c,c + 4,c + 8,c + 12];\
@@ -997,6 +1001,7 @@ class test_IR_generation(unittest.TestCase):
                                                                                         gmMult(MDS[(4 * c) + 3],column[3]);\
                                                                                 }\
                                                                             }\
+                                                                            return state;\
                                                                         }\
                                                                         @Int(4)[16] addConstants(@Int(4)[16] state, @Int(5) constant)  {\
                                                                             Int(4)[16] roundConstant;\
@@ -1011,13 +1016,14 @@ class test_IR_generation(unittest.TestCase):
                                                                                 roundConstant[(row * 4) + 2] = 0;\
                                                                                 roundConstant[(row * 4) + 3] = 0;\
                                                                             }\
-                                                                            state = state ^ roundConstant;\
+                                                                            return (state ^ roundConstant);\
                                                                         }\
                                                                         @Int(4)[16] shift_row(@Int(4)[16] state)   {\
                                                                             state[0 : 3 ] = state[0 : 3] <<< 0;\
                                                                             state[4 : 7] = state[4 : 7] <<< 1;\
                                                                             state[8 : 11] = state[8 : 11] <<< 2;\
                                                                             state[12 : 15] = state[12 : 15] <<< 3;\
+                                                                            return state;\
                                                                         }")), True)
 
     def test_PRESENT_syntax(self):
@@ -1032,12 +1038,14 @@ class test_IR_generation(unittest.TestCase):
                                                                                 }\
                                                                                 state[target_bit] = temp[bit];\
                                                                             }\
+                                                                            return state;\
                                                                         }\
-                                                                            void sBox_layer(@Int(64) state, Sbox(4)[16] s)  {\
-                                                                                for(Int(4) i = 0; i < 16; i = i + 1){\
-                                                                                    state[(i * 4) : (i * 4) + 4] = (Bit[4]) s[state[(i * 4) : (i * 4) + 4]];\
-                                                                                }\
+                                                                        @Int(64) sBox_layer(@Int(64) state, Sbox(4)[16] s)  {\
+                                                                            for(Int(4) i = 0; i < 16; i = i + 1){\
+                                                                                state[(i * 4) : (i * 4) + 4] = (Bit[4]) s[state[(i * 4) : (i * 4) + 4]];\
                                                                             }\
+                                                                            return state;\
+                                                                        }\
                                                                         @Int(64)[32] generate_round_keys(@Int(80) key, Int(4)[16] sBox) {\
                                                                             @Int(64)[32] round_keys;\
                                                                             for(Int(5) round = 0; round < 32; round = round + 1)    {\
@@ -1046,21 +1054,12 @@ class test_IR_generation(unittest.TestCase):
                                                                                 key[76 : 79] = sBox[key[79:76]][0 : 4];\
                                                                                 key[15 : 19] = key[15 : 19] ^ round[0 : 5];\
                                                                             }\
-                                                                        }")), True)
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64)[32] generate_round_keys(@Int(80) key, Int(4)[16] sBox) {\
-                                                                            @Int(64)[32] round_keys;\
-                                                                            for(Int(5) round = 0; round < 32; round = round + 1)    {\
-                                                                                round_keys[round][0: 63] = key[16:79];\
-                                                                                key = key <<< 61;\
-                                                                                key[76 : 79] = (Bit[4]) sBox[key[76:79]];\
-                                                                                key[15 : 19] = key[15 : 19] ^ round[0 : 5];\
-                                                                            }\
+                                                                            return round_keys;\
                                                                         }")), True)
 
     def test_PRINCE_syntax(self):
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64) enc(@Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
                                                                             Int(64)[11] RC= [0x0000000000000000,\
                                                                                             0x13198a2e03707344,\
                                                                                             0xa4093822299f31d0,\
@@ -1077,10 +1076,11 @@ class test_IR_generation(unittest.TestCase):
                                                                                 state = state ^ key_1;\
                                                                                 state = state ^ RC[0];\
                                                                         }\
-                                                                        void sBox_layer(@Int(64) state, Sbox(4)[16] s)  {\
+                                                                        @Int(64) sBox_layer(@Int(64) state, Sbox(4)[16] s)  {\
                                                                             for(Int(4) i = 0; i < 16; i = i + 1){\
                                                                                 state[(i * 4) : (i * 4) + 4] = (Bit[4]) s[state[(i * 4) : (i * 4) + 4]];\
                                                                             }\
+                                                                            return state;\
                                                                         }\
                                                                         Bit[16] m1(Bit[16] state)   {\
                                                                             Bit[16] output;\
@@ -1100,6 +1100,7 @@ class test_IR_generation(unittest.TestCase):
                                                                             output[13] = state[1] ^ state[ 9] ^ state[13];\
                                                                             output[14] = state[2] ^ state[ 6] ^ state[14];\
                                                                             output[15] = state[3] ^ state[ 7] ^ state[11];\
+                                                                            return output;\
                                                                         }\
                                                                         \
                                                                         Bit[16] m0(Bit[16] state)   {\
@@ -1120,12 +1121,14 @@ class test_IR_generation(unittest.TestCase):
                                                                             output[13] = state[1] ^ state[ 5] ^ state[13];\
                                                                             output[14] = state[2] ^ state[ 6] ^ state[10];\
                                                                             output[15] = state[7] ^ state[11] ^ state[15];\
+                                                                            return output;\
                                                                         }\
-                                                                        void mPrime(@Int(64) state)    {\
+                                                                        @Int(64) mPrime(@Int(64) state)    {\
                                                                             state[0:15] = m0(state[0:15]);\
                                                                             state[16:31] = m1(state[16:31]);\
                                                                             state[32:47] = m1(state[32:47]);\
                                                                             state[48:63] = m0(state[48:63]);\
+                                                                            return state;\
                                                                         }")), True)
 
 # if __name__ == "__main__":
