@@ -152,14 +152,14 @@ class Semantic_analyser(object):
             raise ParseException(str(id_set.target.type) + len(id_set.target.indices) * "[]" + " cannot set " + str(id_set.target.type) + "[]")
 
     def validate_id_seq_set(self, id_set, node):
-        if len(id_set.target.indices) == self.sym_table.id(node.target.ID)['dimension']:
+        if len(id_set.target.indices) == self.sym_table.dimension(node.target.ID):
             if self.value_matches_expected(DATA_TYPE.seq_to_index_sel(id_set.target.type), id_set.value.type) is False:
                 raise ParseException(str(DATA_TYPE.seq_to_index_sel(id_set.target.type)) + " Cannot be set to " + str(id_set.value.type))
-        elif len(id_set.target.indices) > self.sym_table.id(node.target.ID)['dimension']:
+        elif len(id_set.target.indices) > self.sym_table.dimension(node.target.ID):
             if (id_set.target.type == DATA_TYPE.BS_SEQ_INT_VAL or id_set.target.type == DATA_TYPE.SEQ_INT_VAL) and (len(node.indices) == len(id_set.target.indices) + 1):
                 pass
             else:
-                raise ParseException(str(self.sym_table.id(node.target.ID)['type']) + str("[]" * int(self.sym_table.id(node.target.ID)['dimension'])) + " cannot be set to " + "[]" * len(id_set.target.indices))  # NOQA
+                raise ParseException(str(self.sym_table.id(node.target.ID)['type']) + str("[]" * self.sym_table.dimension(node.target.ID)) + " cannot be set to " + "[]" * len(id_set.target.indices))  # NOQA
         else:
             if self.value_matches_expected(id_set.target.target.type, id_set.value.type) is False:
                 raise ParseException(str(id_set.target.target.type) + " Cannot be set to " + str(id_set.value.type))
@@ -186,12 +186,14 @@ class Semantic_analyser(object):
             decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)))
 
         try:
-            if decl.constraints.value.type == DATA_TYPE.INT_VAL:
+            if decl.constraints.type == DATA_TYPE.INT_VAL:
                 if node.value is not None and self.value_matches_expected(decl.value.type, node.node_type) is False:
                     raise ParseException(str(decl.value.type) + " value not as expected for " + str(node.node_type) + " assignment")
             else:
                 raise ParseException("Number of bits must be an int literal")
-            self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
+            if decl.ID.name is not None:
+                self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
+                self.sym_table.id(node.ID)['constraints'] = decl.constraints.value
             # self.IR.add(decl)
             return decl
         except ParseException as details:
@@ -207,21 +209,23 @@ class Semantic_analyser(object):
             if node.value is not None:
                 if decl.value.type != DATA_TYPE.BIT_VAL:
                     return False
-            self.sym_table.add_bit_id(node.ID)
+            if node.ID is not None:
+                self.sym_table.add_bit_id(node.ID)
             # self.IR.add(decl)
             return decl
         except ParseException as details:
             print(details)
             return False
 
-    def analyse_seq_decl(self, node):
-        if node.type == DATA_TYPE.SEQ_INT_VAL or node.type == DATA_TYPE.BS_SEQ_INT_VAL:
-            return self.analyse_bit_cnst_seq(node)
-        elif node.type == DATA_TYPE.SEQ_BIT_VAL:
-            return self.analyse_bit_seq(node)
-        else:
-            print("Unknown Sequence Type")
-            return False
+    # def analyse_seq_decl(self, node):
+    #     print("HERE")
+    #     if node.type == DATA_TYPE.SEQ_INT_VAL or node.type == DATA_TYPE.BS_SEQ_INT_VAL:
+    #         return self.analyse_bit_cnst_seq(node)
+    #     elif node.type == DATA_TYPE.SEQ_BIT_VAL:
+    #         return self.analyse_bit_seq(node)
+    #     else:
+    #         print("Unknown Sequence Type")
+    #         return False
 
     def analyse_bit_seq(self, node):
         if node.value is None:
@@ -230,7 +234,9 @@ class Semantic_analyser(object):
             decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value))
             if decl.value.type != DATA_TYPE.SEQ_BIT_VAL:
                 raise ParseException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
-        self.sym_table.add_id(node.ID, decl.ID.type, len(decl.size))
+        if node.ID is not None:
+            self.sym_table.add_id(node.ID, decl.ID.type, len(decl.size))
+            self.sym_table.id(node.ID)['size'] = decl.size
         return decl
 
     def seq_value_dimension(self, seq_value, dimension=0):
@@ -260,8 +266,9 @@ class Semantic_analyser(object):
 
     def analyse_return_stmt(self, ast_node, func_decl):
         ret = Return(self.expr_type_is(ast_node.expr))
-        if ret.type != func_decl.return_value:
-            raise ParseException("Function " + str(func_decl.ID.name) + " returns " + str(ret.type) + ". requires return value " + str(func_decl.return_value))
+        if ret.type != func_decl.return_type:
+            raise ParseException("Function " + str(func_decl.ID.name) + " returns " + str(ret.type) +
+                                 ". requires return value " + str(func_decl.return_type))
         return ret
 
     def analyse_bit_cnst_seq(self, node):
@@ -279,7 +286,11 @@ class Semantic_analyser(object):
         # if node.value is not None:
         #     if decl.value.type != DATA_TYPE.SEQ_INT_VAL or decl.value.type != DATA_TYPE.BS_SEQ_INT_VAL:
         #         raise ParseException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
-        self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type), len(decl.size))
+        if node.ID is not None:
+            print(node.ID)
+            self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type), len(decl.size))
+            self.sym_table.id(node.ID)['constraints'] = decl.constraints.value
+            self.sym_table.id(node.ID)['size'] = decl.size
         # self.IR.add(decl)
         return decl
 
@@ -348,7 +359,7 @@ class Semantic_analyser(object):
                 IR_expression.append(self.expr_type_is(expr))
                 expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
             elif expr.node_type == DATA_TYPE.ID:
-                IR_expression.append(Name(expr.ID, self.sym_table.id_type(expr.ID)))
+                IR_expression.append(self.analyse_id(expr))
                 expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
             elif expr.node_type == DATA_TYPE.FUNCTION_CALL:
                 IR_expression.append(self.analyse_func_call(expr))
@@ -373,6 +384,19 @@ class Semantic_analyser(object):
         if len(IR_expression) != 1:
             raise ParseException("Internal Error with expression")
         return IR_expression[0]
+
+    def analyse_id(self, node):
+        ID = Name(node.ID, self.sym_table.id_type(node.ID))
+        node_type = self.sym_table.id_type(node.ID)
+        if DATA_TYPE.is_seq_type(node_type):
+            if node_type == DATA_TYPE.BS_SEQ_INT_VAL or node_type == DATA_TYPE.SEQ_INT_VAL:
+                ID.constraints = self.sym_table.id(node.ID)['constraints']
+                ID.constraints = self.sym_table.id(node.ID)['size']
+            else:
+                ID.constraints = self.sym_table.id(node.ID)['size']
+        elif DATA_TYPE.is_int_val(node_type):
+            ID.constraints = self.sym_table.id(node.ID)['constraints']
+        return ID
 
 
     def analyse_index_range(self, node):
@@ -417,21 +441,23 @@ class Semantic_analyser(object):
 
     def build_seq_index_ir(self, node, ir_indices):
         target_id = self.sym_table.id(node.ID)
-        if target_id['dimension'] > len(ir_indices):
+        print(target_id)
+        print(node.ID)
+        if self.sym_table.dimension(node.ID) > len(ir_indices):
             return Index_select(Name(node.ID, target_id['type']), ir_indices)
-        elif target_id['dimension'] == len(ir_indices):
+        elif self.sym_table.dimension(node.ID) == len(ir_indices):
             if self.is_range(ir_indices[-1]):
                 return Index_select(Name(node.ID, target_id['type']), ir_indices, target_id['type'])
             else:
                 return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.seq_to_index_sel(target_id['type']))
-        elif target_id['dimension'] < len(ir_indices):
-            if (target_id['type'] == DATA_TYPE.BS_SEQ_INT_VAL or target_id['type'] == DATA_TYPE.SEQ_INT_VAL) and (len(ir_indices) == target_id['dimension'] + 1):
+        elif self.sym_table.dimension(node.ID) < len(ir_indices):
+            if (target_id['type'] == DATA_TYPE.BS_SEQ_INT_VAL or target_id['type'] == DATA_TYPE.SEQ_INT_VAL) and (len(ir_indices) == self.sym_table.dimension(node.ID) + 1):
                 if self.is_range(ir_indices[-1]):
                     return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.SEQ_BIT_VAL)
                 else:
                     return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)    # Selecting a bit value of an integer element in an integer array
             else:
-                raise ParseException(str(target_id['type']) + "[]" * len(ir_indices) + " cannot be selected from " + str(target_id['type']) + (target_id['dimension'] * "[]"))
+                raise ParseException(str(target_id['type']) + "[]" * len(ir_indices) + " cannot be selected from " + str(target_id['type']) + (self.sym_table.dimension(node.ID) * "[]"))
 
     def clean_up_expr(self, IR_expressions, result_type):
         """Reorders collected expression nodes"""
@@ -573,20 +599,39 @@ class Semantic_analyser(object):
         else:
             return DATA_TYPE.INT_VAL
 
+    def build_ret_val(self, ast_node):
+        """Returns IR declaration node for AST return statement"""
+        if ast_node == DATA_TYPE.VOID:
+            return DATA_TYPE.VOID
+        if DATA_TYPE.is_int_val(DATA_TYPE.decl_to_value(ast_node.node_type)):
+            return self.analyse_int_decl(ast_node)
+        elif ast_node.node_type == DATA_TYPE.SEQ_INT_DECL or ast_node.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
+            return self.analyse_bit_cnst_seq(ast_node)
+        elif ast_node.node_type == DATA_TYPE.SEQ_BIT_DECL:
+            return self.analyse_bit_seq(ast_node)
+        elif ast_node.node_type == DATA_TYPE.BIT_DECL:
+            return self.analyse_bit_decl(ast_node)
+        else:
+            raise ParseException("Internal Error: Unrecognised return type")
+
     def analyse_func_decl(self, node):
         """Performs Semantic Analysis on function declaration and body, creating an IR node if successful"""
         self.sym_table.add_scope()
-        func_decl = Function_decl(node.ID, node.return_value)
+        ret_val = self.build_ret_val(node.return_value)
+        func_decl = Function_decl(node.ID, ret_val)
         self.sym_table.add_function(node.ID)
-        self.sym_table.add_function_return(node.ID, func_decl.return_value)
+        if func_decl.return_type != DATA_TYPE.VOID:
+            self.sym_table.add_function_return(node.ID, func_decl.return_type)
+        else:
+            self.sym_table.add_function_return(node.ID, func_decl.return_type)
         ret_pres = False
         for p in node.parameters:
             func_decl.parameters.append(self.AST_func_param_to_IR(p))
             self.sym_table.add_function_parameter(node.ID, func_decl.parameters[-1])
-            if DATA_TYPE.is_seq_type(DATA_TYPE.decl_to_value(p.node_type)):
-                self.sym_table.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type), len(func_decl.parameters[-1].size))
-            else:
-                self.sym_table.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type))
+            # if DATA_TYPE.is_seq_type(DATA_TYPE.decl_to_value(p.node_type)):
+            #     self.sym_table.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type), len(func_decl.parameters[-1].size))
+            # else:
+            #     self.sym_table.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type))
         for s in node.stmts:
             if s.node_type == DATA_TYPE.RETURN_STMT:
                 ret_pres = True
@@ -594,8 +639,8 @@ class Semantic_analyser(object):
             else:
                 func_decl.body.append(self.analyse_sub_stmt(s))
 
-        if func_decl.return_value != DATA_TYPE.VOID and ret_pres is False:
-            raise ParseException("Function " + str(func_decl.ID.name) + " requires return value " + str(func_decl.return_value))
+        if func_decl.return_type != DATA_TYPE.VOID and ret_pres is False:
+            raise ParseException("Function " + str(func_decl.ID.name) + " requires return value " + str(func_decl.return_type))
         self.sym_table.leave_scope()
         return func_decl
 
@@ -604,12 +649,20 @@ class Semantic_analyser(object):
         decl = None
         if old_decl.node_type == DATA_TYPE.INT_DECL or old_decl.node_type == DATA_TYPE.BS_INT_DECL:
             decl = Int_decl(old_decl.node_type, self.expr_type_is(old_decl.bit_constraints), Name(old_decl.ID, DATA_TYPE.decl_to_value(old_decl.node_type)))
+            self.sym_table.add_id(decl.ID.name, decl.ID.type)
+            self.sym_table.id(decl.ID.name)['constraints'] = decl.constraints
         elif old_decl.node_type == DATA_TYPE.SEQ_BIT_DECL:
             decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID)
+            self.sym_table.add_id(decl.ID.name, decl.ID.type)
+            self.sym_table.id(decl.ID.name)['size'] = decl.size
         elif old_decl.node_type == DATA_TYPE.SEQ_INT_DECL or old_decl.node_type == DATA_TYPE.BS_SEQ_INT_DECL or old_decl.node_type == DATA_TYPE.SBOX_DECL:
             decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID, constraints=self.expr_type_is(old_decl.bit_constraints))
+            self.sym_table.add_id(decl.ID.name, decl.ID.type)
+            self.sym_table.id(decl.ID.name)['constraints'] = decl.constraints
+            self.sym_table.id(decl.ID.name)['size'] = decl.size
         elif old_decl.node_type == DATA_TYPE.BIT_DECL:
             decl = Bit_decl(old_decl.ID)
+            self.sym_table.add_id(decl.ID.name, decl.ID.type)
         else:
             raise ParseException("Internal Error: Unknown Parameter Type " + str(old_decl.node_type))
         return decl

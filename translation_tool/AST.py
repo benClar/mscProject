@@ -194,21 +194,23 @@ class AST(object):
                 raise ParseException("Sbox type must be sequence of integers")
 
     def return_type(self, param):
+        # print(param)
         if param[0] == "@Int":
             if self.is_sequence(param):
-                return DATA_TYPE.BS_SEQ_INT_VAL
+                return Seq_decl_ast(DATA_TYPE.BS_SEQ_INT_DECL, None, size=param[2], constraints=param[1])
             else:
-                return DATA_TYPE.BS_INT_VAL
+                return Int_decl_ast(DATA_TYPE.BS_INT_DECL, None, param[1])
         elif param[0] == "Int":
             if self.is_sequence(param):
-                return DATA_TYPE.SEQ_INT_VAL
+                # print(param[1])
+                return Seq_decl_ast(DATA_TYPE.SEQ_INT_DECL, None, size=param[2], constraints=param[1])
             else:
-                return DATA_TYPE.INT_VAL
+                return Int_decl_ast(DATA_TYPE.INT_DECL, None, param[1])
         elif param[0] == "Bit":
             if self.is_sequence(param):
-                return DATA_TYPE.SEQ_BIT_VAL
+                return Seq_decl_ast(DATA_TYPE.SEQ_BIT_DECL, None, param[1])
             else:
-                return DATA_TYPE.BIT_VAL
+                return Bit_decl_ast(None)
         elif param[0] == "void":
             return DATA_TYPE.VOID
 
@@ -216,6 +218,7 @@ class AST(object):
         if 'seq_size' in param:
             return True
         return False
+
     def return_stmt(self, tokens):
         token = tokens[0]
         self.add_statement(return_stmt_ast(token[1]))
@@ -394,11 +397,15 @@ class Seq_decl_ast(object):
     def bit_constraints(self):
         return self._bit_constraints
 
+
 class Int_decl_ast(object):
 
     def __init__(self, decl_type, ID, bit_constraints, expr=None):
         self.node_type = decl_type
-        self._ID = ID_ast(ID)
+        if ID is not None:
+            self._ID = ID_ast(ID)
+        else:
+            self._ID = ID
         self._bit_constraints = Expr_ast(bit_constraints)
         if expr is not None:
             self._value = Expr_ast(expr)
@@ -407,7 +414,10 @@ class Int_decl_ast(object):
 
     @property
     def ID(self):
-        return self._ID.ID
+        if self._ID is not None:
+            return self._ID.ID
+        else:
+            return None
 
     @property
     def bit_constraints(self):
@@ -436,7 +446,10 @@ class Bit_decl_ast(object):
 
     @property
     def ID(self):
-        return self._ID.ID
+        if self._ID is not None:
+            return self._ID.ID
+        else:
+            return None
 
 
 class Expr_ast(object):

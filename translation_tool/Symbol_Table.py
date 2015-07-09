@@ -58,13 +58,13 @@ class Symbol_Table(object):
         if ID not in self.symbols.peek():
             self.symbols.peek()[ID] = {}
             self.symbols.peek()[ID]['type'] = id_type
-            if size is not None and DATA_TYPE.is_seq_type(id_type):
-                self.symbols.peek()[ID]['dimension'] = size
-            elif DATA_TYPE.is_seq_type(id_type) is False:
-                pass
-            else:
-                # traceback.print_stack(file=sys.stdout)
-                raise ParseException("Internal Error: " + str(id_type) + " " + ID + " Created with no dimension")
+            # if size is not None and DATA_TYPE.is_seq_type(id_type):
+            #     self.symbols.peek()[ID]['dimension'] = size
+            # elif DATA_TYPE.is_seq_type(id_type) is False:
+            #     pass
+            # else:
+            #     traceback.print_stack(file=sys.stdout)
+            #     raise ParseException("Internal Error: " + str(id_type) + " " + ID + " Created with no dimension")
 
         else:
             raise ParseException("Redeclaration of symbol")
@@ -80,6 +80,8 @@ class Symbol_Table(object):
     #     print(seq)
     #     self.table[scope][ID[0]]["dimension"] = seq
 
+    def dimension(self, ID):
+        return len(self.id(ID)['size'])
     def add_function(self, func_ID):
         if func_ID not in self.f_table:
             self.f_table[func_ID] = {}

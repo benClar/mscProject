@@ -1,6 +1,7 @@
 from enum import Enum
 from pyparsing import ParseException
-
+import traceback
+import sys
 
 class DATA_TYPE(Enum):
 
@@ -50,6 +51,7 @@ class DATA_TYPE(Enum):
         if type_input in sequence_types:
             return True
         return False
+
     def is_seq_type(type_input):
         sequence_types = [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.SBOX_DECL]
         if type_input in sequence_types:
@@ -80,6 +82,7 @@ class DATA_TYPE(Enum):
         elif type_input == DATA_TYPE.INT_DECL:
             return DATA_TYPE.INT_VAL
         else:
+            traceback.print_stack(file=sys.stdout)
             raise ParseException("Unknown Value Type")
 
     def seq_to_index_sel(type_input):
@@ -97,6 +100,13 @@ class DATA_TYPE(Enum):
             raise ParseException("Internal Errror: Tried to convert unknown type to sequence selection type")
 
 
+    def is_declaration(type_input):
+        declarations = [DATA_TYPE.INT_DECL, DATA_TYPE.BIT_DECL, DATA_TYPE.SEQ_BIT_DECL,
+                        DATA_TYPE.BS_SEQ_INT_DECL, DATA_TYPE.BS_INT_DECL, DATA_TYPE.SEQ_INT_DECL]
+        if type_input in declarations:
+            return True
+        return False
+
     def decl_to_value(type_input):
         if type_input == DATA_TYPE.BS_INT_DECL:
             return DATA_TYPE.BS_INT_VAL
@@ -113,4 +123,5 @@ class DATA_TYPE(Enum):
         elif type_input == DATA_TYPE.SBOX_DECL:
             return DATA_TYPE.SEQ_INT_VAL
         else:
+            traceback.print_stack(file=sys.stdout)
             raise ParseException("Unknown Value Type")

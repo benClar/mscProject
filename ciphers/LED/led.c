@@ -27,7 +27,7 @@ void run()  {
     KEY_SIZE_CNS = bitslice(KEY_SIZE,8);
     init_RC();
     init_mds();
-    int r = 0;
+    int r = 0; 
     for(r = 0; r < 32; r++)  {
         if(!r%4)    {
             addRoundKey(state,key);

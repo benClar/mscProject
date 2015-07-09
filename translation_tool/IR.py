@@ -14,15 +14,28 @@ class IR(object):
     def IR(self):
         return self._IR
 
+    def translate(self):
+        ret = ""
+        for node in self.IR:
+            ret += node.translate()
+        return ret
+
 
 class Function_decl(object):
 
     def __init__(self, ID, return_type):
-        self._ID = Name(ID, return_type)
-        self._return_value = self._ID.type
+        self._ID = Name(ID, None)
+        self._return_value = return_type
         self._parameters = []
         self._body = []
         self._node_type = DATA_TYPE.FUNC_DECL
+
+    @property
+    def return_type(self):
+        if self._return_value == DATA_TYPE.VOID:
+            return DATA_TYPE.VOID
+        else:
+            return self._return_value.ID.type
 
     @property
     def return_value(self):
@@ -43,7 +56,41 @@ class Function_decl(object):
     @property
     def ID(self):
         return self._ID
-    
+
+    def translate(self):
+        ret = ""
+        ret += self.translate_header()
+        ret += self.translate_body()
+        return ret
+
+    def translate_header(self):
+        if self.return_value == DATA_TYPE.VOID:
+            return "void " + self.translate_name()
+        elif self.return_value.node_type == DATA_TYPE.BS_INT_DECL:
+            return "uint32_t (*" + self.translate_name() + self.translate_parameters() + ")[" + self.return_value.constraints.translate() + "]"
+
+    def translate_body(self):
+        ret = "{ \n"
+        for stmt in self.body:
+            try:
+                ret += "\t" + stmt.translate()
+            except TypeError as details:
+                print(str(details) + " " + str(stmt.node_type))
+            ret += ";\n"
+        ret += "}\n \n"
+        return ret
+
+    def translate_parameters(self):
+        ret = "("
+        for p in self.parameters:
+            ret += p.translate_as_parameter()
+            ret += ", "
+        ret = ret[:-3]
+        ret += ")"
+        return ret
+
+    def translate_name(self):
+        return self.ID.translate()
 
 
 class If_stmt(object):
@@ -63,6 +110,7 @@ class If_stmt(object):
 
     def add_stmt(self, stmt):
         self._body.append(stmt)
+
 
 class Element_range(object):
 
@@ -204,6 +252,7 @@ class Set(object):
     def value(self):
         return self._value
 
+
 class Return(object):
     def __init__(self, expr):
         self._target = expr
@@ -217,6 +266,9 @@ class Return(object):
     @property
     def type(self):
         return self._type
+
+    def translate(self):
+        return "return " + self.target.translate()
 
 
 class Seq_decl(object):
@@ -247,6 +299,85 @@ class Seq_decl(object):
     @property
     def constraints(self):
         return self._constraints
+
+    def translate(self):
+        return self.translate_type() + " " + self.ID.translate() + self.translate_size()
+        # if self.node_type == DATA_TYPE.SEQ_INT_DECL:
+        #     return self.translate_int_seq()
+        # elif self.node_type == DATA_TYPE.SEQ_BIT_DECL:
+        #     return self.translate_bit_seq()
+        # elif self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
+        #     return self.translate_bs_int_seq()
+        # else:
+        #     raise ParseException("Translation of Unknown Sequence Type attempted")      
+
+    def translate_as_parameter(self):
+        if self.node_type == DATA_TYPE.SEQ_INT_DECL:
+            return self.translate_int_seq_param()
+        elif self.node_type == DATA_TYPE.SEQ_BIT_DECL:
+            return self.translate_bit_seq_param()
+        elif self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
+            return self.translate_bs_int_seq_param()
+        else:
+            raise ParseException("Translation of Unknown Sequence Type attempted")
+
+    def translate_int_seq_param(self):
+        pass
+
+    def translate_bs_int_seq_param(self):
+        pass
+
+    def translate_bit_seq_param(self):
+        pass
+
+    def translate_int_seq(self):
+        if self.size_is_literal():
+            return self.translate_type() + " " + self.ID.translate() + self.translate_size()
+        else:
+            self.translate_variable_size()
+
+    def translate_size(self):
+        if self.size_is_literal():
+            ret = self.translate_constant_size()
+        else:
+            ret = self.translate_variable_size()
+        return ret
+
+    def translate_variable_size():
+        raise ParseException("Variable size Arrays not yet supported")
+
+    def translate_constant_size(self):
+        ret = ""
+        for expr in self.size:
+            ret += "[" + expr.translate() + "]"
+        if self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
+            ret += "[" + self.constraints.translate() + "]"
+        return ret
+
+    def size_is_literal(self):
+        for expr in self.size:
+            if expr.node_type == DATA_TYPE.INT_LITERAL:
+                pass
+            else:
+                return False;
+        return True
+
+    def translate_type(self):
+        if self.node_type == DATA_TYPE.SEQ_INT_DECL or DATA_TYPE.BS_SEQ_INT_DECL:
+            return "uint32_t"
+        elif self.node_type == DATA_TYPE.SEQ_BIT_DECL:
+            return "bool"
+        else:
+            raise ParseException("Translation of Unknown sequence type attempted")
+
+    def translate_bs_int_seq(self):
+        if self.size_is_literal():
+            return self.translate_type() + " " + self.ID.translate() + self.translate_size()
+        else:
+            self.translate_variable_size()
+
+    def translate_bit_seq(self):
+        pass
 
 
 class Seq_val(object):
@@ -293,12 +424,24 @@ class Bit_decl(object):
     @property
     def ID(self):
         return self._ID
-    
+
+    def translate(self):
+        return "bool " + self.ID.translate() + self.translate_value()
+
+    def translate_value(self):
+        if self.value is None:
+            return ""
+        else:
+            return " = " + self.value.translate()
+
+    def translate_as_parameter(self):
+        return "bool " + self.ID.translate()
+
 
 class Int_decl(object):
 
     def __init__(self, n_type, constraints, var_id, value=None):
-        self._constraints = Int_literal(constraints)
+        self._constraints = constraints
         self._ID = var_id
         self._value = value
         self._node_type = n_type
@@ -319,6 +462,27 @@ class Int_decl(object):
     def value(self):
         return self._value
 
+    def translate(self):
+        return self.translate_as_stmt()
+
+    def translate_value(self):
+        if self.value is None:
+            return ""
+        else:
+            return " = " + self.value.translate()
+
+    def translate_as_stmt(self):
+        if self.node_type == DATA_TYPE.BS_INT_DECL:
+            return "uint32_t " + self.ID.name + "[" + self.constraints.translate() + "]" + self.translate_value()
+        elif self.node_type == DATA_TYPE.INT_DECL:
+            return "uint32_t " + self.ID.name
+
+    def translate_as_parameter(self):
+        if self.node_type == DATA_TYPE.BS_INT_DECL:
+            return "uint32_t (*" + self.ID.name + ")[" + self.constraints.translate() + "] "
+        elif self.node_type == DATA_TYPE.INT_DECL:
+            return "uint32_t " + self.ID.name
+
 
 class Int_literal(object):
 
@@ -326,6 +490,9 @@ class Int_literal(object):
         self.value = value
         self.type = DATA_TYPE.INT_VAL
         self.node_type = DATA_TYPE.INT_LITERAL
+
+    def translate(self):
+        return self.value
 
 
 class Bit_literal(object):
@@ -335,6 +502,9 @@ class Bit_literal(object):
         self.type = DATA_TYPE.BIT_VAL
         self.node_type = DATA_TYPE.BIT_LITERAL
 
+    def translate(self):
+        return self.value
+
 
 class Name(object):
 
@@ -342,6 +512,16 @@ class Name(object):
         self._name = name
         self._type = id_type
         self.node_type = DATA_TYPE.ID
+        self._constraints = None
+        self._size = None
+
+    @property
+    def size(self):
+        return self._size
+
+    @property
+    def constraints(self):
+        return self._constraints
 
     @property
     def name(self):
@@ -351,10 +531,16 @@ class Name(object):
     def type(self):
         return self._type
 
-    @type.setter
-    def type(self, value):
-        self._type = value
+    @constraints.setter
+    def constraints(self, value):
+        self._constraints = value
 
+    @size.setter
+    def size(self, value):
+        self.size = value
+
+    def translate(self):
+        return self.name
 
 class Call(object):
 
@@ -407,8 +593,39 @@ class For_loop(object):
     def body(self):
         return self._body
 
+    def translate(self):
+        ret = ""
+        ret += self.translate_initializer()
+        ret += ";"
+        ret += self.translate_terminator()
+        ret += ";"
+        ret += self.translate_increment()
+        ret += ") \n {"
+
+    def translate_initializer(self):
+        pre = ""
+        ret = "for("
+        for stmt in self.initializer:
+            if DATA_TYPE.is_declaration(stmt.node_type):
+                pre += stmt.translate() + ";\n"
+                print(pre)
+            else:
+                ret += stmt.translate()
+
+        return pre + ret
+
+    def translate_increment(self):
+        pass
+
+    def translate_terminator(self):
+        if len(self.increment) > 1:
+            raise ParseException("Internal Errror: Several stmts in increment in for loop.")
+        return self.terminator[0].translate()
+
 
 class Binary_operation(object):
+
+    operations_lookup = {DATA_TYPE.COMP_OP: lambda self: self.translate_comparisons()}
 
     def __init__(self, op_type, operator):
         self._node_type = op_type
@@ -452,5 +669,13 @@ class Binary_operation(object):
     @type.setter
     def type(self, value):
         self._type = value
+
+    def translate_comparisons(self):
+        print(self.left.type)
+        print(self.right.type)
+
+    def translate(self):
+        Binary_operation.operations_lookup[self.node_type](self)
+
 
 
