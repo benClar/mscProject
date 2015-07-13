@@ -589,7 +589,7 @@ class Semantic_analyser(object):
         if expression['OP'] is DATA_TYPE.SHIFT_OP:
             return {'OPERAND_0': expression['OPERAND_0']}
         if expression['OP'] is DATA_TYPE.BITWISE_OP:
-            return {'OPERAND_0': expression['OPERAND_0']}
+            return {'OPERAND_0': self.reduce_bitwise_op(expression)}
         if expression['OP'] is DATA_TYPE.COMP_OP:
             return {'OPERAND_0': DATA_TYPE.BIT_VAL}
         if expression['OP'] is DATA_TYPE.LOG_OP:
@@ -602,6 +602,12 @@ class Semantic_analyser(object):
             return DATA_TYPE.BS_INT_VAL
         else:
             return DATA_TYPE.INT_VAL
+
+    def reduce_bitwise_op(self, expression):
+        if expression['OPERAND_0'] == DATA_TYPE.BS_INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL:
+            return DATA_TYPE.BS_INT_VAL
+        else:
+            return expression['OPERAND_0']
 
     def build_ret_val(self, ast_node):
         """Returns IR declaration node for AST return statement"""

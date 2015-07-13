@@ -917,73 +917,99 @@ from DATA_TYPE import DATA_TYPE
 #                                                                             return state;\
 #                                                                         }")), False)
 
-class File_comparison(object):
+# class File_comparison(object):
 
-    def comp(test_file, par):
-        File_comparison.write(test_file, par)
-        File_comparison.compare(test_file, par)
+#     def comp(test_file, par):
+#         File_comparison.write(test_file, par)
+#         File_comparison.compare(test_file, par)
 
-    def write(test_file, par):
-        with open("tests/" + test_file, "w") as text_file:
-            print(par.semantic_analyser.IR.translate(), file=text_file)
+#     def write(test_file, par):
+#         with open("tests/" + test_file, "w") as text_file:
+#             print(par.semantic_analyser.IR.translate(), file=text_file)
 
-    def compare(test_file, par):
-        expected_text_file = open("tests/expected/expected_" + test_file, "r")
-        output_text_file = open("tests/" + test_file, "r")
-        assert_equals(expected_text_file.read(), output_text_file.read())
-        expected_text_file.close()
-        output_text_file.close()
+#     def compare(test_file, par):
+#         expected_text_file = open("tests/expected/expected_" + test_file, "r")
+#         output_text_file = open("tests/" + test_file, "r")
+#         assert_equals(expected_text_file.read(), output_text_file.read())
+#         expected_text_file.close()
+#         output_text_file.close()
 
-    def write_expected(test_file, par):
-        with open("tests/expected/expected_" + test_file, "w") as text_file:
-            print(par.semantic_analyser.IR.translate(), file=text_file)
+#     def write_expected(test_file, par):
+#         with open("tests/expected/expected_" + test_file, "w") as text_file:
+#             print(par.semantic_analyser.IR.translate(), file=text_file)
 
 
 class test_translation(unittest.TestCase):
 
-        def test_LFSR_translation(self):
-            par = Parser()
-            assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
-                                                                            Int(8) output;\
-                                                                            Int(8) input;\
-                                                                            for(Int(8) i = 0; i < 32; i = i + 1) {\
-                                                                                output[0] = state[0];\
-                                                                                input[0] =  state[0] ^ state[4] ^ state[5] ^ state[6];\
-                                                                                state = state << 1;\
-                                                                                state[7] = input[0];\
-                                                                             }\
-                                                                             return state;\
-                                                                        }")), True)  # NOQA
-            File_comparison.comp("LFSR_1.txt", par)
+#         def test_LFSR_translation(self):
+#             par = Parser()
+#             assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
+#                                                                             Int(8) output;\
+#                                                                             Int(8) input;\
+#                                                                             for(Int(8) i = 0; i < 32; i = i + 1) {\
+#                                                                                 output[0] = state[0];\
+#                                                                                 input[0] =  state[0] ^ state[4] ^ state[5] ^ state[6];\
+#                                                                                 state = state << 1;\
+#                                                                                 state[7] = input[0];\
+#                                                                              }\
+#                                                                              return state;\
+#                                                                         }")), True)  # NOQA
+#             File_comparison.comp("LFSR_1.txt", par)
 
 
-        def test_PRESENT_translation(self):
+#         def test_PRESENT_translation(self):
+#             par = Parser()
+#             assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64) pLayer(@Int(64) state) {\
+#                                                                                 Int(8) target_bit;\
+#                                                                                 @Int(64) temp = state;\
+#                                                                                 for(Int(8) bit = 0; bit < 64; bit = bit + 1)    {\
+#                                                                                 target_bit = (16*bit) % 63;\
+#                                                                                 if(bit == 63)   {\
+#                                                                                     target_bit = 63;\
+#                                                                                 }\
+#                                                                                 state[target_bit] = temp[bit];\
+#                                                                             }\
+#                                                                             return state;\
+#                                                                             }\
+#                                                                             ")), True)
+#             File_comparison.comp("PRESENT_1.txt", par)
+#             par = Parser()
+#             assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64)[32] generate_round_keys(@Int(64) key) {\
+#                                                                                 @Int(64)[32] round_keys;\
+#                                                                                 for(Int(8) round = 0; round < 32; round = round + 1)    {\
+#                                                                                 round_keys[round][0: 63] = key[16:79];\
+#                                                                                 key = key <<< 61;\
+#                                                                                 key[15 : 19] = key[15 : 19] ^ round[0 : 5];\
+#                                                                                  }\
+#                                                                                 return round_keys;\
+#                                                                             }\
+#                                                                             ")), True)
+#             File_comparison.comp("PRESENT_2.txt", par)
+
+        def test_LED_translation(self):
             par = Parser()
-            assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64) pLayer(@Int(64) state) {\
-                                                                                Int(8) target_bit;\
-                                                                                @Int(64) temp = state;\
-                                                                                for(Int(8) bit = 0; bit < 64; bit = bit + 1)    {\
-                                                                                target_bit = (16*bit) % 63;\
-                                                                                if(bit == 63)   {\
-                                                                                    target_bit = 63;\
+            # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) gmMult(@Int(8) a, @Int(8) b) {\
+            #                                                                 Int(8) g = 0;\
+            #                                                                 for(Int(8) i = 0; i < 4; i = i + 1)   {\
+            #                                                                     if(((Bit[4]) b)[0] == True)   {\
+            #                                                                         g = g ^ a;\
+            #                                                                     }\
+            #                                                                     a = a << 1;\
+            #                                                                     if(((Bit[4]) a)[3] == True)   {\
+            #                                                                         a = a ^ 0x13;\
+            #                                                                     }\
+            #                                                                     b = b >> 1;\
+            #                                                                 }\
+            #                                                                 return g;\
+            #                                                             }\
+            #                                                             ")), True)
+            assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) gmMult(@Int(8) a, @Int(8) b) {\
+                                                                            @Int(8) g = 0;\
+                                                                                if(((Bit[4]) b)[0] == True)   {\
+                                                                                    g = g ^ a;\
                                                                                 }\
-                                                                                state[target_bit] = temp[bit];\
-                                                                            }\
-                                                                            return state;\
-                                                                            }\
-                                                                            ")), True)
-            File_comparison.comp("PRESENT_1.txt", par)
-            par = Parser()
-            assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64)[32] generate_round_keys(@Int(64) key) {\
-                                                                                @Int(64)[32] round_keys;\
-                                                                                for(Int(8) round = 0; round < 32; round = round + 1)    {\
-                                                                                round_keys[round][0: 63] = key[16:79];\
-                                                                                key = key <<< 61;\
-                                                                                key[15 : 19] = key[15 : 19] ^ round[0 : 5];\
-                                                                                 }\
-                                                                                return round_keys;\
-                                                                            }\
-                                                                            ")), True)
-            File_comparison.comp("PRESENT_2.txt", par)
-
+                                                                            return g;\
+                                                                        }\
+                                                                        ")), True)
+            print(par.semantic_analyser.IR.translate())
 

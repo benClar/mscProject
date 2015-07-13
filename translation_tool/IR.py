@@ -86,11 +86,7 @@ class Function_decl(object):
     def translate_body(self):
         ret = "{ \n"
         for stmt in self.body:
-            try:
-                ret += stmt.translate()
-            except TypeError as details:
-                print("ERROR " + str(details) + " " + str(stmt.node_type))
-        ret += "\n"
+            ret += stmt.translate()
         return ret
 
     def translate_parameters(self):
@@ -106,7 +102,7 @@ class Function_decl(object):
         return_type = self.return_value.ID.type
         if DATA_TYPE.is_seq_type(return_type) or return_type == DATA_TYPE.BS_INT_VAL:
             return "(" + "*" + self.ID.translate()
-        elif return_type == DATA_TYPE.INT_DECL or return_type == DATA_TYPE.BIT_DECL:
+        elif return_type == DATA_TYPE.INT_VAL or return_type == DATA_TYPE.BIT_VAL:
             return self.ID.translate()
         else:
             raise ParseException("Internal error: Unknown return type")
@@ -140,7 +136,7 @@ class If_stmt(object):
     def translate_body(self):
         ret = ""
         for stmt in self.body:
-            ret += stmt.translate() + "\n"
+            ret += stmt.translate()
         return ret
 
 
@@ -168,6 +164,10 @@ class Cast(object):
         self._cast_target = c_target
         self._cast_op = c_op
         self.node_type = DATA_TYPE.CAST
+
+    def translate(self):
+        return self.operation.translate(self.target)
+
     @property
     def type(self):
         return self._cast_op.type
@@ -192,8 +192,22 @@ class Cast_operation(object):
         if len(size) > 0:
             self._seq_size = size
         else:
-            self._constraints = None
+            self._seq_size = None
         self.node_type = DATA_TYPE.CAST_OP
+
+    def translate(self, target):
+        if self.type == DATA_TYPE.SEQ_BIT_VAL:
+            return self.translate_bit_seq_cast(target)
+        elif self.type == DATA_TYPE.INT_VAL:
+            raise ParseException("INT VAL Cast not yet been done " + str(self.type))
+
+    def translate_bit_seq_cast(self, target):
+        if target.type == DATA_TYPE.INT_VAL:
+            return "int_to_bit_seq(" + target.translate() + ", " + self.size[0].translate() + ")"
+        elif target.type == DATA_TYPE.BS_INT_VAL:
+            return target.translate()
+        else:
+            raise ParseException("Unknown cast target type for bit seq cast " + str(target.type))
 
     @property
     def seq_size(self):
@@ -222,6 +236,8 @@ class Index_select(object):
     def translate(self):
         if self.target.type == DATA_TYPE.INT_VAL and self.type == DATA_TYPE.BIT_VAL:
             return self.translate_int_bit_select()
+        elif self.target.type == DATA_TYPE.SEQ_BIT_VAL and self.type == DATA_TYPE.BIT_VAL:
+            return self.select_bit_from_bit_seq()
         if self.target.type == DATA_TYPE.INT_VAL and self.type == DATA_TYPE.SEQ_BIT_VAL:
             if self.is_range():
                 return self.extract_bit_range()
@@ -234,6 +250,9 @@ class Index_select(object):
                 return "(" + self.target.translate() + ")"
             return self.target.translate()
 
+    def select_bit_from_bit_seq(self):
+        assert len(self.indices[-1]) == 1, "assuming single int val for bit selection"
+        return self.target.translate() + self.translate_selection_dim() + "[" + self.indices[-1][0].translate() + "]"
 
     def extract_bit_range(self):
         """Returns Bit-sliced value from int val range operation"""
@@ -357,8 +376,12 @@ class Set(object):
                 ret += self.translate_set_sequence()
             else:
                 print("SETTING BIT/ ELEMENT")
-        else:
+        elif self.target.type == DATA_TYPE.INT_VAL and self.value.type == DATA_TYPE.BS_INT_VAL:
+            return self.value.translate()
+        elif self.target.type == self.value.type:
             ret += self.target.translate() + " = " + self.value.translate()
+        else:
+            raise ParseException("Unknown assignment of" + str(self.value.type) + " to " + str(self.target.type))
         if end: 
             ret += ";\n"
         return ret
@@ -434,7 +457,7 @@ class Return(object):
         return self._type
 
     def translate(self):
-        return "return " + self.target.translate() + ";"
+        return "return " + self.target.translate() + ";\n"
 
 
 class Seq_decl(object):
@@ -658,10 +681,9 @@ class Int_decl(object):
     def translate_as_stmt(self):
         ret = ""
         if self.node_type == DATA_TYPE.BS_INT_DECL:
-            ret = self.translate_type() + self.ID.name + "[" + self.constraints.translate() + "]" + ";\n"
-            ret += self.translate_value()
+            ret = self.translate_type() + self.ID.translate() + "[" + self.constraints.translate() + "]" + self.translate_value() + ";\n"
         elif self.node_type == DATA_TYPE.INT_DECL:
-            ret = self.translate_type() + self.ID.name + self.translate_value() + ";\n"
+            ret = self.translate_type() + self.ID.translate() + self.translate_value() + ";\n"
         return ret
 
     def translate_type(self):
@@ -924,9 +946,24 @@ class Binary_operation(object):
 
     def translate_bitwise(self):
         if self.right.type == DATA_TYPE.BIT_VAL and self.left.type == DATA_TYPE.BIT_VAL:
-            return self.translate_int_val_bitwise()
-        if self.right.type == DATA_TYPE.SEQ_BIT_VAL and self.left.type == DATA_TYPE.SEQ_BIT_VAL:
+            return self.translate_bit_val_bitwise()
+        elif self.right.type == DATA_TYPE.SEQ_BIT_VAL and self.left.type == DATA_TYPE.SEQ_BIT_VAL:
             return self.translate_bit_seq_bitwise()
+        elif DATA_TYPE.is_int_val(self.left.type) and DATA_TYPE.is_int_val(self.right.type):
+            return self.translate_int_val_bitwise()
+
+    def translate_int_val_bitwise(self):
+        ret = ""
+        if self.left.type == DATA_TYPE.BS_INT_VAL and self.right.type != DATA_TYPE.BS_INT_VAL:
+            ret += "bitwise_bs(" + self.left.translate() + ", " + "bitslice(" + self.right.translate() + ", " + self.right.constraints.translate() +\
+                "), \"" + self.operator + "\")"
+        elif self.left.type != DATA_TYPE.BS_INT_VAL and self.right.type == DATA_TYPE.BS_INT_VAL:
+            ret += "bitwise_bs(" + "bitslice(" + self.left.translate() + "," + self.left.constraints + "), " + self.right.translate() + ", \"" + self.operator + "\" )"
+        elif self.left.type != DATA_TYPE.BS_INT_VAL and self.right.type != DATA_TYPE.BS_INT_VAL:
+            ret += self.left.translate() + " \"" + self.operator + "\" " + self.right.translate()
+        else:
+            ret += "bitwise_bs(" + self.left.translate() + ", " + self.right.translate() + ", \"" + self.operator + "\")"
+        return ret
 
     def translate_bit_seq_bitwise(self):
         return "seq_bitwise(" + self.left.translate() + ", " + self.right.translate() + ", " + "\"" + self.operator + "\"" + ")"
@@ -938,17 +975,22 @@ class Binary_operation(object):
     def translate_comparisons(self):
         if DATA_TYPE.is_int_val(self.right.type) and DATA_TYPE.is_int_val(self.left.type):
             return self.translate_int_val_compare()
+        if self.left.type == DATA_TYPE.BIT_VAL and self.right.type == DATA_TYPE.BIT_VAL:
+            return self.translate_bit_compare()
 
-    def translate_int_val_bitwise(self):
+    def translate_bit_compare(self):
+        return self.left.translate() + " " + self.operator + " " + self.right.translate()
+
+    def translate_bit_val_bitwise(self):
         ret = self.left.translate() + " " + self.operator + " " + self.right.translate()
         ret = "(" + ret + ")"
         return ret
 
     def translate_int_val_arithmetic(self):
         if self.right.type == DATA_TYPE.BS_INT_VAL and self.left.type != DATA_TYPE.BS_INT_VAL:
-            ret = "arith_bs(bitslice(" + self.left.translate() + "," + self.left.constraints() + ")," + self.right.translate() + "," + self.operator + ")"
+            ret = "arith_bs(bitslice(" + self.left.translate() + "," + self.left.constraints.translate() + ")," + self.right.translate() + "," + self.operator + ")"
         elif self.left.type == DATA_TYPE.BS_INT_VAL and self.right.type != DATA_TYPE.BS_INT_VAL:
-            ret = "arith_bs(" + self.left.translate() + "," + "bitslice(" + self.right.translate() + "," + self.right.constraints() + ")" + "," + self.operator + ")"
+            ret = "arith_bs(" + self.left.translate() + "," + "bitslice(" + self.right.translate() + "," + self.right.constraints.translate() + ")" + "," + self.operator + ")"
         elif self.left.type == DATA_TYPE.BS_INT_VAL and self.right.type == DATA_TYPE.BS_INT_VAL:
             ret = "arith_bs(" + self.left.translate() + "," + self.right.constraints() + "," + self.operator + ")"
         else:
@@ -957,15 +999,14 @@ class Binary_operation(object):
 
     def translate_int_val_compare(self):
         if self.right.type == DATA_TYPE.BS_INT_VAL and self.left.type != DATA_TYPE.BS_INT_VAL:
-            ret = "compare_bs(bitslice(" + self.left.translate() + "," + self.left.constraints() + ")," + self.right.translate() + "," + self.operator + ")"
+            ret = "compare_bs(bitslice(" + self.left.translate() + "," + self.left.constraints.translate() + ")," + self.right.translate() + "," + self.operator + ")"
         elif self.left.type == DATA_TYPE.BS_INT_VAL and self.right.type != DATA_TYPE.BS_INT_VAL:
-            ret = "compare_bs(" + self.left.translate() + "," + "bitslice(" + self.right.translate() + "," + self.right.constraints() + ")" + "," + self.operator + ")"
+            ret = "compare_bs(" + self.left.translate() + "," + "bitslice(" + self.right.translate() + "," + self.right.constraints.translate() + ")" + "," + self.operator + ")"
         else:
             ret = self.left.translate() + " " + self.operator + " " + self.right.translate()
         return ret
 
     def translate(self):
         return Binary_operation.operations_lookup[self.node_type](self)
-
 
 
