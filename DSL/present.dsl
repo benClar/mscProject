@@ -40,10 +40,10 @@ sBox_layer(Bit[] state, Bit[] sBox)	{
 @Int(64)[32] generate_round_keys(@Int(80) key, Int(4)[16] sBox)	{
 	@Int(64)[32] round_keys;
 	for(Int(5) round = 0; round < 32; round = round + 1)	{
-		round_keys[round] = (Bit[80]) key[79:16];
+		round_keys[round] = key[16:79];
 		key = key <<< 61;
-		((Bit[80]) key)[79 : 76] = sBox.sBox(((Bit[80]) key)[79 : 76]);
-		((Bit[80]) key)[19 : 15] = ((Bit[80]) key)[19 : 15] ^ (Bit[5]) round;
+		key[76 : 79] = sBox.sBox[key[79:76]];
+		key[15 : 19] = key[15 : 19] ^ round[0 : 5];
 	}
 	return round_keys;
 }

@@ -1,0 +1,13 @@
+uint32_t (*generate_round_keys(uint32_t key[64]))[64]{ 
+uint32_t round_keys[32][64]; 
+uint8_t round = 0;
+
+for(; round < 32; round = round + 1) { 
+sequence_assignment(round_keys[round],extract_range(key, 16, 79), 0, 63, 16, 79);
+key = shift(key, 64, 61, "<<<");
+sequence_assignment(key,seq_bitwise(extract_range(key, 15, 19), extract_bit_range(round, 0, 5), "^"), 15, 19, 0, 19-15);
+
+} 
+return round_keys;
+}
+

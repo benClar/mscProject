@@ -1,0 +1,15 @@
+uint32_t  (*lfsr(uint32_t state[8])[8]{ 
+uint8_t output;
+uint8_t input;
+uint8_t i = 0;
+
+for(; i < 32; i = i + 1) { 
+output &= (state[0] << 0);
+input &= ((((state[0] ^ state[4]) ^ state[5]) ^ state[6]) << 0);
+state = shift(state, 8, 1, "<<");
+state[7] = ((input >> 0) & 0x1);
+
+} 
+return state;
+}
+

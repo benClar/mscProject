@@ -287,7 +287,6 @@ class Semantic_analyser(object):
         #     if decl.value.type != DATA_TYPE.SEQ_INT_VAL or decl.value.type != DATA_TYPE.BS_SEQ_INT_VAL:
         #         raise ParseException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
         if node.ID is not None:
-            print(node.ID)
             self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type), len(decl.size))
             self.sym_table.id(node.ID)['constraints'] = decl.constraints.value
             self.sym_table.id(node.ID)['size'] = decl.size
@@ -398,7 +397,6 @@ class Semantic_analyser(object):
             ID.constraints = self.sym_table.id(node.ID)['constraints']
         return ID
 
-
     def analyse_index_range(self, node):
         start = self.expr_type_is(node.start)
         finish = self.expr_type_is(node.finish)
@@ -433,16 +431,20 @@ class Semantic_analyser(object):
     def build_int_index_ir(self, node, ir_indices):
         target_id = self.sym_table.id(node.ID)
         if self.is_range(ir_indices[-1]):
-            return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.SEQ_BIT_VAL)
+            index_sel = Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.SEQ_BIT_VAL)
+            index_sel.target.constraints = self.sym_table.id(node.ID)['constraints']
+            return index_sel
         elif len(ir_indices) == 1:
-            return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)
+            index_sel = Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)
+            index_sel.target.constraints = self.sym_table.id(node.ID)['constraints']
+            return index_sel
         elif (len(ir_indices) > 1 and DATA_TYPE.is_int_val(self.sym_table.id(node.ID)['type'])):
             raise ParseException("Cannot select 2d element from integer")
 
     def build_seq_index_ir(self, node, ir_indices):
         target_id = self.sym_table.id(node.ID)
-        print(target_id)
-        print(node.ID)
+        # print(target_id)
+        # print(node.ID)
         if self.sym_table.dimension(node.ID) > len(ir_indices):
             return Index_select(Name(node.ID, target_id['type']), ir_indices)
         elif self.sym_table.dimension(node.ID) == len(ir_indices):
@@ -563,6 +565,8 @@ class Semantic_analyser(object):
 
     def comp_expr_valid(self, expression):
         if expression['OPERAND_0'] == expression['OPERAND_2']:
+            return True
+        elif DATA_TYPE.is_int_val(expression['OPERAND_0']) and DATA_TYPE.is_int_val(expression['OPERAND_2']):
             return True
 
     def bitwise_expr_valid(self, expression):

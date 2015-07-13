@@ -44,7 +44,8 @@ class DATA_TYPE(Enum):
     SEQ_SELECT = 37,
     LOG_OP = 38,
     CAST_OP = 39,
-    SBOX_DECL = 40
+    SBOX_DECL = 40,
+    INDEX_SELECT = 41
 
     def is_int_val(type_input):
         sequence_types = [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL]

@@ -82,6 +82,7 @@ class Symbol_Table(object):
 
     def dimension(self, ID):
         return len(self.id(ID)['size'])
+
     def add_function(self, func_ID):
         if func_ID not in self.f_table:
             self.f_table[func_ID] = {}
