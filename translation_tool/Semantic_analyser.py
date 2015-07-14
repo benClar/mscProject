@@ -6,7 +6,7 @@ from pyparsing import ParseException
 from DATA_TYPE import DATA_TYPE
 from IR import Int_literal, Name, Int_decl, Set, Bit_literal, Binary_operation,\
     Cast_operation, Cast, IR, Call, Bit_decl, Seq_decl, Seq_val, If_stmt, For_loop,\
-    Function_decl, Index_select, Index_select, Element_range, Return
+    Function_decl, Index_select, Element_range, Return, Int_literal
 import sys
 
 
@@ -193,7 +193,7 @@ class Semantic_analyser(object):
                 raise ParseException("Number of bits must be an int literal")
             if decl.ID.name is not None:
                 self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
-                self.sym_table.id(node.ID)['constraints'] = decl.constraints.value
+                self.sym_table.id(node.ID)['constraints'] = decl.constraints
             # self.IR.add(decl)
             return decl
         except ParseException as details:
@@ -211,6 +211,7 @@ class Semantic_analyser(object):
                     return False
             if node.ID is not None:
                 self.sym_table.add_bit_id(node.ID)
+                self.sym_table.id(node.ID)['constraints'] = None
             # self.IR.add(decl)
             return decl
         except ParseException as details:
@@ -237,6 +238,7 @@ class Semantic_analyser(object):
         if node.ID is not None:
             self.sym_table.add_id(node.ID, decl.ID.type, len(decl.size))
             self.sym_table.id(node.ID)['size'] = decl.size
+            self.sym_table.id(node.ID)['constraints'] = None
         return decl
 
     def seq_value_dimension(self, seq_value, dimension=0):
@@ -288,7 +290,7 @@ class Semantic_analyser(object):
         #         raise ParseException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
         if node.ID is not None:
             self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type), len(decl.size))
-            self.sym_table.id(node.ID)['constraints'] = decl.constraints.value
+            self.sym_table.id(node.ID)['constraints'] = decl.constraints
             self.sym_table.id(node.ID)['size'] = decl.size
         # self.IR.add(decl)
         return decl
@@ -331,6 +333,18 @@ class Semantic_analyser(object):
             raise ParseException("Unknown Sequence Type")
         return seq_val
 
+    def get_constraints(self, value):
+        """Places in minimum standard size int width possible"""
+        size = int(value).bit_length()       
+        if size < 8:
+            return Int_literal(value="8")
+        elif size < 16:
+            return Int_literal(value="16")
+        elif size < 32:
+            return Int_literal(value="32")
+        elif size < 64:
+            return Int_literal(value="64")
+
     def expr_type_is(self, expression):
         """Performs Semantic analysis on expression, building IR node"""
         # print("WHOLE EXPR TO ANAL")
@@ -344,7 +358,7 @@ class Semantic_analyser(object):
             # print("_______")
             if expr.node_type == DATA_TYPE.INT_VAL:
                 expr_types["OPERAND_" + str(len(expr_types))] = DATA_TYPE.INT_VAL
-                IR_expression.append(Int_literal(expr.value))
+                IR_expression.append(Int_literal(value=expr.value, constraints=self.get_constraints(expr.value)))
             elif expr.node_type == DATA_TYPE.SEQ_VAL:
                 IR_expression.append(self.seq_type_is(expr))
                 expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
@@ -390,9 +404,9 @@ class Semantic_analyser(object):
         if DATA_TYPE.is_seq_type(node_type):
             if node_type == DATA_TYPE.BS_SEQ_INT_VAL or node_type == DATA_TYPE.SEQ_INT_VAL:
                 ID.constraints = self.sym_table.id(node.ID)['constraints']
-                ID.constraints = self.sym_table.id(node.ID)['size']
+                ID.size = self.sym_table.id(node.ID)['size']
             else:
-                ID.constraints = self.sym_table.id(node.ID)['size']
+                ID.size = self.sym_table.id(node.ID)['size']
         elif DATA_TYPE.is_int_val(node_type):
             ID.constraints = self.sym_table.id(node.ID)['constraints']
         return ID
@@ -422,8 +436,10 @@ class Semantic_analyser(object):
             return index_sel
         else:
             if DATA_TYPE.is_seq_type(self.sym_table.id(node.ID)['type']):
+                # element index select on sequence
                 return self.build_seq_index_ir(node, ir_indices)
             elif DATA_TYPE.is_int_val(self.sym_table.id(node.ID)['type']):
+                #  Bit index select on int
                 return self.build_int_index_ir(node, ir_indices)
             else:
                 raise ParseException("Trying to do index selection on invalid " + self.sym_table.id(node.ID)['type'] + " type")
@@ -443,19 +459,18 @@ class Semantic_analyser(object):
 
     def build_seq_index_ir(self, node, ir_indices):
         target_id = self.sym_table.id(node.ID)
-        # print(target_id)
-        # print(node.ID)
         if self.sym_table.dimension(node.ID) > len(ir_indices):
-            return Index_select(Name(node.ID, target_id['type']), ir_indices)
+            return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices)
         elif self.sym_table.dimension(node.ID) == len(ir_indices):
             if self.is_range(ir_indices[-1]):
-                return Index_select(Name(node.ID, target_id['type']), ir_indices, target_id['type'])
+                return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, target_id['type'])
             else:
-                return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.seq_to_index_sel(target_id['type']))
+                # print(target_id['type'])
+                return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, DATA_TYPE.seq_to_index_sel(target_id['type']))
         elif self.sym_table.dimension(node.ID) < len(ir_indices):
             if (target_id['type'] == DATA_TYPE.BS_SEQ_INT_VAL or target_id['type'] == DATA_TYPE.SEQ_INT_VAL) and (len(ir_indices) == self.sym_table.dimension(node.ID) + 1):
                 if self.is_range(ir_indices[-1]):
-                    return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.SEQ_BIT_VAL)
+                    return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, DATA_TYPE.SEQ_BIT_VAL)
                 else:
                     return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)    # Selecting a bit value of an integer element in an integer array
             else:
@@ -665,14 +680,19 @@ class Semantic_analyser(object):
             decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID)
             self.sym_table.add_id(decl.ID.name, decl.ID.type)
             self.sym_table.id(decl.ID.name)['size'] = decl.size
+            self.sym_table.id(decl.ID.name)['constraints'] = None
         elif old_decl.node_type == DATA_TYPE.SEQ_INT_DECL or old_decl.node_type == DATA_TYPE.BS_SEQ_INT_DECL or old_decl.node_type == DATA_TYPE.SBOX_DECL:
             decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID, constraints=self.expr_type_is(old_decl.bit_constraints))
             self.sym_table.add_id(decl.ID.name, decl.ID.type)
             self.sym_table.id(decl.ID.name)['constraints'] = decl.constraints
             self.sym_table.id(decl.ID.name)['size'] = decl.size
+            # print(">>>")
+            # print(decl.constraints.translate())
+            # print("<<<")
         elif old_decl.node_type == DATA_TYPE.BIT_DECL:
             decl = Bit_decl(old_decl.ID)
             self.sym_table.add_id(decl.ID.name, decl.ID.type)
+            self.sym_table.id(decl.ID.name)['constraints'] = None
         else:
             raise ParseException("Internal Error: Unknown Parameter Type " + str(old_decl.node_type))
         return decl

@@ -71,7 +71,6 @@ for(; bit < 64; bit = bit + 1) {
 target_bit = 16 * bit % 63;
 if(bit == 63) { 
 target_bit = 63;
-
 } 
 state[target_bit] = temp[bit];
 
