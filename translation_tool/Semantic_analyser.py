@@ -486,15 +486,14 @@ class Semantic_analyser(object):
 
     def analyse_cast(self, node):
         size = []
-        cnst = []
+        cnst = None
         try:
             for i in node.cast_operation.seq_size:
                 size.append(self.expr_type_is(i))
         except TypeError:
             pass
         try:
-            for c in node.cast_operation.constraints:
-                cnst.append(self.expr_type_is(c))
+            cnst = self.expr_type_is(node.cast_operation.constraints)
         except TypeError:
             pass
         cast = Cast(Cast_operation(node.cast_operation.target_type, cnst, size), self.expr_type_is(node.target))  # NOQA
