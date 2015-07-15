@@ -11,6 +11,7 @@ class Symbol_Table(object):
         self._symbols = Stack()
         self.add_scope()
         self._f_table = {}
+        self.var_count = 0
     # def add_scope(self, scope):
     #     self.table[scope] = {}
 
@@ -56,6 +57,7 @@ class Symbol_Table(object):
 
     def add_id(self, ID, id_type, size=None):
         if ID not in self.symbols.peek():
+            self.var_count += 1
             self.symbols.peek()[ID] = {}
             self.symbols.peek()[ID]['type'] = id_type
             # if size is not None and DATA_TYPE.is_seq_type(id_type):

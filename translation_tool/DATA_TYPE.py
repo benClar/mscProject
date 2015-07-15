@@ -65,6 +65,23 @@ class DATA_TYPE(Enum):
             return True
         return False
 
+    def val_to_decl(type_input):
+        if type_input == DATA_TYPE.BS_INT_VAL:
+            return DATA_TYPE.BS_INT_DECL
+        elif type_input == DATA_TYPE.INT_VAL:
+            return DATA_TYPE.INT_DECL
+        elif type_input == DATA_TYPE.BIT_VAL:
+            return DATA_TYPE.BIT_DECL
+        elif type_input == DATA_TYPE.SEQ_INT_VAL:
+            return DATA_TYPE.SEQ_INT_DECL
+        elif type_input == DATA_TYPE.BS_SEQ_INT_VAL:
+            return DATA_TYPE.BS_SEQ_INT_DECL
+        elif type_input == DATA_TYPE.SEQ_BIT_VAL:
+            return DATA_TYPE.SEQ_BIT_DECL
+        else:
+            traceback.print_stack(file=sys.stdout)
+            raise ParseException("Unknown Value Type")  
+
     def convert(type_input, qualifier=None):
         if type_input == "Int":
             if qualifier == "Seq":

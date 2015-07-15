@@ -175,6 +175,8 @@ class Semantic_analyser(object):
 
     def basic_id_set(self, node):
         id_set = Set(Name(node.target.ID, self.sym_table.id_type(node.target.ID)), self.expr_type_is(node.value))
+        id_set.target.constraints = self.sym_table.id(node.target.ID)['constraints']
+        id_set.target.size = self.sym_table.id(node.target.ID)['size']
         if self.value_matches_expected(id_set.value.type, id_set.target.type) is False:
             raise ParseException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
         return id_set
@@ -193,7 +195,9 @@ class Semantic_analyser(object):
                 raise ParseException("Number of bits must be an int literal")
             if decl.ID.name is not None:
                 self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
+                # print(self.target.id)
                 self.sym_table.id(node.ID)['constraints'] = decl.constraints
+                self.sym_table.id(node.ID)['size'] = None
             # self.IR.add(decl)
             return decl
         except ParseException as details:
@@ -202,9 +206,9 @@ class Semantic_analyser(object):
 
     def analyse_bit_decl(self, node):
         if node.value is not None:
-            decl = Bit_decl(node.ID, self.expr_type_is(node.value))
+            decl = Bit_decl(Name(node.ID, DATA_TYPE.BIT_VAL), self.expr_type_is(node.value))
         else:
-            decl = Bit_decl(node.ID)
+            decl = Bit_decl(Name(node.ID, DATA_TYPE.BIT_VAL))
         try:
             if node.value is not None:
                 if decl.value.type != DATA_TYPE.BIT_VAL:
@@ -212,6 +216,7 @@ class Semantic_analyser(object):
             if node.ID is not None:
                 self.sym_table.add_bit_id(node.ID)
                 self.sym_table.id(node.ID)['constraints'] = None
+                self.sym_table.id(node.ID)['size'] = None
             # self.IR.add(decl)
             return decl
         except ParseException as details:
@@ -492,10 +497,8 @@ class Semantic_analyser(object):
                 size.append(self.expr_type_is(i))
         except TypeError:
             pass
-        try:
+        if node.cast_operation.constraints is not None:
             cnst = self.expr_type_is(node.cast_operation.constraints)
-        except TypeError:
-            pass
         cast = Cast(Cast_operation(node.cast_operation.target_type, cnst, size), self.expr_type_is(node.target))  # NOQA
         return cast
 
@@ -675,6 +678,7 @@ class Semantic_analyser(object):
             decl = Int_decl(old_decl.node_type, self.expr_type_is(old_decl.bit_constraints), Name(old_decl.ID, DATA_TYPE.decl_to_value(old_decl.node_type)))
             self.sym_table.add_id(decl.ID.name, decl.ID.type)
             self.sym_table.id(decl.ID.name)['constraints'] = decl.constraints
+            self.sym_table.id(decl.ID.name)['size'] = None
         elif old_decl.node_type == DATA_TYPE.SEQ_BIT_DECL:
             decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID)
             self.sym_table.add_id(decl.ID.name, decl.ID.type)
@@ -685,13 +689,11 @@ class Semantic_analyser(object):
             self.sym_table.add_id(decl.ID.name, decl.ID.type)
             self.sym_table.id(decl.ID.name)['constraints'] = decl.constraints
             self.sym_table.id(decl.ID.name)['size'] = decl.size
-            # print(">>>")
-            # print(decl.constraints.translate())
-            # print("<<<")
         elif old_decl.node_type == DATA_TYPE.BIT_DECL:
-            decl = Bit_decl(old_decl.ID)
+            decl = Bit_decl(Name(old_decl.ID, DATA_TYPE.BIT_VAL))
             self.sym_table.add_id(decl.ID.name, decl.ID.type)
             self.sym_table.id(decl.ID.name)['constraints'] = None
+            self.sym_table.id(decl.ID.name)['size'] = None
         else:
             raise ParseException("Internal Error: Unknown Parameter Type " + str(old_decl.node_type))
         return decl
