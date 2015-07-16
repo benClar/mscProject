@@ -1,7 +1,7 @@
 from DATA_TYPE import DATA_TYPE
 from pyparsing import ParseException
 import random
-
+from quine_mccluskey.qm import QuineMcCluskey
 
 class Sym_count(object):
 
@@ -22,11 +22,11 @@ class IR(object):
     def IR(self):
         return self._IR
 
-    # def translate(self):
-    #     ret = ""
-    #     for node in self.IR:
-    #         ret += node.translate(self.sym_count)
-    #     return ret
+    def translate(self):
+        ret = ""
+        for node in self.IR:
+            ret += node.translate(self.sym_count)
+        return ret
 
 
 class Function_decl(object):
@@ -65,55 +65,56 @@ class Function_decl(object):
     def ID(self):
         return self._ID
 
-    # def translate(self, sym_count):
-    #     ret = ""
-    #     ret += self.translate_header()
-    #     ret += self.translate_body(sym_count)
-    #     ret += "}\n"
-    #     return ret
+    def translate(self, sym_count):
+        ret = ""
+        ret += self.translate_header()
+        ret += self.translate_body(sym_count)
+        ret += "}\n"
+        return ret
 
-    # def translate_header(self):
-    #     if self.return_value == DATA_TYPE.VOID:
-    #         return "void " + self.translate_name()
-    #     else:
-    #         return self.return_value.translate_type() + " " + self.translate_name() + self.translate_parameters() + self.translate_dimensions()
+    def translate_header(self):
+        if self.return_value == DATA_TYPE.VOID:
+            return "void " + self.translate_name()
+        else:
+            return self.return_value.translate_type() + " " + self.translate_name() + self.translate_parameters() + self.translate_dimensions()
 
-    # def translate_dimensions(self):
-    #     ret = ""
-    #     return_type = self.return_value.ID.type
-    #     if DATA_TYPE.is_seq_type(return_type):
-    #         for i, dim in enumerate(self.return_value.size):
-    #             if i == 0:
-    #                 ret += ")"
-    #             else:
-    #                 ret += "[" + dim.translate() + "]"
-    #     if return_type == DATA_TYPE.BS_SEQ_INT_VAL or return_type == DATA_TYPE.BS_INT_VAL:
-    #         ret += "[" + self.return_value.constraints.translate() + "]"
-    #     return ret
+    def translate_dimensions(self):
+        ret = ""
+        return_type = self.return_value.ID.type
+        if DATA_TYPE.is_seq_type(return_type):
+            for i, dim in enumerate(self.return_value.size):
+                if i == 0:
+                    ret += ")"
+                else:
+                    ret += "[" + dim.translate() + "]"
+        if return_type == DATA_TYPE.BS_SEQ_INT_VAL or return_type == DATA_TYPE.BS_INT_VAL:
+            ret += "[" + self.return_value.constraints.value + "]"
+        return ret
 
-    # def translate_body(self, sym_count):
-    #     ret = "{ \n"
-    #     for stmt in self.body:
-    #         ret += stmt.translate(sym_count)
-    #     return ret
+    def translate_body(self, sym_count):
+        ret = "{ \n"
+        for stmt in self.body:
+            ret += stmt.translate(sym_count)
+        return ret
 
-    # def translate_parameters(self):
-    #     ret = "("
-    #     for p in self.parameters:
-    #         ret += p.translate_as_parameter()
-    #         ret += ", "
-    #     ret = ret[:-2]
-    #     ret += ")"
-    #     return ret
+    def translate_parameters(self):
+        ret = "("
+        for p in self.parameters:
+            ret += p.translate()
+            ret = ret[:-2]
+            ret += ", "
+        ret = ret[:-2]
+        ret += ")"
+        return ret
 
-    # def translate_name(self):
-    #     return_type = self.return_value.ID.type
-    #     if DATA_TYPE.is_seq_type(return_type) or return_type == DATA_TYPE.BS_INT_VAL:
-    #         return "(" + "*" + self.ID.translate()
-    #     elif return_type == DATA_TYPE.INT_VAL or return_type == DATA_TYPE.BIT_VAL:
-    #         return self.ID.translate()
-    #     else:
-    #         raise ParseException("Internal error: Unknown return type")
+    def translate_name(self):
+        return_type = self.return_value.ID.type
+        if DATA_TYPE.is_seq_type(return_type) or return_type == DATA_TYPE.BS_INT_VAL:
+            return "(" + "*" + self.ID.translate()["result"]
+        elif return_type == DATA_TYPE.INT_VAL or return_type == DATA_TYPE.BIT_VAL:
+            return self.ID.translate()
+        else:
+            raise ParseException("Internal error: Unknown return type")
 
 
 class If_stmt(object):
@@ -188,6 +189,11 @@ class Cast(object):
     def operation(self):
         return self._cast_op
 
+    @property
+    def constraints(self):
+        return self._cast_op.constraints
+    
+
 
 class Cast_operation(object):
 
@@ -250,12 +256,54 @@ class Index_select(object):
         else:
             self._type = output_type
 
-    @property
-    def name(self):
-        if target.type == DATA_TYPE.ID:
-            return target.type.name
+    # @property
+    # def name(self):
+    #     if target.type == DATA_TYPE.ID:
+    #         return target.type.name
+    #     else:
+    #         return "result"
+
+    def translate(self, sym_count, target=None):
+        result = {'emit': "", 'result': ""}
+        if target is not None:
+            # Assignment
+            result['emit'] += self.translate_assignment_target(sym_count, target)
+            return result
         else:
-            return "result"
+            target_result = self.target.translate()
+            result['emit'] += target_result['emit']
+            extracted_sequence = self.extract_sequence(target_result['result'], sym_count)
+            result['emit'] += extracted_sequence['emit']
+            result['result'] = extracted_sequence['result']
+            return result
+            # result['emit'] += target + self.translate_selection_dim() + "[" + self.indices[-1][0].translate(sym_count) + "]"
+
+    def extract_sequence(self, target, sym_count):
+        self.target.node_type == DATA_TYPE.ID, "Assumption target is just an ID at this point"
+        result = {'emit': "", 'result': ""}
+        if self.target.type == DATA_TYPE.BS_INT_VAL:
+            extracted_seq = Target_factory.name(sym_count)
+            result['emit'] += Target_factory().type_decl_lookup[self.target.constraints.translate(sym_count)['result']] + " " + extracted_seq + "[" + str(len(self.indices[-1])) + "];\n"
+            result['result'] = extracted_seq
+            for i, index in enumerate(self.indices[-1]):
+                index_translation = index.translate(sym_count)
+                result['emit'] += index_translation['emit']
+                result['emit'] += extracted_seq + "[" + str(i) + "]" + " = " + target + self.translate_selection_dim() + "[" + index_translation['result'] + "]" + ";\n"
+        return result
+
+    def translate_assignment_target(self, sym_count, target):
+        result = {'emit': "", 'result': ""}
+        target_result = self.target.translate(sym_count)
+        result['emit'] += target_result['emit']
+        # return result and emitted code for assignment
+        if self.target.node_type == DATA_TYPE.ID:
+            if self.target.type == DATA_TYPE.BS_INT_VAL:
+                for i, index in enumerate(self.indices[-1]):
+                    index_translation = index.translate(sym_count)
+                    result['emit'] += index_translation['emit']
+                    result['emit'] += target_result['result'] + "[" + index_translation['result'] + "]" + " = " + target + "[" + str(i) + "];\n" 
+        return result['emit']
+
 
     # def translate(self):
     #     if self.target.type == DATA_TYPE.INT_VAL and self.type == DATA_TYPE.BIT_VAL:
@@ -367,13 +415,13 @@ class Index_select(object):
     def type(self, value):
         self._type = value
 
-    # def translate_selection_dim(self):
-    #     ret =""
-    #     for i, dim in enumerate(self.indices):
-    #         if i == len(self.indices) - 1:
-    #             return ret
-    #         ret += "[" + dim[0].translate() + "]"
-    #     return ret
+    def translate_selection_dim(self):
+        ret =""
+        for i, dim in enumerate(self.indices):
+            if i == len(self.indices) - 1:
+                return ret
+            ret += "[" + dim[0].translate() + "]"
+        return ret
 
     @property
     def constraints(self):
@@ -403,24 +451,17 @@ class Set(object):
     def value(self):
         return self._value
 
-    # def __init__(self, n_type, constraints, var_id, value=None):
-    #     self._constraints = constraints
-    #     self._ID = var_id
-    #     self._value = value
-    #     self._node_type = n_type
-
-    # def translate(self, sym_count, end=True):
-    #     ret = ""
-    #     temp_target = None
-    #     # make temporary name for result to be assigned
-    #     temp_target = Target_factory().make_temp_target(self.target, self.target.name, sym_count)
-    #     value = self.value.translate_rhs(temp_target, sym_count)
-    #     ret += value['code']
-    #     print(ret)
-    #     ret += self.assign_ID(value['target'])
-    #     # else:
-    #     #     raise ParseException("Unknown assignment of" + str(self.value.type) + " to " + str(self.target.node_type))
-    #     return ret
+    def translate(self, sym_count, end=True):
+        ret = ""
+        result = {'emit': "", 'result': ""}
+        if self.target.node_type == DATA_TYPE.INDEX_SELECT:
+            value_result = self.value.translate(sym_count)
+            result['emit'] += value_result['emit']
+            if self.target.type != self.value.type:
+                raise ParseException("Cast needed")
+            assignment_result = self.target.translate(sym_count, value_result['result'])
+            result['emit'] += assignment_result['emit']
+        return result['emit']
 
 
     # def assign_ID(self, value):
@@ -535,8 +576,10 @@ class Return(object):
     def type(self):
         return self._type
 
-    # def translate(self, sym_count):
-    #     return "return " + self.target.translate() + ";\n"
+    def translate(self, sym_count):
+        target = self.target.translate()
+        ret = target['emit']
+        return "return " + target['result'] + ";\n"
 
 
 class Seq_decl(object):
@@ -568,16 +611,16 @@ class Seq_decl(object):
     def constraints(self):
         return self._constraints
 
-    # def translate(self):
-    #     return self.translate_type() + " " + self.ID.translate() + self.translate_size() + "; \n"
-        # if self.node_type == DATA_TYPE.SEQ_INT_DECL:
-        #     return self.translate_int_seq()
-        # elif self.node_type == DATA_TYPE.SEQ_BIT_DECL:
-        #     return self.translate_bit_seq()
-        # elif self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
-        #     return self.translate_bs_int_seq()
-        # else:
-        #     raise ParseException("Translation of Unknown Sequence Type attempted")
+    def translate(self):
+        return self.translate_type() + " " + self.ID.translate() + self.translate_size() + "; \n"
+        if self.node_type == DATA_TYPE.SEQ_INT_DECL:
+            return self.translate_int_seq()
+        elif self.node_type == DATA_TYPE.SEQ_BIT_DECL:
+            return self.translate_bit_seq()
+        elif self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
+            return self.translate_bs_int_seq()
+        else:
+            raise ParseException("Translation of Unknown Sequence Type attempted")
 
     # def translate_as_parameter(self):
     #     ret = self.translate_type() + " " + self.ID.translate()
@@ -586,14 +629,14 @@ class Seq_decl(object):
     #     if self.ID.type == DATA_TYPE.BS_SEQ_INT_VAL or self.ID.type == DATA_TYPE.BS_INT_VAL:
     #         ret += "[" + self.constraints.translate() + "]"
     #     return ret
-        # if self.node_type == DATA_TYPE.SEQ_INT_DECL:
-        #     return self.translate_int_seq_param()
-        # elif self.node_type == DATA_TYPE.SEQ_BIT_DECL:
-        #     return self.translate_bit_seq_param()
-        # elif self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
-        #     return self.translate_bs_int_seq_param()
-        # else:
-        #     raise ParseException("Translation of Unknown Sequence Type attempted")
+    #     if self.node_type == DATA_TYPE.SEQ_INT_DECL:
+    #         return self.translate_int_seq_param()
+    #     elif self.node_type == DATA_TYPE.SEQ_BIT_DECL:
+    #         return self.translate_bit_seq_param()
+    #     elif self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
+    #         return self.translate_bs_int_seq_param()
+    #     else:
+    #         raise ParseException("Translation of Unknown Sequence Type attempted")
 
     # def translate_int_seq(self):
     #     if self.size_is_literal():
@@ -732,8 +775,24 @@ class Int_decl(object):
     def value(self):
         return self._value
 
-    # def translate(self, sym_count=None):
-    #     return self.translate_as_stmt(sym_count)
+    def translate(self, sym_count=None):
+        result = {'emit': "", 'result': ""}
+        if self.node_type == DATA_TYPE.BS_INT_DECL:
+            result['emit'] += self.translate_type() + self.ID.translate()["result"] + "[" + self.constraints.translate()['result'] + "]" + ";\n"
+        elif self.node_type == DATA_TYPE.INT_DECL:
+            result['emit'] += self.translate_type() + self.ID.translate()["result"] + ";\n"
+            if self.value is not None:
+                value_result = self.value.translate(sym_count)
+                result['emit'] += value_result['emit']
+                assignment_result = self.assign_int_val(value_result)
+                result['emit'] += assignment_result['emit']
+        return result['emit']
+
+    def assign_int_val(self, value_result):
+        result = {'emit': "", 'result': ""}
+        if self.value.type == DATA_TYPE.INT_VAL:
+            result['emit'] += self.ID.translate()['result'] + " = " + value_result['result'] + ";\n"  
+        return result
 
     # def translate_value(self):
     #     ret = ""
@@ -768,14 +827,14 @@ class Int_decl(object):
     #         ret = self.translate_type() + self.ID.translate() + self.translate_value() + ";\n"
     #     return ret
 
-    # def translate_type(self):
-    #     if self.constraints.translate() in Int_decl.type_decl_lookup:
-    #         if self.node_type == DATA_TYPE.INT_DECL:
-    #             return Int_decl.type_decl_lookup[self.constraints.value]
-    #         elif self.node_type == DATA_TYPE.BS_INT_DECL:
-    #             return "uint32_t "
-    #     else:
-    #         raise ParseException("Custom Size: Not yet implemented")
+    def translate_type(self):
+        if self.constraints.value in Int_decl.type_decl_lookup:
+            if self.node_type == DATA_TYPE.INT_DECL:
+                return Int_decl.type_decl_lookup[self.constraints.value]
+            elif self.node_type == DATA_TYPE.BS_INT_DECL:
+                return "uint32_t "
+        else:
+            raise ParseException("Custom Size: Not yet implemented")
 
     # def translate_as_parameter(self):
     #     # print(self.constraints)
@@ -793,12 +852,21 @@ class Int_literal(object):
         self.node_type = DATA_TYPE.INT_LITERAL
         self._constraints = constraints
 
-    # @property
-    # def constraints(self):
-    #     return self._constraints
+    @property
+    def constraints(self):
+        return self._constraints
 
-    # def translate(self):
-    #     return self.value
+    def translate(self, sym_count=None):
+        result = {}
+        # target = Target_factory.name(sym_count)
+        # result["emit"] = self.translate_type(target) + " = " + self.value + ";\n"
+        # result["result"] = target
+        result["emit"] = ""
+        result["result"] = self.value
+        return result
+
+    def translate_target(self, target):
+        return Target_factory.type_decl_lookup[self.constraints.value] + " " + target
 
 
 class Bit_literal(object):
@@ -845,8 +913,11 @@ class Name(object):
     def size(self, value):
         self._size = value
 
-    # def translate(self):
-    #     return self.name
+    def translate(self, sym_count=None):
+        result = {}
+        result["emit"] = ""
+        result["result"] = self.name
+        return result
 
     # def translate_lhs(self, target):
     #     assert self.type == target.type, "Should always be aligned in type by this point by set operation"
@@ -868,9 +939,10 @@ class Name(object):
 
 class Call(object):
 
-    def __init__(self, f_id, return_type):
+    def __init__(self, f_id, return_type, return_value):
         self._f_id = Name(f_id, return_type)
         self._parameters = []
+        self._return_value = return_value
 
     def add_parameter(self, p):
         self.parameters.append(p)
@@ -887,6 +959,14 @@ class Call(object):
     def f_id(self):
         return self._f_id
 
+    @property
+    def constraints(self):
+        return self._return_value.constraints
+
+    @property
+    def size(self):
+        return self._return_value.size
+
     # def translate(self):
     #     ret = ""
     #     ret += self.f_id.translate() + "("
@@ -894,7 +974,6 @@ class Call(object):
     #         ret += p.translate() + ", "
     #     ret = ret[:-2]
     #     return ret
-
 
 
 class For_loop(object):
@@ -926,9 +1005,9 @@ class For_loop(object):
     def body(self):
         return self._body
 
-    # def translate(self):
-    #     ret = ""
-    #     ret += self.translate_initializer()
+    def translate(self, sym_count):
+        result = {'emit': "", 'result': ""}
+        result['emit'] += self.translate_initializer(sym_count)
     #     ret += "; "
     #     ret += self.translate_terminator()
     #     ret += "; "
@@ -938,17 +1017,18 @@ class For_loop(object):
     #     ret += "} \n"
     #     return ret
 
-    # def translate_initializer(self):
-    #     pre = ""
-    #     ret = "for("
-    #     for stmt in self.initializer:
-    #         if DATA_TYPE.is_declaration(stmt.node_type):
-    #             pre += stmt.translate() + "\n"
-    #         else:
-    #             ret += stmt.translate() + ", "
-    #     if ret[-2] == ',':
-    #         ret = ret[:-2]
-    #     return pre + ret
+    def translate_initializer(self, sym_count):
+        result = {'emit': "", 'result': ""}
+        for_loop = "for("
+        for stmt in self.initializer:
+            if DATA_TYPE.is_declaration(stmt.node_type):
+                result['emit'] += stmt.translate(sym_count)
+            else:
+                for_loop += stmt.translate(sym_count) + ", "
+        if for_loop[-2] == ',':
+            for_loop = for_loop[:-2]
+        result['emit'] += for_loop
+        return result['emit']
 
     # def translate_body(self):
     #     ret = ""
@@ -972,11 +1052,14 @@ class For_loop(object):
 
 class Binary_operation(object):
 
-    operations_lookup = {DATA_TYPE.COMP_OP: lambda self: self.translate_comparisons(),
-                         DATA_TYPE.ARITH_OP: lambda self: self.translate_arithmetic(),
-                         DATA_TYPE.BITWISE_OP: lambda self, target, sym_count: self.translate_bitwise(target, sym_count),
-                         DATA_TYPE.SHIFT_OP: lambda self, target, sym_count: self.translate_shift(target, sym_count),
-                         DATA_TYPE.LOG_OP: lambda self: self.translate_logical()}
+    # operations_lookup = {DATA_TYPE.COMP_OP: lambda self: self.translate_comparisons(),
+    #                      DATA_TYPE.ARITH_OP: lambda self, sym_count: self.translate_arithmetic(sym_count),
+    #                      DATA_TYPE.BITWISE_OP: lambda self, sym_count: self.translate_bitwise(sym_count),
+    #                      DATA_TYPE.SHIFT_OP: lambda self, sym_count: self.translate_shift(sym_count),
+    #                      DATA_TYPE.LOG_OP: lambda self: self.translate_logical()}
+
+    operations_lookup = {DATA_TYPE.INT_VAL: lambda self, sym_count: self.int_int_operation(sym_count),
+                         DATA_TYPE.BIT_VAL: lambda self, sym_count: self.int_int_operation(sym_count)}
 
     def __init__(self, op_type, operator):
         self._node_type = op_type
@@ -984,6 +1067,8 @@ class Binary_operation(object):
         self._left = None
         self._right = None
         self._type = None
+        self.constraints = None
+        self.size = None
 
     @property
     def node_type(self):
@@ -1054,14 +1139,6 @@ class Binary_operation(object):
     #     ret += self.left.translate() + " " + self.operator + " " + self.left.translate()
     #     return ret
 
-    # def translate_bitwise(self, target, sym_count):
-    #     if self.right.type == DATA_TYPE.BIT_VAL and self.left.type == DATA_TYPE.BIT_VAL:
-    #         return self.translate_bit_val_bitwise(target, sym_count)
-    #     elif self.right.type == DATA_TYPE.SEQ_BIT_VAL and self.left.type == DATA_TYPE.SEQ_BIT_VAL:
-    #         return self.translate_bit_seq_bitwise()
-    #     elif DATA_TYPE.is_int_val(self.left.type) and DATA_TYPE.is_int_val(self.right.type):
-    #         return self.translate_int_val_bitwise()
-
     # def translate_int_val_bitwise(self):
     #     ret = ""
     #     cnst = None
@@ -1084,9 +1161,43 @@ class Binary_operation(object):
     # def translate_bit_seq_bitwise(self):
     #     return "seq_bitwise(" + self.left.translate() + ", " + self.right.translate() + ", " + "\"" + self.operator + "\"" + ")"
 
-    # def translate_arithmetic(self):
-    #     if DATA_TYPE.is_int_val(self.right.type) and DATA_TYPE.is_int_val(self.left.type):
-    #         return self.translate_int_val_arithmetic()
+    def int_int_operation(self, sym_count):
+        result = {'emit': "", 'result': ""}
+        temp_target = self.target_decl(sym_count)
+        operand_1 = self.left.translate(sym_count)
+        operand_2 = self.right.translate(sym_count)
+        result['emit'] += temp_target['emit']
+        result['emit'] += operand_1['emit']
+        result['emit'] += operand_2['emit']
+        result['emit'] += temp_target['result'] + " = " + operand_1['result'] + " " + self.operator + " " + operand_2['result'] + ";\n"
+        result['result'] = temp_target['result']
+        return result
+
+
+    # def translate_bitwise(self, sym_count):
+    #     result = {'emit': "", 'result': ""}
+    #     temp_target = self.target_decl(sym_count)
+    #     operand_1 = self.left.translate(sym_count)
+    #     operand_2 = self.right.translate(sym_count)
+    #     result['emit'] += temp_target['emit']
+    #     result['emit'] += operand_1['emit']
+    #     result['emit'] += operand_2['emit']
+    #     result['emit'] += temp_target['result'] + " = " + operand_1['result'] + " " + self.operator + " " + operand_2['result'] + ";\n"
+    #     result['result'] = temp_target['result']
+    #     return result
+
+    def target_decl(self, sym_count):
+        result = {'emit': "", 'result': ""}
+        if self.type == DATA_TYPE.INT_VAL:
+            result['result'] += Target_factory.name(sym_count)
+            result['emit'] += Target_factory.type_decl_lookup[self.constraints.translate()['result']] + " " + result['result'] + ";\n"
+        elif self.type == DATA_TYPE.BIT_VAL:
+            result['result'] += Target_factory.name(sym_count)
+            result['emit'] += "Bit" + " " + result['result'] + ";\n"
+
+        else:
+            raise ParseException("Need Type declaration " + str(self.type))
+        return result
 
     # def translate_comparisons(self):
     #     if DATA_TYPE.is_int_val(self.right.type) and DATA_TYPE.is_int_val(self.left.type):
@@ -1153,8 +1264,23 @@ class Binary_operation(object):
     # def translate_rhs(self, target, sym_count):
     #     return Binary_operation.operations_lookup[self.node_type](self, target, sym_count)
 
+    def translate(self, sym_count):
+        # return Binary_operation.operations_lookup[self.node_type](self, sym_count)
+        return Binary_operation.operations_lookup[self.type](self, sym_count)
 
-# class Target_factory(object):
+
+class Target_factory(object):
+
+    type_decl_lookup = {"8": "uint8_t ",
+                        "16": "uint16_t ",
+                        "32": "uint32_t ",
+                        "64": "uint64_t "}
+
+    def name(sym_count):
+        # name =  "__" + "temp" + "_" + ''.join(random.choice('0123456789ABCDEF') for i in range(4)) + "_" + str(sym_count.count)
+        name =  "__" + "temp" + "_" + str(sym_count.count)
+        sym_count.count += 1
+        return name
 
 #     def make_temp_target(self, target, name, sym_count):
 #         pre = self.construct_prefix(name)
@@ -1187,3 +1313,6 @@ class Binary_operation(object):
 #         else:
 #             raise ParseException("Tried to transform unknown type " + str(node_type))
 
+
+# if __name__ == "__main__":
+#     print(Target_factory.name(1))

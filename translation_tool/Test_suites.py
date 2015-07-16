@@ -421,18 +421,18 @@ class TestSemanticAnalysis(unittest.TestCase):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1,2,3,4] ^ [1,2,3,4];")), True)
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] ^ [1,2,3,4]);")), True)
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] << 4);")), True)
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([[1],[2],[3],[4]] << 4);")), False)
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] b = [1,2]; Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] << b[0]);")), True)  # NOQA
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Int(10)[2] a = [b,2,c,4] ^ [1,2,b * 2,4];")), True)
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Bit d = False; Int(10)[2] a = [b,d,c,4] ^ [1,2,b,4];")), False)  # NOQA
-        par = Parser()
+        ### assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] ^ [1,2,3,4]);")), True)
+        ### par = Parser()
+        ### assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] << 4);")), True)
+        ### par = Parser()
+        ### assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([[1],[2],[3],[4]] << 4);")), False)
+        ### par = Parser()
+        ### assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] b = [1,2]; Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] << b[0]);")), True)  # NOQA
+        ### par = Parser()
+        ### assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Int(10)[2] a = [b,2,c,4] ^ [1,2,b * 2,4];")), True)
+        ### par = Parser()
+        ### assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Bit d = False; Int(10)[2] a = [b,d,c,4] ^ [1,2,b,4];")), False)  # NOQA
+        ### par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[4] a = [1,2,3,4];")), True)
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(a * a)[4] a = [1,2,3,4];")), False)
@@ -474,7 +474,7 @@ class TestSemanticAnalysis(unittest.TestCase):
     def test_func_decl(self):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) test_func(Int(8) a, Bit c, Bit[5] e) { Int(10) d = 1;  Bit b = False; return d;}")), True)  # NOQA
-        assert_equals(par.semantic_analyser.sym_table.f_table['test_func']['return_type'], DATA_TYPE.INT_VAL)
+        assert_equals(par.semantic_analyser.sym_table.f_table['test_func']['return_type'].ID.type, DATA_TYPE.INT_VAL)
 
     def test_func_call(self):
         par = Parser()
@@ -919,27 +919,37 @@ class test_IR_generation(unittest.TestCase):
 
 # class test_translation(unittest.TestCase):
 
+#     def test_translation(self):
+#         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
+#                                                                             @Int(8) output;\
+#                                                                             @Int(8) input;\
+#                                                                             input[0] = state[0] ^ state[4] ^ state[5] ^ state[6];\
+#                                                                             return state;\
+#                                                                         }")), True)
+#         print(par.semantic_analyser.IR.translate())
+
 #         def test_LFSR_translation(self):
 #             par = Parser()
-            # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
-            #                                                                 Int(8) output;\
-            #                                                                 Int(8) input;\
-            #                                                                 for(Int(8) i = 0; i < 32; i = i + 1) {\
-            #                                                                     output[0] = state[0];\
-            #                                                                     input[0] =  state[0] ^ state[4] ^ state[5] ^ state[6];\
-            #                                                                     state = state << 1;\
-            #                                                                     state[7] = input[0];\
-            #                                                                  }\
-            #                                                                  return state;\
-            #                                                             }")), True)  # NOQA
-            # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
-            #                                                                     Int(8) output;\
-            #                                                                     Int(8) input;\
-            #                                                                     input[0] =  state[0] ^ state[4] ^ state[5] ^ state[6];\
-            #                                                                     state = state << (1 << 2);\
-            #                                                                     return state;\
-            #                                                                 }")), True)  # NOQA
-            # print(par.semantic_analyser.IR.translate())
+#             assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
+#                                                                             @Int(8) output;\
+#                                                                             @Int(8) input;\
+#                                                                             for(Int(8) i = 0; i < 32; i = i + 1) {\
+#                                                                                 output[0] = state[0];\
+#                                                                                 input[0] =  state[0] ^ state[4] ^ state[5] ^ state[6];\
+#                                                                                 state = state << 1;\
+#                                                                                 state[7] = input[0];\
+#                                                                              }\
+#                                                                              return state;\
+#                                                                         }")), True)  # NOQA
+#             assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
+#                                                                                 Int(8) output;\
+#                                                                                 Int(8) input;\
+#                                                                                 input[0] =  state[0] ^ state[4] ^ state[5] ^ state[6];\
+#                                                                                 state = state << (1 << 2);\
+#                                                                                 return state;\
+#                                                                             }")), True)  # NOQA
+#             print(par.semantic_analyser.IR.translate())
 #             File_comparison.comp("LFSR_1.txt", par)
 
 
@@ -972,78 +982,78 @@ class test_IR_generation(unittest.TestCase):
 #                                                                             ")), True)
 #             File_comparison.comp("PRESENT_2.txt", par)
 
-        # def test_LED_translation(self):
-        #     par = Parser()
-            # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) gmMult(@Int(8) a, @Int(8) b) {\
-            #                                                                 @Int(8) g = 0;\
-            #                                                                 for(Int(8) i = 0; i < 4; i = i + 1)   {\
-            #                                                                     if(((Bit[4]) b)[0] == True)   {\
-            #                                                                         g = g ^ a;\
-            #                                                                     }\
-            #                                                                     a = a << 1;\
-            #                                                                     if(((Bit[4]) a)[3] == True)   {\
-            #                                                                         a = a ^ 0x13;\
-            #                                                                     }\
-            #                                                                     b = b >> 1;\
-            #                                                                 }\
-            #                                                                 return g;\
-            #                                                             }\
-            #                                                             @Int(8)[16] MixColumnSerial(@Int(8)[16] state, @Int(8)[16] MDS) {\
-            #                                                                 @Int(8)[4] column;\
-            #                                                                 for(Int(8) c = 0; c < 4; c = c + 1)  {\
-            #                                                                     column[0] = state[c];\
-            #                                                                     column[1] = state[c + 4];\
-            #                                                                     column[2] = state[c + 8];\
-            #                                                                     column[3] = state[c + 12];\
-            #                                                                     for(Int(8) r = 0; r < 4; r = r + 4)  {\
-            #                                                                         state[(4*c) + r] = gmMult(MDS[4 * c], column[0]) ^\
-            #                                                                             gmMult(MDS[(4 * c) + 1],column[1]) ^\
-            #                                                                             gmMult(MDS[(4 * c) + 2],column[2]) ^\
-            #                                                                             gmMult(MDS[(4 * c) + 3],column[3]);\
-            #                                                                     }\
-            #                                                                 }\
-            #                                                                 return state;\
-            #                                                             }\
-            #                                                             ")), True)
-            # File_comparison.comp("LED_1.txt", par)
-            # par = Parser()
-            # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8)[16] addConstants(@Int(8)[16] state, @Int(8) constant)  {\
-            #                                                                 @Int(8)[16] roundConstant;\
-            #                                                                 for(Int(8) row = 0; row < 4; row = row + 1)  {\
-            #                                                                     roundConstant[row * 4] = row;\
-            #                                                                     if(row == 0 || row == 2)    {\
-            #                                                                         roundConstant[(row * 4) + 1] = (@Int(8)) constant[3:5];\
-            #                                                                     }\
-            #                                                                     if(row == 1 || row == 3) {\
-            #                                                                         roundConstant[(row * 4) + 1] = (@Int(8)) constant[0:2];\
-            #                                                                     }\
-            #                                                                     roundConstant[(row * 4) + 2] = 0;\
-            #                                                                     roundConstant[(row * 4) + 3] = 0;\
-            #                                                                 }\
-            #                                                                 for(Int(8) nibble = 0; nibble < 16; nibble = nibble + 1) {\
-            #                                                                     state[nibble] = state[nibble] ^ roundConstant[nibble];\
-            #                                                                 }\
-            #                                                                 return state;\
-            #                                                             }\
-            #                                                             ")), True)
-            # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8)[16] addConstants(@Int(8)[16] state, @Int(8) constant)  {\
-            #                                                                 @Int(8)[16] roundConstant;\
-            #                                                                 Int(8) row = 0;\
-            #                                                                 if(row == 0 || row == 2)    {\
-            #                                                                     roundConstant[(row * 4) + 1] = (@Int(8)) constant[3:5];\
-            #                                                                 }\
-            #                                                                 if(row == 1 || row == 3) {\
-            #                                                                     roundConstant[(row * 4) + 1] = (@Int(8)) constant[0:2];\
-            #                                                                 }\
-            #                                                                 for(Int(8) nibble = 0; nibble < 16; nibble = nibble + 1) {\
-            #                                                                     state[nibble] = state[nibble] ^ roundConstant[nibble];\
-            #                                                                 }\
-            #                                                                 roundConstant[(row * 4) + 2] = 0;\
-            #                                                                 roundConstant[(row * 4) + 3] = 0;\
-            #                                                                 return state;\
-            #                                                             }\
-            #                                                             ")), True)
-            # print(par.semantic_analyser.IR.translate())
+#         def test_LED_translation(self):
+#             par = Parser()
+#             assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) gmMult(@Int(8) a, @Int(8) b) {\
+#                                                                             @Int(8) g = 0;\
+#                                                                             for(Int(8) i = 0; i < 4; i = i + 1)   {\
+#                                                                                 if(((Bit[4]) b)[0] == True)   {\
+#                                                                                     g = g ^ a;\
+#                                                                                 }\
+#                                                                                 a = a << 1;\
+#                                                                                 if(((Bit[4]) a)[3] == True)   {\
+#                                                                                     a = a ^ 0x13;\
+#                                                                                 }\
+#                                                                                 b = b >> 1;\
+#                                                                             }\
+#                                                                             return g;\
+#                                                                         }\
+#                                                                         @Int(8)[16] MixColumnSerial(@Int(8)[16] state, @Int(8)[16] MDS) {\
+#                                                                             @Int(8)[4] column;\
+#                                                                             for(Int(8) c = 0; c < 4; c = c + 1)  {\
+#                                                                                 column[0] = state[c];\
+#                                                                                 column[1] = state[c + 4];\
+#                                                                                 column[2] = state[c + 8];\
+#                                                                                 column[3] = state[c + 12];\
+#                                                                                 for(Int(8) r = 0; r < 4; r = r + 4)  {\
+#                                                                                     state[(4*c) + r] = gmMult(MDS[4 * c], column[0]) ^\
+#                                                                                         gmMult(MDS[(4 * c) + 1],column[1]) ^\
+#                                                                                         gmMult(MDS[(4 * c) + 2],column[2]) ^\
+#                                                                                         gmMult(MDS[(4 * c) + 3],column[3]);\
+#                                                                                 }\
+#                                                                             }\
+#                                                                             return state;\
+#                                                                         }\
+#                                                                         ")), True)
+#             File_comparison.comp("LED_1.txt", par)
+#             par = Parser()
+#             assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8)[16] addConstants(@Int(8)[16] state, @Int(8) constant)  {\
+#                                                                             @Int(8)[16] roundConstant;\
+#                                                                             for(Int(8) row = 0; row < 4; row = row + 1)  {\
+#                                                                                 roundConstant[row * 4] = row;\
+#                                                                                 if(row == 0 || row == 2)    {\
+#                                                                                     roundConstant[(row * 4) + 1] = (@Int(8)) constant[3:5];\
+#                                                                                 }\
+#                                                                                 if(row == 1 || row == 3) {\
+#                                                                                     roundConstant[(row * 4) + 1] = (@Int(8)) constant[0:2];\
+#                                                                                 }\
+#                                                                                 roundConstant[(row * 4) + 2] = 0;\
+#                                                                                 roundConstant[(row * 4) + 3] = 0;\
+#                                                                             }\
+#                                                                             for(Int(8) nibble = 0; nibble < 16; nibble = nibble + 1) {\
+#                                                                                 state[nibble] = state[nibble] ^ roundConstant[nibble];\
+#                                                                             }\
+#                                                                             return state;\
+#                                                                         }\
+#                                                                         ")), True)
+#             assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8)[16] addConstants(@Int(8)[16] state, @Int(8) constant)  {\
+#                                                                             @Int(8)[16] roundConstant;\
+#                                                                             Int(8) row = 0;\
+#                                                                             if(row == 0 || row == 2)    {\
+#                                                                                 roundConstant[(row * 4) + 1] = (@Int(8)) constant[3:5];\
+#                                                                             }\
+#                                                                             if(row == 1 || row == 3) {\
+#                                                                                 roundConstant[(row * 4) + 1] = (@Int(8)) constant[0:2];\
+#                                                                             }\
+#                                                                             for(Int(8) nibble = 0; nibble < 16; nibble = nibble + 1) {\
+#                                                                                 state[nibble] = state[nibble] ^ roundConstant[nibble];\
+#                                                                             }\
+#                                                                             roundConstant[(row * 4) + 2] = 0;\
+#                                                                             roundConstant[(row * 4) + 3] = 0;\
+#                                                                             return state;\
+#                                                                         }\
+#                                                                         ")), True)
+#             print(par.semantic_analyser.IR.translate())
 
 
 # class File_comparison(object):

@@ -57,7 +57,6 @@ class Symbol_Table(object):
 
     def add_id(self, ID, id_type, size=None):
         if ID not in self.symbols.peek():
-            self.var_count += 1
             self.symbols.peek()[ID] = {}
             self.symbols.peek()[ID]['type'] = id_type
             # if size is not None and DATA_TYPE.is_seq_type(id_type):
@@ -70,6 +69,8 @@ class Symbol_Table(object):
 
         else:
             raise ParseException("Redeclaration of symbol")
+
+
 
     # def add_seq_id(self, scope, ID, id_type, id_value=None):
     #     self.add_id(scope, ID, "Seq", id_value)

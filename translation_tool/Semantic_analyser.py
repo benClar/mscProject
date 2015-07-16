@@ -488,6 +488,35 @@ class Semantic_analyser(object):
         IR_expressions[0].left = left
         IR_expressions[0].right = right
         IR_expressions[0].type = result_type['OPERAND_0']
+        self.analyse_operation_type_size(IR_expressions[0])
+
+    def analyse_operation_type_size(self, operation):
+        if operation.type == DATA_TYPE.INT_VAL:
+            print(operation.right)
+            operation.constraints = self.largest_int_lit(operation.left.constraints, operation.right.constraints)
+        elif operation.type == DATA_TYPE.BIT_VAL:
+            operation.constraints = Int_literal("8")
+        elif operation.type == DATA_TYPE.BS_INT_VAL:
+            operation.constraints = self.largest_int_lit(operation.left.constraints, operation.right.constraints)
+        elif operation.type == DATA_TYPE.SEQ_INT_VAL:
+            try:
+                operation.constraints = self.largest_int_lit(operation.left.constraints, operation.right.constraints)
+            except AttributeError:
+                if operation.left.node_type == DATA_TYPE.SEQ_VAL or operation.right.node_type == DATA_TYPE.SEQ_VAL:
+                    pass
+                else:
+                    raise ParseException("Internal Error: Sequence Value does not have constraint " + str(operation.left.node_type) + " " + str(operation.right.node_type))
+        elif operation.type == DATA_TYPE.BS_SEQ_INT_VAL:
+            pass
+        elif operation.type == DATA_TYPE.SEQ_BIT_VAL:
+            pass
+
+    def largest_int_lit(self, val1, val2):
+        if int(val1.value) > int(val2.value):
+            return val1
+        else:
+            return val2
+
 
     def analyse_cast(self, node):
         size = []
@@ -503,7 +532,8 @@ class Semantic_analyser(object):
         return cast
 
     def analyse_func_call(self, node):
-        f_call = Call(node.ID, self.sym_table.f_table[node.ID]['return_type'])
+
+        f_call = Call(node.ID, self.sym_table.f_table[node.ID]['return_type'].ID.type, self.sym_table.f_table[node.ID]['return_type'])
         for i, p in enumerate(node.parameters):
             f_call.add_parameter(self.expr_type_is(p))
             # print(f_call.parameters[i])
@@ -596,8 +626,9 @@ class Semantic_analyser(object):
             return True
 
     def arith_expr_valid(self, expression):
-
-        if self.value_matches_expected(expression['OPERAND_0'], expression['OPERAND_2']):
+        if DATA_TYPE.is_int_val(expression['OPERAND_0']) and DATA_TYPE.is_int_val(expression['OPERAND_2']):
+            return True
+        elif expression['OPERAND_0'] == DATA_TYPE.SEQ_BIT_VAL and expression['OPERAND_2'] == DATA_TYPE.SEQ_BIT_VAL:
             return True
 
     def reduce_sub_expr(self, expression):
@@ -648,7 +679,7 @@ class Semantic_analyser(object):
         func_decl = Function_decl(node.ID, ret_val)
         self.sym_table.add_function(node.ID)
         if func_decl.return_type != DATA_TYPE.VOID:
-            self.sym_table.add_function_return(node.ID, func_decl.return_type)
+            self.sym_table.add_function_return(node.ID, func_decl.return_value)
         else:
             self.sym_table.add_function_return(node.ID, func_decl.return_type)
         ret_pres = False
