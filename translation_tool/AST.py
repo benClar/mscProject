@@ -127,7 +127,6 @@ class AST(object):
         if 'value' in token:
             self.add_statement(Seq_decl_ast(seq_decl_type, token['ID'][1][0], token[AST.INT_SEQ_SIZE], token[AST.INT_SEQ_VALUE], token[AST.INT_SEQ_CNST]))
         else:
-            pass
             self.add_statement(Seq_decl_ast(seq_decl_type, token['ID'][1][0], token[AST.INT_SEQ_SIZE], constraints=token[AST.INT_SEQ_CNST]))
 
     def bit_seq_decl(self, token):

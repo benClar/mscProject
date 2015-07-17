@@ -78,7 +78,7 @@ class Semantic_analyser(object):
         return collected_indices
 
     def allowed_index_range(self, type_input):
-        allowed_index_range = [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, None]
+        allowed_index_range = [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL, None]
         if type_input in allowed_index_range:
             return True
         return False
@@ -133,9 +133,11 @@ class Semantic_analyser(object):
         allowed_values = {DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
                           DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
                           DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL],
-                          DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
-                          DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
-                          DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL]}
+                          DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.BS_BIT_VAL],
+                          DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
+                          DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
+                          DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],
+                          DATA_TYPE.SEQ_BS_BIT_VAL: [DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.BS_INT_VAL]}
         if value_type in allowed_values[target_type]:
             return True
         return False
@@ -177,7 +179,7 @@ class Semantic_analyser(object):
         id_set = Set(Name(node.target.ID, self.sym_table.id_type(node.target.ID)), self.expr_type_is(node.value))
         id_set.target.constraints = self.sym_table.id(node.target.ID)['constraints']
         id_set.target.size = self.sym_table.id(node.target.ID)['size']
-        if self.value_matches_expected(id_set.value.type, id_set.target.type) is False:
+        if self.can_assign_type(id_set.target.type, id_set.value.type, ) is False:
             raise ParseException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
         return id_set
 
@@ -447,16 +449,29 @@ class Semantic_analyser(object):
                 #  Bit index select on int
                 return self.build_int_index_ir(node, ir_indices)
             else:
-                raise ParseException("Trying to do index selection on invalid " + self.sym_table.id(node.ID)['type'] + " type")
+                raise ParseException("Trying to do index selection on invalid " + str(self.sym_table.id(node.ID)['type']) + " type")
 
     def build_int_index_ir(self, node, ir_indices):
         target_id = self.sym_table.id(node.ID)
+        select_type = None
         if self.is_range(ir_indices[-1]):
-            index_sel = Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.SEQ_BIT_VAL)
+            if target_id['type'] == DATA_TYPE.INT_VAL:
+                select_type = DATA_TYPE.SEQ_BIT_VAL
+            elif target_id['type'] == DATA_TYPE.BS_INT_VAL:
+                select_type = DATA_TYPE.SEQ_BS_BIT_VAL
+            else:
+                raise ParseException("internal error: Unrecognised type in int index select " + str(target_id['type']))
+            index_sel = Index_select(Name(node.ID, target_id['type']), ir_indices, select_type)
             index_sel.target.constraints = self.sym_table.id(node.ID)['constraints']
             return index_sel
         elif len(ir_indices) == 1:
-            index_sel = Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)
+            if target_id['type'] == DATA_TYPE.INT_VAL:
+                select_type = DATA_TYPE.BIT_VAL
+            elif target_id['type'] == DATA_TYPE.BS_INT_VAL:
+                select_type = DATA_TYPE.BS_BIT_VAL
+            else:
+                raise ParseException("internal error: Unrecognised type in int index select " + str(target_id['type']))
+            index_sel = Index_select(Name(node.ID, target_id['type']), ir_indices, select_type)
             index_sel.target.constraints = self.sym_table.id(node.ID)['constraints']
             return index_sel
         elif (len(ir_indices) > 1 and DATA_TYPE.is_int_val(self.sym_table.id(node.ID)['type'])):
@@ -470,12 +485,19 @@ class Semantic_analyser(object):
             if self.is_range(ir_indices[-1]):
                 return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, target_id['type'])
             else:
-                # print(target_id['type'])
-                return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, DATA_TYPE.seq_to_index_sel(target_id['type']))
+                if target_id['type'] == DATA_TYPE.SBOX_DECL:
+                     return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, DATA_TYPE.SEQ_BS_BIT_VAL)
+                else:
+                    return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, DATA_TYPE.seq_to_index_sel(target_id['type']))
         elif self.sym_table.dimension(node.ID) < len(ir_indices):
             if (target_id['type'] == DATA_TYPE.BS_SEQ_INT_VAL or target_id['type'] == DATA_TYPE.SEQ_INT_VAL) and (len(ir_indices) == self.sym_table.dimension(node.ID) + 1):
                 if self.is_range(ir_indices[-1]):
-                    return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, DATA_TYPE.SEQ_BIT_VAL)
+                    selection_type = None
+                    if target_id['type'] == DATA_TYPE.BS_SEQ_INT_VAL:
+                        selection_type = DATA_TYPE.SEQ_BS_BIT_VAL
+                    elif target_id['type'] == DATA_TYPE.SEQ_INT_VAL:
+                        selection_type = DATA_TYPE.SEQ_BIT_VAL
+                    return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, selection_type)
                 else:
                     return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)    # Selecting a bit value of an integer element in an integer array
             else:
@@ -492,7 +514,7 @@ class Semantic_analyser(object):
 
     def analyse_operation_type_size(self, operation):
         if operation.type == DATA_TYPE.INT_VAL:
-            print(operation.right)
+            # print(operation.right)
             operation.constraints = self.largest_int_lit(operation.left.constraints, operation.right.constraints)
         elif operation.type == DATA_TYPE.BIT_VAL:
             operation.constraints = Int_literal("8")
@@ -538,7 +560,7 @@ class Semantic_analyser(object):
             f_call.add_parameter(self.expr_type_is(p))
             # print(f_call.parameters[i])
             if self.value_matches_expected(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i].ID.type) is False:
-                raise ParseException(str(self.expr_type_is(p)) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i].node_type))
+                raise ParseException(str(f_call.parameters[i].type) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i].node_type))
                 return False
         return f_call
 
@@ -547,13 +569,14 @@ class Semantic_analyser(object):
         # Value type -> Allowed to be [ these value types ]
         allowed_values = {DATA_TYPE.INT_DECL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.BIT_DECL: [DATA_TYPE.BIT_VAL],
-                          DATA_TYPE.BS_INT_DECL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
-                          DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
+                          DATA_TYPE.BS_INT_DECL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
+                          DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
                           DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
                           DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.INT_VAL],
-                          DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
-                          DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BIT_VAL]}
+                          DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.BS_INT_VAL],
+                          DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.BS_INT_VAL],
+                          DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL]}
         if result_value in allowed_values[expected_value]:
             return True
         return False
@@ -617,9 +640,10 @@ class Semantic_analyser(object):
             return True
 
     def bitwise_expr_valid(self, expression):
-        # if expression['OPERAND_0'] == expression['OPERAND_2']:
-        #     return True
-        return self.value_matches_expected(expression['OPERAND_0'], expression['OPERAND_2'])
+        if DATA_TYPE.is_int_val(expression['OPERAND_0']) and DATA_TYPE.is_int_val(expression['OPERAND_2']):
+            return True
+        elif self.value_matches_expected(expression['OPERAND_0'], expression['OPERAND_2']):
+            return True
 
     def shift_expr_valid(self, expression):
         if expression['OPERAND_2'] == DATA_TYPE.INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL:
@@ -717,7 +741,10 @@ class Semantic_analyser(object):
             self.sym_table.id(decl.ID.name)['constraints'] = None
         elif old_decl.node_type == DATA_TYPE.SEQ_INT_DECL or old_decl.node_type == DATA_TYPE.BS_SEQ_INT_DECL or old_decl.node_type == DATA_TYPE.SBOX_DECL:
             decl = Seq_decl(old_decl.node_type, self.analyse_array_size(old_decl), old_decl.ID, constraints=self.expr_type_is(old_decl.bit_constraints))
-            self.sym_table.add_id(decl.ID.name, decl.ID.type)
+            if old_decl.node_type == DATA_TYPE.SBOX_DECL:
+                self.sym_table.add_id(decl.ID.name, DATA_TYPE.SBOX_DECL)
+            else:
+                self.sym_table.add_id(decl.ID.name, decl.ID.type)
             self.sym_table.id(decl.ID.name)['constraints'] = decl.constraints
             self.sym_table.id(decl.ID.name)['size'] = decl.size
         elif old_decl.node_type == DATA_TYPE.BIT_DECL:

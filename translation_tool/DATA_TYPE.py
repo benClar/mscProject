@@ -45,7 +45,9 @@ class DATA_TYPE(Enum):
     LOG_OP = 38,
     CAST_OP = 39,
     SBOX_DECL = 40,
-    INDEX_SELECT = 41
+    INDEX_SELECT = 41,
+    BS_BIT_VAL = 42,
+    SEQ_BS_BIT_VAL = 43
 
     def is_int_val(type_input):
         sequence_types = [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL]
@@ -54,8 +56,14 @@ class DATA_TYPE(Enum):
         return False
 
     def is_seq_type(type_input):
-        sequence_types = [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.SBOX_DECL]
+        sequence_types = [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.SBOX_DECL, DATA_TYPE.SEQ_BS_BIT_VAL]
         if type_input in sequence_types:
+            return True
+        return False
+
+    def is_var(type_input):
+        vars_ = [DATA_TYPE.INT_LITERAL, DATA_TYPE.ID, DATA_TYPE.INDEX_SELECT]
+        if type_input in vars_:
             return True
         return False
 
@@ -113,15 +121,25 @@ class DATA_TYPE(Enum):
         elif type_input == DATA_TYPE.INT_VAL or type_input == DATA_TYPE.BS_INT_VAL:
             return DATA_TYPE.BIT_VAL
         elif type_input == DATA_TYPE.SBOX_DECL:
-            return DATA_TYPE.INT_VAL
+            return DATA_TYPE.SEQ_BS_BIT_VAL
+        elif type_input == DATA_TYPE.SEQ_BS_BIT_VAL:
+            return DATA_TYPE.BS_BIT_VAL
         else:
-            raise ParseException("Internal Errror: Tried to convert unknown type to sequence selection type")
+            raise ParseException("Internal Errror: Tried to convert unknown type to sequence selection type " + str(type_input))
 
 
     def is_declaration(type_input):
         declarations = [DATA_TYPE.INT_DECL, DATA_TYPE.BIT_DECL, DATA_TYPE.SEQ_BIT_DECL,
                         DATA_TYPE.BS_SEQ_INT_DECL, DATA_TYPE.BS_INT_DECL, DATA_TYPE.SEQ_INT_DECL]
         if type_input in declarations:
+            return True
+        return False
+
+    def needs_cast(target, value):
+        directly_assignable = {DATA_TYPE.INT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],
+                               DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],
+                               DATA_TYPE.BS_INT_VAL: [DATA_TYPE.BS_INT_VAL]}
+        if value not in directly_assignable[target]:
             return True
         return False
 
@@ -139,7 +157,7 @@ class DATA_TYPE(Enum):
         elif type_input == DATA_TYPE.SEQ_BIT_DECL:
             return DATA_TYPE.SEQ_BIT_VAL
         elif type_input == DATA_TYPE.SBOX_DECL:
-            return DATA_TYPE.SEQ_INT_VAL
+            return DATA_TYPE.SEQ_BS_BIT_VAL
         else:
             traceback.print_stack(file=sys.stdout)
             raise ParseException("Unknown Value Type")
