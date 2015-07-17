@@ -796,8 +796,8 @@ from DATA_TYPE import DATA_TYPE
 
 #     def test_PRINCE_syntax(self):
 #         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
-#                                                                             Int(64)[11] RC= [0x0000000000000000,\
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
+#                                                                             @Int(64)[11] RC= [0x0000000000000000,\
 #                                                                                             0x13198a2e03707344,\
 #                                                                                             0xa4093822299f31d0,\
 #                                                                                             0x082efa98ec4e6c89,\
@@ -907,19 +907,33 @@ from DATA_TYPE import DATA_TYPE
 
 class test_translation(unittest.TestCase):
 
-    def test_translation(self):
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
-                                                                            Int(32) output;\
-                                                                            Int(32) input;\
-                                                                            output = state[0];\
-                                                                            state = state << 1;\
-                                                                            input =  (state[0] ^ state[4]) ^ (state[5] ^ state[6]);\
-                                                                            state[7] = input;\
-                                                                            return state;\
-                                                                        }")), True)
-        print(par.semantic_analyser.IR.translate())
-        # print(par.semantic_analyser.IR.IR[0].body[2].value.right)
+    # def test_LFSR_translation(self):
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
+    #                                                                         Int(32) output;\
+    #                                                                         Int(32) input;\
+    #                                                                         for(Int(8) i = 0; i < 32; i = i + 1) {\
+    #                                                                             output = state[0];\
+    #                                                                             state = state << 1;\
+    #                                                                             input =  (state[0] ^ state[4]) ^ (state[5] ^ state[6]);\
+    #                                                                             state[7] = input;\
+    #                                                                         }\
+    #                                                                         return state;\
+    #                                                                     }")), True)
+    #     print(par.semantic_analyser.IR.translate())
+
+    def test_PRINCE_translation(self):
+            par = Parser()
+            # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
+            #                                                                     @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
+            #                                                                         state = state ^ key_1;\
+            #                                                                         state = state ^ RC[0];\
+            #                                                                 }\
+            #                                                                 ")), True)
+            assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
+                                                                            }\
+                                                                            ")), True)
+            print(par.semantic_analyser.IR.translate())
 
 #         def test_LFSR_translation(self):
 #             par = Parser()

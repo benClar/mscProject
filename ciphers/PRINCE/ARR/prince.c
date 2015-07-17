@@ -80,113 +80,6 @@ void run()	{
 	hex_print(state,16,64);
 }
 
-uint8_t **gen_basic_blocks(uint8_t **M)	{
-
-	uint8_t *M_0 = malloc(16 * sizeof(uint8_t));
-	uint8_t *M_1 = malloc(16 * sizeof(uint8_t));
-	uint8_t *M_2 = malloc(16 * sizeof(uint8_t));
-	uint8_t *M_3 = malloc(16 * sizeof(uint8_t));
-
-	M_0[0] = M0_0; 
-	M_0[1] = M0_1;
-	M_0[2] = M0_2; 
-	M_0[3] = M0_3;
-	M_0[4] = M0_4;
-	M_0[5] = M0_5;
-	M_0[6] = M0_6;
-	M_0[7] = M0_7;
-	M_0[8] = M0_8;
-	M_0[9] = M0_9;
-	M_0[10] = M0_10;
-	M_0[11] = M0_11;
-	M_0[12] = M0_12;
-	M_0[13] = M0_13;
-	M_0[14] = M0_14;
-	M_0[15] = M0_15;
-
-	M_1[0] = M1_0; 
-	M_1[1] = M1_1;
-	M_1[2] = M1_2; 
-	M_1[3] = M1_3;
-	M_1[4] = M1_4;
-	M_1[5] = M1_5;
-	M_1[6] = M1_6;
-	M_1[7] = M1_7;
-	M_1[8] = M1_8;
-	M_1[9] = M1_9;
-	M_1[10] = M1_10;
-	M_1[11] = M1_11;
-	M_1[12] = M1_12;
-	M_1[13] = M1_13;
-	M_1[14] = M1_14;
-	M_1[15] = M1_15;
-
-	M_2[0] = M2_0; 
-	M_2[1] = M2_1;
-	M_2[2] = M2_2; 
-	M_2[3] = M2_3;
-	M_2[4] = M2_4;
-	M_2[5] = M2_5;
-	M_2[6] = M2_6;
-	M_2[7] = M2_7;
-	M_2[8] = M2_8;
-	M_2[9] = M2_9;
-	M_2[10] = M2_10;
-	M_2[11] = M2_11;
-	M_2[12] = M2_12;
-	M_2[13] = M2_13;
-	M_2[14] = M2_14;
-	M_2[15] = M2_15;
-
-	M_3[0] = M3_0; 
-	M_3[1] = M3_1;
-	M_3[2] = M3_2; 
-	M_3[3] = M3_3;
-	M_3[4] = M3_4;
-	M_3[5] = M3_5;
-	M_3[6] = M3_6;
-	M_3[7] = M3_7;
-	M_3[8] = M3_8;
-	M_3[9] = M3_9;
-	M_3[10] = M3_10;
-	M_3[11] = M3_11;
-	M_3[12] = M3_12;
-	M_3[13] = M3_13;
-	M_3[14] = M3_14;
-	M_3[15] = M3_15;
-
-	M[0] = M_0;
-	M[1] = M_1;
-	M[2] = M_2;
-	M[3] = M_3;
-
-	return M;
-}
-
-uint8_t *gen_diagonal_matrix(uint8_t *M_block_0, uint8_t *M_block_1, uint8_t *zero)	{
-	int row;
-	int ele, col, m_row;
-	uint8_t *M_64 = malloc((64 * 64) * sizeof(uint8_t**));
-
-	for(row = 0, ele = 0; row < 4; row++)	{
-		for(m_row = 0; m_row < 16; m_row++)	{
-			for(col = 0; col < 4; col++, ele+=16){	
-				if(col == row)	{
-					if(col == 0 || col == 3)	{
-						memcpy(M_64 + ele,&(M_block_0[m_row * 16]),16 * sizeof(uint8_t));
-					} else if (col == 1 || col == 2)	{
-						memcpy(M_64 + ele,&(M_block_1[m_row * 16]),16 * sizeof(uint8_t));
-					}
-				} else	{
-					memcpy(M_64 + ele,&(zero[m_row * 16]),16 * sizeof(uint8_t));
-				}
-			}
-		}
-	}
-	
-	return M_64;	
-}
-
 uint8_t *m0(uint8_t *data)	{
 	uint8_t *ret = malloc(16 * sizeof(int));
     ret[ 0] = data[4] ^ data[ 8] ^ data[12];
@@ -236,23 +129,6 @@ uint8_t *mprime(uint8_t *state)	{
 	memcpy(result + 32,m1(sub_array(state,32,47)),16 * sizeof(uint8_t));
 	memcpy(result + 48,m0(sub_array(state,48,63)),16 * sizeof(uint8_t));	
 	return result;
-}
-
-uint8_t *gen_block_matrix(uint8_t **m_blocks, int start) {
-	int ele, col, matrix, m_row, m = start;
-	uint8_t *output = calloc((16 * 16),sizeof(uint8_t*));
-
-	for(matrix = 0, ele = 0; matrix < 16; matrix++)	{
-		for(m_row = 0; m_row < 4; m_row++)	{
-			for(col = 0; col < 4; col++,ele+=4){
-				memcpy(output + ele,&(m_blocks[m][m_row * 4]),4 * sizeof(uint8_t));
-				m = (m + 1) % BASIC_BLOCK_NUM;
-			}
-		}
-		m = (m + 1) % BASIC_BLOCK_NUM;
-	}
-
-	return output;
 }
 
 uint8_t* sBox(uint8_t *input, int invert)	{

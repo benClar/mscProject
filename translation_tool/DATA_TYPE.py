@@ -138,7 +138,8 @@ class DATA_TYPE(Enum):
     def needs_cast(target, value):
         directly_assignable = {DATA_TYPE.INT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],
                                DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],
-                               DATA_TYPE.BS_INT_VAL: [DATA_TYPE.BS_INT_VAL]}
+                               DATA_TYPE.BS_INT_VAL: [DATA_TYPE.BS_INT_VAL],
+                               DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.BS_SEQ_INT_VAL]}
         if value not in directly_assignable[target]:
             return True
         return False
