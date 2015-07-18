@@ -907,31 +907,73 @@ from DATA_TYPE import DATA_TYPE
 
 class test_translation(unittest.TestCase):
 
-    # def test_LFSR_translation(self):
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
-    #                                                                         Int(32) output;\
-    #                                                                         Int(32) input;\
-    #                                                                         for(Int(8) i = 0; i < 32; i = i + 1) {\
-    #                                                                             output = state[0];\
-    #                                                                             state = state << 1;\
-    #                                                                             input =  (state[0] ^ state[4]) ^ (state[5] ^ state[6]);\
-    #                                                                             state[7] = input;\
-    #                                                                         }\
-    #                                                                         return state;\
-    #                                                                     }")), True)
-    #     print(par.semantic_analyser.IR.translate())
+#     def test_LFSR_translation(self):
+#         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
+#                                                                             Int(32) output;\
+#                                                                             Int(32) input;\
+#                                                                             for(Int(8) i = 0; i < 32; i = i + 1) {\
+#                                                                                 output = state[0];\
+#                                                                                 state = state << 1;\
+#                                                                                 input =  (state[0] ^ state[4]) ^ (state[5] ^ state[6]);\
+#                                                                                 state[7] = input;\
+#                                                                             }\
+#                                                                             return state;\
+#                                                                         }")), True)
+    #     File_comparison.comp("LFSR_1.txt", par)
 
     def test_PRINCE_translation(self):
             par = Parser()
             # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
             #                                                                     @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
             #                                                                         state = state ^ key_1;\
-            #                                                                         state = state ^ RC[0];\
             #                                                                 }\
             #                                                                 ")), True)
             assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
+                                                                                @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
+                                                                                state = state ^ key_1;\
+                                                                                state = state ^ RC[0][0:64];\
                                                                             }\
+                                                                            @Int(16) m0(@Int(16) state)   {\
+                                                                                @Int(16) output;\
+                                                                                output[ 0] = state[4] ^ state[ 8] ^ state[12];\
+                                                                                output[ 1] = state[1] ^ state[ 9] ^ state[13];\
+                                                                                output[ 2] = state[2] ^ state[ 6] ^ state[14];\
+                                                                                output[ 3] = state[3] ^ state[ 7] ^ state[11];\
+                                                                                output[ 4] = state[0] ^ state[ 4] ^ state[ 8];\
+                                                                                output[ 5] = state[5] ^ state[ 9] ^ state[13];\
+                                                                                output[ 6] = state[2] ^ state[10] ^ state[14];\
+                                                                                output[ 7] = state[3] ^ state[ 7] ^ state[15];\
+                                                                                output[ 8] = state[0] ^ state[ 4] ^ state[12];\
+                                                                                output[ 9] = state[1] ^ state[ 5] ^ state[ 9];\
+                                                                                output[10] = state[6] ^ state[10] ^ state[14];\
+                                                                                output[11] = state[3] ^ state[11] ^ state[15];\
+                                                                                output[12] = state[0] ^ state[ 8] ^ state[12];\
+                                                                                output[13] = state[1] ^ state[ 5] ^ state[13];\
+                                                                                output[14] = state[2] ^ state[ 6] ^ state[10];\
+                                                                                output[15] = state[7] ^ state[11] ^ state[15];\
+                                                                                return output;\
+                                                                            }\
+                                                                        @Int(16) m1(@Int(16) state)   {\
+                                                                            @Int(16) output;\
+                                                                            output[ 0] = state[0] ^ state[ 4] ^ state[ 8];\
+                                                                            output[ 1] = state[5] ^ state[ 9] ^ state[13];\
+                                                                            output[ 2] = state[2] ^ state[10] ^ state[14];\
+                                                                            output[ 3] = state[3] ^ state[ 7] ^ state[15];\
+                                                                            output[ 4] = state[0] ^ state[ 4] ^ state[12];\
+                                                                            output[ 5] = state[1] ^ state[ 5] ^ state[ 9];\
+                                                                            output[ 6] = state[6] ^ state[10] ^ state[14];\
+                                                                            output[ 7] = state[3] ^ state[11] ^ state[15];\
+                                                                            output[ 8] = state[0] ^ state[ 8] ^ state[12];\
+                                                                            output[ 9] = state[1] ^ state[ 5] ^ state[13];\
+                                                                            output[10] = state[2] ^ state[ 6] ^ state[10];\
+                                                                            output[11] = state[7] ^ state[11] ^ state[15];\
+                                                                            output[12] = state[4] ^ state[ 8] ^ state[12];\
+                                                                            output[13] = state[1] ^ state[ 9] ^ state[13];\
+                                                                            output[14] = state[2] ^ state[ 6] ^ state[14];\
+                                                                            output[15] = state[3] ^ state[ 7] ^ state[11];\
+                                                                            return output;\
+                                                                        }\
                                                                             ")), True)
             print(par.semantic_analyser.IR.translate())
 
@@ -1062,23 +1104,23 @@ class test_translation(unittest.TestCase):
 #             print(par.semantic_analyser.IR.translate())
 
 
-# class File_comparison(object):
+class File_comparison(object):
 
-#     def comp(test_file, par):
-#         File_comparison.write(test_file, par)
-#         File_comparison.compare(test_file, par)
+    def comp(test_file, par):
+        File_comparison.write(test_file, par)
+        File_comparison.compare(test_file, par)
 
-#     def write(test_file, par):
-#         with open("tests/" + test_file, "w") as text_file:
-#             print(par.semantic_analyser.IR.translate(), file=text_file)
+    def write(test_file, par):
+        with open("tests/" + test_file, "w") as text_file:
+            print(par.semantic_analyser.IR.translate(), file=text_file)
 
-#     def compare(test_file, par):
-#         expected_text_file = open("tests/expected/expected_" + test_file, "r")
-#         output_text_file = open("tests/" + test_file, "r")
-#         assert_equals(expected_text_file.read(), output_text_file.read())
-#         expected_text_file.close()
-#         output_text_file.close()
+    def compare(test_file, par):
+        expected_text_file = open("tests/expected/expected_" + test_file, "r")
+        output_text_file = open("tests/" + test_file, "r")
+        assert_equals(expected_text_file.read(), output_text_file.read())
+        expected_text_file.close()
+        output_text_file.close()
 
-#     def write_expected(test_file, par):
-#         with open("tests/expected/expected_" + test_file, "w") as text_file:
-#             print(par.semantic_analyser.IR.translate(), file=text_file)
+    def write_expected(test_file, par):
+        with open("tests/expected/expected_" + test_file, "w") as text_file:
+            print(par.semantic_analyser.IR.translate(), file=text_file)

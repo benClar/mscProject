@@ -576,7 +576,8 @@ class Semantic_analyser(object):
                           DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.INT_VAL],
                           DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.BS_INT_VAL],
-                          DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL]}
+                          DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL],
+                          DATA_TYPE.SEQ_BS_BIT_VAL : [DATA_TYPE.BS_INT_VAL]}
         if result_value in allowed_values[expected_value]:
             return True
         return False
