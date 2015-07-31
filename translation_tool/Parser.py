@@ -46,7 +46,7 @@ class Parser(object):
         self.b_10_num = Word(nums)
         self.bit_and = Literal('&')
         self.bit_or = Keyword('|')
-        self.bit_xor = Literal('^')
+        self.bit_xor = Keyword('^')
         self.bit_not = Literal('~')
         self.eq_compare = Literal('==')
         self.neq_compare = Literal('!=')
@@ -263,3 +263,13 @@ class Parser(object):
 
     def parse(self, data_in):
         return self.grammar.parseString(data_in)
+
+# if __name__ == "__main__":
+#     suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)
+#     unittest.TextTestRunner(verbosity=0).run(suite)
+#     suite = unittest.TestLoader().loadTestsFromTestCase(TestParser)
+#     unittest.TextTestRunner(verbosity=0).run(suite)
+#     suite = unittest.TestLoader().loadTestsFromTestCase(TestSemanticAnalysisTree)
+#     unittest.TextTestRunner(verbosity=0).run(suite)
+#     suite = unittest.TestLoader().loadTestsFromTestCase(test_IR_generation)
+#     unittest.TextTestRunner(verbosity=0).run(suite)

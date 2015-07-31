@@ -528,6 +528,8 @@ from DATA_TYPE import DATA_TYPE
 #         assert_equals(par.semantic_analyser.IR.IR[0].value.right.operator, "*")
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = False;")), False)
+#         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = [True, False, True, True];")), True)
 
 #     def test_bit_seq_decl(self):
 #         par = Parser()
@@ -797,18 +799,6 @@ from DATA_TYPE import DATA_TYPE
 #     def test_PRINCE_syntax(self):
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
-#                                                                             @Int(64)[11] RC= [0x0000000000000000,\
-#                                                                                             0x13198a2e03707344,\
-#                                                                                             0xa4093822299f31d0,\
-#                                                                                             0x082efa98ec4e6c89,\
-#                                                                                             0x452821e638d01377,\
-#                                                                                             0xbe5466cf34e90c6c,\
-#                                                                                             0x7ef84f78fd955cb1,\
-#                                                                                             0x85840851f1ac43aa,\
-#                                                                                             0xc882d32f25323c54,\
-#                                                                                             0x64a51195e0e3610d,\
-#                                                                                             0xd3b5a399ca0c2399,\
-#                                                                                             0xc0ac29b7c97c50dd];\
 #                                                                             @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
 #                                                                                 state = state ^ key_1;\
 #                                                                                 state = state ^ RC[0];\
@@ -907,89 +897,104 @@ from DATA_TYPE import DATA_TYPE
 
 class test_translation(unittest.TestCase):
 
-#     def test_LFSR_translation(self):
-#         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
-#                                                                             Int(32) output;\
-#                                                                             Int(32) input;\
-#                                                                             for(Int(8) i = 0; i < 32; i = i + 1) {\
-#                                                                                 output = state[0];\
-#                                                                                 state = state << 1;\
-#                                                                                 input =  (state[0] ^ state[4]) ^ (state[5] ^ state[6]);\
-#                                                                                 state[7] = input;\
-#                                                                             }\
-#                                                                             return state;\
-#                                                                         }")), True)
+    # def test_LFSR_translation(self):
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
+    #                                                                         Int(32) output;\
+    #                                                                         Int(32) input;\
+    #                                                                         for(Int(8) i = 0; i < 32; i = i + 1) {\
+    #                                                                             output = state[0];\
+    #                                                                             state = state << 1;\
+    #                                                                             input =  (state[0] ^ state[4]) ^ (state[5] ^ state[6]);\
+    #                                                                             state[7] = input;\
+    #                                                                         }\
+    #                                                                         return state;\
+    #                                                                     }")), True)
+    #     print(par.semantic_analyser.IR.translate())
     #     File_comparison.comp("LFSR_1.txt", par)
 
     def test_PRINCE_translation(self):
             par = Parser()
             # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
             #                                                                     @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
-            #                                                                         state = state ^ key_1;\
+            #                                                                     state = state ^ key_1;\
+            #                                                                     state = state ^ RC[0][0:64];\
+            #                                                                 }\
+            #                                                                 void m0(@Int(16) state, @Int(16) output)   {\
+            #                                                                     output[ 0] = state[4] ^ state[ 8] ^ state[12];\
+            #                                                                     output[ 1] = state[1] ^ state[ 9] ^ state[13];\
+            #                                                                     output[ 2] = state[2] ^ state[ 6] ^ state[14];\
+            #                                                                     output[ 3] = state[3] ^ state[ 7] ^ state[11];\
+            #                                                                     output[ 4] = state[0] ^ state[ 4] ^ state[ 8];\
+            #                                                                     output[ 5] = state[5] ^ state[ 9] ^ state[13];\
+            #                                                                     output[ 6] = state[2] ^ state[10] ^ state[14];\
+            #                                                                     output[ 7] = state[3] ^ state[ 7] ^ state[15];\
+            #                                                                     output[ 8] = state[0] ^ state[ 4] ^ state[12];\
+            #                                                                     output[ 9] = state[1] ^ state[ 5] ^ state[ 9];\
+            #                                                                     output[10] = state[6] ^ state[10] ^ state[14];\
+            #                                                                     output[11] = state[3] ^ state[11] ^ state[15];\
+            #                                                                     output[12] = state[0] ^ state[ 8] ^ state[12];\
+            #                                                                     output[13] = state[1] ^ state[ 5] ^ state[13];\
+            #                                                                     output[14] = state[2] ^ state[ 6] ^ state[10];\
+            #                                                                     output[15] = state[7] ^ state[11] ^ state[15];\
+            #                                                                 }\
+            #                                                                 void m1(@Int(16) state, @Int(16) output)   {\
+            #                                                                     output[ 0] = state[0] ^ state[ 4] ^ state[ 8];\
+            #                                                                     output[ 1] = state[5] ^ state[ 9] ^ state[13];\
+            #                                                                     output[ 2] = state[2] ^ state[10] ^ state[14];\
+            #                                                                     output[ 3] = state[3] ^ state[ 7] ^ state[15];\
+            #                                                                     output[ 4] = state[0] ^ state[ 4] ^ state[12];\
+            #                                                                     output[ 5] = state[1] ^ state[ 5] ^ state[ 9];\
+            #                                                                     output[ 6] = state[6] ^ state[10] ^ state[14];\
+            #                                                                     output[ 7] = state[3] ^ state[11] ^ state[15];\
+            #                                                                     output[ 8] = state[0] ^ state[ 8] ^ state[12];\
+            #                                                                     output[ 9] = state[1] ^ state[ 5] ^ state[13];\
+            #                                                                     output[10] = state[2] ^ state[ 6] ^ state[10];\
+            #                                                                     output[11] = state[7] ^ state[11] ^ state[15];\
+            #                                                                     output[12] = state[4] ^ state[ 8] ^ state[12];\
+            #                                                                     output[13] = state[1] ^ state[ 9] ^ state[13];\
+            #                                                                     output[14] = state[2] ^ state[ 6] ^ state[14];\
+            #                                                                     output[15] = state[3] ^ state[ 7] ^ state[11];\
+            #                                                                 }\
+            #                                                                 @Int(64) mPrime(@Int(64) state)    {\
+            #                                                                     @Int(16) output;\
+            #                                                                     m0(state[0:15], output);\
+            #                                                                     state[0:15] = output[0:15];\
+            #                                                                     m1(state[16:31], output);\
+            #                                                                     state[16:31] =  output[0:15];\
+            #                                                                     m1(state[32:47], output);\
+            #                                                                     state[32:47] = output[0:15];\
+            #                                                                     m0(state[48:63], output);\
+            #                                                                     state[48:63] = output[0:15];\
+            #                                                                     return state;\
+            #                                                                 }\
+            #                                                                 @Int(64) sBox_layer(@Int(64) state, Sbox(4)[16] s)  {\
+            #                                                                     for(Int(8) i = 0; i < 16; i = i + 1){\
+            #                                                                         state[(i * 4) : (i * 4) + 4] = s[state[(i * 4) : (i * 4) + 4]];\
+            #                                                                     }\
+            #                                                                     return state;\
             #                                                                 }\
             #                                                                 ")), True)
-            assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
-                                                                                @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
-                                                                                state = state ^ key_1;\
-                                                                                state = state ^ RC[0][0:64];\
-                                                                            }\
-                                                                            @Int(16) m0(@Int(16) state)   {\
-                                                                                @Int(16) output;\
-                                                                                output[ 0] = state[4] ^ state[ 8] ^ state[12];\
-                                                                                output[ 1] = state[1] ^ state[ 9] ^ state[13];\
-                                                                                output[ 2] = state[2] ^ state[ 6] ^ state[14];\
-                                                                                output[ 3] = state[3] ^ state[ 7] ^ state[11];\
-                                                                                output[ 4] = state[0] ^ state[ 4] ^ state[ 8];\
-                                                                                output[ 5] = state[5] ^ state[ 9] ^ state[13];\
-                                                                                output[ 6] = state[2] ^ state[10] ^ state[14];\
-                                                                                output[ 7] = state[3] ^ state[ 7] ^ state[15];\
-                                                                                output[ 8] = state[0] ^ state[ 4] ^ state[12];\
-                                                                                output[ 9] = state[1] ^ state[ 5] ^ state[ 9];\
-                                                                                output[10] = state[6] ^ state[10] ^ state[14];\
-                                                                                output[11] = state[3] ^ state[11] ^ state[15];\
-                                                                                output[12] = state[0] ^ state[ 8] ^ state[12];\
-                                                                                output[13] = state[1] ^ state[ 5] ^ state[13];\
-                                                                                output[14] = state[2] ^ state[ 6] ^ state[10];\
-                                                                                output[15] = state[7] ^ state[11] ^ state[15];\
-                                                                                return output;\
-                                                                            }\
-                                                                        @Int(16) m1(@Int(16) state)   {\
-                                                                            @Int(16) output;\
-                                                                            output[ 0] = state[0] ^ state[ 4] ^ state[ 8];\
-                                                                            output[ 1] = state[5] ^ state[ 9] ^ state[13];\
-                                                                            output[ 2] = state[2] ^ state[10] ^ state[14];\
-                                                                            output[ 3] = state[3] ^ state[ 7] ^ state[15];\
-                                                                            output[ 4] = state[0] ^ state[ 4] ^ state[12];\
-                                                                            output[ 5] = state[1] ^ state[ 5] ^ state[ 9];\
-                                                                            output[ 6] = state[6] ^ state[10] ^ state[14];\
-                                                                            output[ 7] = state[3] ^ state[11] ^ state[15];\
-                                                                            output[ 8] = state[0] ^ state[ 8] ^ state[12];\
-                                                                            output[ 9] = state[1] ^ state[ 5] ^ state[13];\
-                                                                            output[10] = state[2] ^ state[ 6] ^ state[10];\
-                                                                            output[11] = state[7] ^ state[11] ^ state[15];\
-                                                                            output[12] = state[4] ^ state[ 8] ^ state[12];\
-                                                                            output[13] = state[1] ^ state[ 9] ^ state[13];\
-                                                                            output[14] = state[2] ^ state[ 6] ^ state[14];\
-                                                                            output[15] = state[3] ^ state[ 7] ^ state[11];\
-                                                                            return output;\
-                                                                        }\
-                                                                            ")), True)
+            assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64) sBox_layer(@Int(64) state, Sbox(4)[16] s)  {\
+                                                                                    Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4];\
+                                                                                    return state;\
+                                                                                }\
+                                                                                ")), True)
             print(par.semantic_analyser.IR.translate())
 
-#         def test_LFSR_translation(self):
-#             par = Parser()
-#             assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
-#                                                                             @Int(8) output;\
-#                                                                             @Int(8) input;\
-#                                                                             for(Int(8) i = 0; i < 32; i = i + 1) {\
-#                                                                                 output[0] = state[0];\
-#                                                                                 input[0] =  state[0] ^ state[4] ^ state[5] ^ state[6];\
-#                                                                                 state = state << 1;\
-#                                                                                 state[7] = input[0];\
-#                                                                              }\
-#                                                                              return state;\
-#                                                                         }")), True)  # NOQA
+        # def test_LFSR_translation(self):
+        #     par = Parser()
+        #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
+        #                                                                     @Int(1) output;\
+        #                                                                     @Int(1) input;\
+        #                                                                     for(Int(8) i = 0; i < 32; i = i + 1) {\
+        #                                                                         output[0] = state[0];\
+        #                                                                         input[0] =  state[0] ^ state[4] ^ state[5] ^ state[6];\
+        #                                                                         state = state << 1;\
+        #                                                                         state[7] = input[0];\
+        #                                                                      }\
+        #                                                                      return state;\
+        #                                                                 }")), True)  # NOQA
 #             assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
 #                                                                                 Int(8) output;\
 #                                                                                 Int(8) input;\
@@ -1000,6 +1005,8 @@ class test_translation(unittest.TestCase):
 #             print(par.semantic_analyser.IR.translate())
 #             File_comparison.comp("LFSR_1.txt", par)
 
+
+###### OLD ########
 
 #         def test_PRESENT_translation(self):
 #             par = Parser()

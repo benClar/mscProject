@@ -130,14 +130,12 @@ class AST(object):
             self.add_statement(Seq_decl_ast(seq_decl_type, token['ID'][1][0], token[AST.INT_SEQ_SIZE], constraints=token[AST.INT_SEQ_CNST]))
 
     def bit_seq_decl(self, token):
-        # print(token.dump())
         if 'value' in token:
             self.add_statement(Seq_decl_ast(DATA_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token[AST.BIT_SEQ_SIZE], token[AST.BIT_SEQ_VALUE]))
         else:
             self.add_statement(Seq_decl_ast(DATA_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token[AST.BIT_SEQ_SIZE]))
 
     def id_set(self, tokens):
-
         token = tokens[0]
         # print(token)
         if token[0][0] == "index_select":
@@ -151,8 +149,8 @@ class AST(object):
 
     def function_decl(self, tokens):
         token = tokens[0]
-        # print(token.dump())
         params = []
+        # print(tokens[0].dump())
         for p in token['func_param']:
             decl_type = self.param_type(p)
             if decl_type == DATA_TYPE.INT_DECL or decl_type == DATA_TYPE.BS_INT_DECL:

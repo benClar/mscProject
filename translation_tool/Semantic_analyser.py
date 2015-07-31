@@ -283,6 +283,8 @@ class Semantic_analyser(object):
     def analyse_bit_cnst_seq(self, node):
         """Analyse Sequences that have bit constraints set on their members and build IR node"""
         if node.value is None:
+            if node.node_type == DATA_TYPE.SBOX_DECL:
+                raise ParseException("Sbox declaractions cannot be unitialised")
             decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, constraints=self.expr_type_is(node.bit_constraints))
         else:
             decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value), self.expr_type_is(node.bit_constraints))
@@ -554,24 +556,26 @@ class Semantic_analyser(object):
         return cast
 
     def analyse_func_call(self, node):
-
-        f_call = Call(node.ID, self.sym_table.f_table[node.ID]['return_type'].ID.type, self.sym_table.f_table[node.ID]['return_type'])
+        return_ = self.sym_table.f_table[node.ID]['return_type']
+        f_call = Call(node.ID, return_.ID.type, return_.ID.size, return_.ID.constraints, self.sym_table.f_table[node.ID]['return_type'])
         for i, p in enumerate(node.parameters):
             f_call.add_parameter(self.expr_type_is(p))
             # print(f_call.parameters[i])
             if self.value_matches_expected(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i].ID.type) is False:
                 raise ParseException(str(f_call.parameters[i].type) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i].node_type))
                 return False
+            # if DATA_TYPE.needs_cast(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i].ID.type):
+            #     raise ParseException("needs Cast from " + str(f_call.parameters[i].type) + " to " + str(self.sym_table.f_table[node.ID]['parameters'][i].ID.type))
         return f_call
 
     def value_matches_expected(self, result_value, expected_value):
         """Lookup for allowed assignment types"""
         # Value type -> Allowed to be [ these value types ]
-        allowed_values = {DATA_TYPE.INT_DECL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
+        allowed_values = {DATA_TYPE.INT_DECL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL],
                           DATA_TYPE.BIT_DECL: [DATA_TYPE.BIT_VAL],
                           DATA_TYPE.BS_INT_DECL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
                           DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
-                          DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL],
+                          DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL],
                           DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
                           DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.INT_VAL],
                           DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.BS_INT_VAL],
