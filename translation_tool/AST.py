@@ -459,7 +459,6 @@ class Expr_ast(object):
                  '/': DATA_TYPE.ARITH_OP,
                  '%': DATA_TYPE.ARITH_OP,
                  '+': DATA_TYPE.ARITH_OP,
-                 '%': DATA_TYPE.ARITH_OP,
                  '>>': DATA_TYPE.SHIFT_OP,
                  '<<': DATA_TYPE.SHIFT_OP,
                  '>>>': DATA_TYPE.SHIFT_OP,

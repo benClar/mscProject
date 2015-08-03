@@ -151,18 +151,20 @@ class If_stmt(object):
     def add_stmt(self, stmt):
         self._body.append(stmt)
 
-    # def translate(self):
-    #     ret = ""
-    #     ret += "if(" + self.condition.translate() + ") { \n"
-    #     ret += self.translate_body()
-    #     ret += "} \n"
-    #     return ret
+    def translate(self, sym_count):
+        result = {'emit': "", 'result': ""}
+        condition_result = self.condition.translate(sym_count)
+        result['emit'] += condition_result['emit']
+        result['emit'] += "if(" + condition_result['result'] + ") { \n"
+        result['emit'] += self.translate_body(sym_count)
+        result['emit'] += "} \n"
+        return result['emit']
 
-    # def translate_body(self):
-    #     ret = ""
-    #     for stmt in self.body:
-    #         ret += stmt.translate()
-    #     return ret
+    def translate_body(self, sym_count):
+        ret = ""
+        for stmt in self.body:
+            ret += stmt.translate(sym_count)
+        return ret
 
 
 class Element_range(object):
@@ -185,8 +187,8 @@ class Element_range(object):
     def translate_size(self, sym_count):
         result = {'emit': "", 'result': ""}
         result['result'] = Target_factory.name(sym_count, "rnge_size")
-        start = self.start.translate()
-        end = self.finish.translate()
+        start = self.start.translate(sym_count)
+        end = self.finish.translate(sym_count)
         result['emit'] += "uint32_t " + result['result'] + ";\n"
         result['emit'] += start['emit']
         result['emit'] += end['emit']
@@ -295,14 +297,28 @@ class Index_select(object):
             result['emit'] += self.translate_assignment_target(sym_count, value)
             return result
         else:
-            target_result = self.target.translate()
-            result['emit'] += target_result['emit']
-            extracted_sequence = self.extract_sequence(target_result['result'], sym_count)
-            result['res_size'] = extracted_sequence['res_size']
-            result['emit'] += extracted_sequence['emit']
-            result['result'] = extracted_sequence['result']
+            if self.target.type == DATA_TYPE.SBOX_DECL:
+                sbox_lookup = self.sbox_lookup_translate(sym_count)
+                result['emit'] += sbox_lookup['emit']
+                result['result'] = sbox_lookup['result']
+            else:
+                target_result = self.target.translate()
+                result['emit'] += target_result['emit']
+                extracted_sequence = self.extract_sequence(target_result['result'], sym_count)
+                result['res_size'] = extracted_sequence['res_size']
+                result['emit'] += extracted_sequence['emit']
+                result['result'] = extracted_sequence['result']
             return result
             # result['emit'] += target + self.translate_selection_dim() + "[" + self.indices[-1][0].translate(sym_count) + "]"
+
+    def sbox_lookup_translate(self, sym_count):
+        result = {'emit': "", 'result': ""}
+        assert len(self.indices) == 1, "Sbox looks can only ever be one dimensional"
+        index_result = self.indices[-1][-1].translate(sym_count)
+        result['result'] = index_result['result']
+        result['emit'] += index_result['emit']
+        result['emit'] += self.target.translate(sym_count)['result'] + "(" + index_result['result'] + ");\n"
+        return result
 
     def translate_as_lhs(self, sym_count, value):
         result = {'emit': "", 'result': ""}
@@ -315,7 +331,7 @@ class Index_select(object):
             temp_term = self.indices[-1][-1].translate_size(sym_count)
             result['emit'] += "uint8_t " + temp_init + ";\n"
             result['emit'] += temp_term['emit']
-            starting_ele = self.indices[-1][-1].start.translate()  # Getting translation of starting element of range
+            starting_ele = self.indices[-1][-1].start.translate(sym_count)  # Getting translation of starting element of range
             result['emit'] += starting_ele['emit']
             temp_starting_ele = Target_factory.name(sym_count, "rng_start")
             result['emit'] += "uint8_t " + temp_starting_ele + " = " + starting_ele['result'] + ";\n"  # Assigning starting element of range to temp variable for incrementing
@@ -326,19 +342,42 @@ class Index_select(object):
 
     def extract_sequence(self, target, sym_count):
         assert self.target.node_type == DATA_TYPE.ID, "Assumption target is just an ID at this point"
-        if self.target.type == DATA_TYPE.BS_INT_VAL:
+        if self.type == DATA_TYPE.BS_BIT_VAL:
+            return self.extract_bs_int_bits(target, sym_count)
+        elif self.type == DATA_TYPE.BS_INT_VAL:
             return self.extract_bs_int_val(target, sym_count)
-        elif self.target.type == DATA_TYPE.BS_SEQ_INT_VAL:
-            return self.extract_bs_int_val(target, sym_count)
-
+        elif self.type == DATA_TYPE.SEQ_BS_BIT_VAL:
+            return self.extract_bs_int_bits(target, sym_count)
+        elif self.target.type == DATA_TYPE.SBOX_DECL:
+            raise ParseException("Unsupport seq type extraction " + str(self.type) + " from " + str(self.target.type))
+        else:
+            raise ParseException("Unsupport seq type extraction " + str(self.type) + " from " + str(self.target.type))
 
     def extract_bs_int_val(self, target, sym_count):
+        """Extract entire bitsliced int from a sequence of bs ints"""
+        result = {'emit': "", 'result': ""}
+        extracted_seq = Target_factory.name(sym_count, "extracted")
+        result['res_size'] = self.target.constraints.translate()['result']
+        result['emit'] += "uint32_t " + " " + extracted_seq + "[" + result['res_size'] + "];\n"
+        result['result'] = extracted_seq
+        selection_dim = self.translate_selection_dim()
+        result['emit'] += selection_dim['emit']
+        for ele in range(int(result['res_size'])):
+            result['emit'] += extracted_seq + "[" + str(ele) + "]" + " = " + target + selection_dim['result'] + "[" + str(ele) + "]" + ";\n"
+        return result
+
+    def bitsliced_selection_dim(self):
+        result = {'emit': "", 'result': ""}
+
+
+    def extract_bs_int_bits(self, target, sym_count):
+        """Extracting bits from bitsliced Int from single selector, range or list"""
         result = {'emit': "", 'result': ""}
         if self.is_range():
             result = self.extract_range(sym_count, target)
         else:
-            extracted_seq = Target_factory.name(sym_count)
-            result['emit'] += "uint32_t " + " " + extracted_seq + "[" + str(len(self.indices[-1])) + "];\n"
+            extracted_seq = Target_factory.name(sym_count, "extracted")
+            result['emit'] += "uint32_t " + " " + extracted_seq + "[" + str(len(self.indices[-1])) + "] = {0};\n"
             result['res_size'] = str(len(self.indices[-1]))
             result['result'] = extracted_seq
             selection_dim = self.translate_selection_dim()
@@ -484,7 +523,7 @@ class Index_select(object):
     def translate_selection_dim(self):
         result = {"emit": "", "result": ""}
         for i, dim in enumerate(self.indices):
-            if i == len(self.indices) - 1:
+            if i == len(self.indices) - 1 and self.type != DATA_TYPE.BS_INT_VAL:
                 return result
             dim = dim[0].translate()
             result['emit'] += dim['emit']
@@ -649,7 +688,7 @@ class Seq_decl(object):
         elif self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
             result['emit'] += Target_factory.type_decl_lookup[self.ID.type] + " " + self.ID.translate()['result'] + self.translate_index() + ";\n"
         elif self.node_type == DATA_TYPE.SBOX_DECL:
-            self.translate_sbox_decl()
+            result['emit'] += self.translate_sbox_decl()
         else:
             raise ParseException("Translation of Unknown Sequence Type attempted: " + str(self.node_type))
         if self.body is not None and self.node_type != DATA_TYPE.SBOX_DECL:
@@ -665,19 +704,52 @@ class Seq_decl(object):
         return index
 
     def translate_sbox_decl(self):
-        print("!!!")
         result = {'emit': "", 'result': ""}
         v_name = self.ID.translate()["result"]
         p_list = ""
-        result['emit'] += "uint32_t (" + "*" + v_name + "(uint32_t input[" + self.constraints.translate()['result'] + "])){\n"
+        result['emit'] += "void " + v_name + "(uint32_t input[" + self.constraints.translate()['result'] + "]){\n"
         for i in range(0, int(self.constraints.translate()['result'])):
             for bit in range(0, int(self.constraints.translate()['result'])):
                 p_list += "input[" + str(bit) + "], "
             p_list = p_list[:-2]
-            result['emit'] += v_name + "_" + str(i) + "(" + p_list + ");\n"
+            result['emit'] += "input[" + str(i) + "] = " + v_name + "_" + str(i) + "(" + p_list + ");\n"
             p_list = ""
         result['emit'] += "}\n"
-        print(result['emit'])
+        result['emit'] = self.translate_qm(v_name) + result['emit']
+        return result['emit']
+
+    def translate_qm(self, name):
+        result = ""
+        qm = QuineMcCluskey()
+        for bit in range(0, 4):
+            result += "uint32_t " + name + "_" + str(bit) + "(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {\n"
+            boolean_result = qm.simplify(ones=self.get_ones(bit))
+            result += "return "
+            for term in boolean_result:
+                result += self.translate_term(term) + " | "
+            result = result[:-3]
+            result += ";\n}\n"
+        return result
+
+    def translate_term(self, term):
+        result = ""
+        for i, bit in enumerate(("D", "C", "B", "A")):
+            if term[i] == "1":
+                result += bit + " & "
+            elif term[i] == "0":
+                result += "~" + bit + " & "
+            elif term[i] == "-":
+                pass
+            else:
+                raise ParseException("Internal Error: Unknown char in term")
+        result = result[:-3]
+        return "(" + result + ")"
+    def get_ones(self, bit):
+        ones = []
+        for i, val in enumerate(self.value.value):
+            if (int(val.translate()['result']) >> bit) & 0x1:
+                ones.append(i)
+        return ones
 
     # def translate_as_parameter(self):
     #     ret = self.translate_type() + " " + self.ID.translate()
@@ -1150,12 +1222,15 @@ class Call(object):
             result['emit'] += p + ", "
         result['emit'] = result['emit'][:-2]
         result['emit'] += ");\n"
-        print(result['emit'])
+        result['result'] = function_result['result']
+        return result
 
     def call_temp_target(self, sym_count):
         """Create Temporary target for function result"""
         if self.f_id.type == DATA_TYPE.BS_INT_VAL:
             return Target_factory.make_bs_target(Target_factory.name(sym_count, "call"), self.f_id.constraints)
+        else:
+            raise ParseException("Unsupported function call type")
 
 class Target_factory(object):
 
@@ -1481,7 +1556,7 @@ class Binary_operation(object):
             result['emit'] += "uint32_t" + " " + result['result'] + ";\n"
         elif self.type == DATA_TYPE.BS_INT_VAL:
             result['result'] += Target_factory.name(sym_count) + "_bin"
-            result['emit'] += "uint32_t" + " " + result['result'] + "[" + self.constraints.translate(sym_count)['result'] + "]" + ";\n"
+            result['emit'] += "uint32_t" + " " + result['result'] + "[" + self.constraints.translate(sym_count)['result'] + "]" + " = {0};\n"
             result['res_size'] = self.constraints.translate(sym_count)['result']
         else:
             raise ParseException("Need Type declaration " + str(self.type))
