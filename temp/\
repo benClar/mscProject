@@ -1,0 +1,27 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+int **ret(int value[5][5])	{
+	int r, c;
+	for(r = 0; r < 5; r++)	{
+		for(c = 0; c < 5; c++)	{
+			print("%d ",value[r][c]);
+		}
+	}
+}	
+
+int main(int argc, char *argv[])    {
+	int **t = malloc(5 * sizeof(int*));
+	int i, n;
+	for(i = 0; i < 5; i++)	{
+			t[i] = malloc(5 * sizeof(int));
+			for(n = 0; n < 5; n++)	{
+				t[i][n] = 10;
+			}
+	}
+	ret(t);
+}
+
+
