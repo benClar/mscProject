@@ -12,6 +12,7 @@ void AND(uint32_t *target, uint32_t *op_1, uint32_t *op_2, int var_size);
 void OR(uint32_t *target, uint32_t *op_1, uint32_t *op_2, int var_size);
 void extract_bs_range(uint32_t *target, uint32_t *source, int start, int finish);
 void bitslice_bitwise(uint32_t *target, uint32_t *op_1, uint32_t *op_2, int var_size, char *op);
+void bitslice(uint32_t *target, long source, int var_size);
 /*Tests*/
 
 void shift_testing();
@@ -19,3 +20,5 @@ void testing();
 void reverse_testing();
 void bitwise_testing();
 void bitslice_testing();
+void print(uint32_t *arr, int size);
+void rprint(uint32_t *arr, int size);

@@ -250,16 +250,4 @@ void test_bitslice()	{
 
 }
 
-void test_sq_matrix_clone()	{
-	uint8_t **m = calloc(16,sizeof(uint8_t*));
-	uint8_t *m_bl = calloc(4,sizeof(uint8_t));
-	int ele;
-	for(ele = 0; ele < 16; ele++)	{
-		m[ele] = clone(m_bl,4);
-	}
-	m[0][3] = 1;
-	uint8_t **m_clone = clone_square_matrix(m,4,4);
-	sput_fail_unless(compare_sq_matrix(m,m_clone,4) == 1,"clone matrix test");
-}
-
 

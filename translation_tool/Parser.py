@@ -187,11 +187,13 @@ class Parser(object):
         self.if_body_end = Literal('}')
         self.if_body_end.setParseAction(self.AST.if_body_end)
         self.if_stmt = Group(self.if_ + self.if_condition("if_cond") + Suppress(self.if_body_st) + Group(self.stmt).setResultsName("body") + Suppress(self.if_body_end))
+        self.single_expr = self.expr + Suppress(self.term_st)
+        self.single_expr.setParseAction(self.AST.stand_alone_expr)
 
         self.stmt << ZeroOrMore(self.decl + Suppress(self.term_st)
                                 ^ self.function_decl
                                 ^ self.id_set + Suppress(self.term_st)
-                                ^ self.expr + Suppress(self.term_st)
+                                ^ self.single_expr
                                 ^ self.for_loop
                                 ^ self.if_stmt
                                 ^ self.return_stmt + Suppress(self.term_st)

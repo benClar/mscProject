@@ -26,7 +26,10 @@ class IR(object):
     def translate(self):
         ret = ""
         for node in self.IR:
-            ret += node.translate(self.sym_count)
+            try: 
+                ret += node.translate(self.sym_count)
+            except TypeError:
+                ret += node.translate(self.sym_count)['emit']
         return ret
 
 
@@ -104,7 +107,10 @@ class Function_decl(object):
             if stmt.node_type == DATA_TYPE.SBOX_DECL:
                 result['emit'] += stmt.translate(sym_count)
             else:
-                result['result'] += stmt.translate(sym_count)
+                try:
+                    result['result'] += stmt.translate(sym_count)
+                except TypeError:
+                    result['result'] += stmt.translate(sym_count)['emit']
         return result
 
     def translate_parameters(self, sym_count):
@@ -189,7 +195,7 @@ class Element_range(object):
         result['result'] = Target_factory.name(sym_count, "rnge_size")
         start = self.start.translate(sym_count)
         end = self.finish.translate(sym_count)
-        result['emit'] += "uint32_t " + result['result'] + ";\n"
+        result['emit'] += "uint32_t " + result['result'] + " = 0;\n"
         result['emit'] += start['emit']
         result['emit'] += end['emit']
         result['emit'] += result['result'] + " = (" + end['result'] + "-" + start['result'] + ") + 1;\n"
@@ -329,7 +335,7 @@ class Index_select(object):
         elif self.type == DATA_TYPE.SEQ_BS_BIT_VAL:
             temp_init = Target_factory.name(sym_count, "init")
             temp_term = self.indices[-1][-1].translate_size(sym_count)
-            result['emit'] += "uint8_t " + temp_init + ";\n"
+            result['emit'] += "uint8_t " + temp_init + " = 0;\n"
             result['emit'] += temp_term['emit']
             starting_ele = self.indices[-1][-1].start.translate(sym_count)  # Getting translation of starting element of range
             result['emit'] += starting_ele['emit']
@@ -358,7 +364,7 @@ class Index_select(object):
         result = {'emit': "", 'result': ""}
         extracted_seq = Target_factory.name(sym_count, "extracted")
         result['res_size'] = self.target.constraints.translate()['result']
-        result['emit'] += "uint32_t " + " " + extracted_seq + "[" + result['res_size'] + "];\n"
+        result['emit'] += "uint32_t " + " " + extracted_seq + "[" + result['res_size'] + "] = {0};\n"
         result['result'] = extracted_seq
         selection_dim = self.translate_selection_dim()
         result['emit'] += selection_dim['emit']
@@ -688,7 +694,7 @@ class Seq_decl(object):
         elif self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
             result['emit'] += Target_factory.type_decl_lookup[self.ID.type] + " " + self.ID.translate()['result'] + self.translate_index() + ";\n"
         elif self.node_type == DATA_TYPE.SBOX_DECL:
-            result['emit'] += self.translate_sbox_decl()
+            result['emit'] += self.translate_sbox_decl(sym_count)
         else:
             raise ParseException("Translation of Unknown Sequence Type attempted: " + str(self.node_type))
         if self.body is not None and self.node_type != DATA_TYPE.SBOX_DECL:
@@ -703,17 +709,23 @@ class Seq_decl(object):
             index += "[" + self.constraints.translate()['result'] + "]"
         return index
 
-    def translate_sbox_decl(self):
+    def translate_sbox_decl(self, sym_count):
         result = {'emit': "", 'result': ""}
         v_name = self.ID.translate()["result"]
         p_list = ""
+        sbox_output = Target_factory.make_bs_target(Target_factory.name(sym_count, "sbox_out"), self.constraints)
         result['emit'] += "void " + v_name + "(uint32_t input[" + self.constraints.translate()['result'] + "]){\n"
+        result['emit'] += sbox_output['emit']
+        result['result'] = sbox_output['result']
+        print(Target_factory.make_bs_target(result['result'], self.constraints))
         for i in range(0, int(self.constraints.translate()['result'])):
             for bit in range(0, int(self.constraints.translate()['result'])):
                 p_list += "input[" + str(bit) + "], "
             p_list = p_list[:-2]
-            result['emit'] += "input[" + str(i) + "] = " + v_name + "_" + str(i) + "(" + p_list + ");\n"
+            result['emit'] += result['result'] + "[" + str(i) + "] = " + v_name + "_" + str(i) + "(" + p_list + ");\n"
             p_list = ""
+        for i in range(0, int(self.constraints.translate()['result'])):
+            result['emit'] += "input[" + str(i) + "] = " + result['result'] + "[" + str(i) + "];\n"
         result['emit'] += "}\n"
         result['emit'] = self.translate_qm(v_name) + result['emit']
         return result['emit']
@@ -1182,6 +1194,7 @@ class Call(object):
         self._f_id = Name(f_id, return_type, size, constraints)
         self._parameters = []
         self._return_value = return_value
+        self.node_type = DATA_TYPE.FUNCTION_CALL
 
     def add_parameter(self, p):
         self.parameters.append(p)
@@ -1213,13 +1226,14 @@ class Call(object):
         params = []
         for p in self.parameters:
             #Perform declarations required of parametrs
-            param_result = p.translate(sym_count)
-            result['emit'] += param_result['emit']
-            params.append(param_result['result'])
+            if p.type != DATA_TYPE.SBOX_DECL:
+                param_result = p.translate(sym_count)
+                result['emit'] += param_result['emit']
+                params.append(param_result['result'])
         result['emit'] += self.f_id.translate()['result'] + "("
 
         for p in params:
-            result['emit'] += p + ", "
+                result['emit'] += p + ", "
         result['emit'] = result['emit'][:-2]
         result['emit'] += ");\n"
         result['result'] = function_result['result']
@@ -1229,8 +1243,10 @@ class Call(object):
         """Create Temporary target for function result"""
         if self.f_id.type == DATA_TYPE.BS_INT_VAL:
             return Target_factory.make_bs_target(Target_factory.name(sym_count, "call"), self.f_id.constraints)
+        elif self.f_id.type == DATA_TYPE.VOID:
+            return {'emit': "", 'result': ""}
         else:
-            raise ParseException("Unsupported function call type")
+            raise ParseException("Unsupported function call type " + str(self.f_id.type))
 
 class Target_factory(object):
 
@@ -1244,7 +1260,7 @@ class Target_factory(object):
 
     def name(sym_count, append=""):
         # name =  "__" + "temp" + "_" + ''.join(random.choice('0123456789ABCDEF') for i in range(4)) + "_" + str(sym_count.count)
-        name = "__" + "temp" + "_" + str(sym_count.count) + "_" + append
+        name = "temp" + "_" + str(sym_count.count) + "_" + append
         sym_count.count += 1
         return name
 
@@ -1321,7 +1337,10 @@ class For_loop(object):
     def translate_body(self, sym_count):
         ret = ""
         for stmt in self.body:
-            ret += stmt.translate(sym_count)
+            try:
+                ret += stmt.translate(sym_count)
+            except TypeError:
+                ret += stmt.translate(sym_count)['emit']
         return ret
 
     def translate_increment(self, sym_count):
@@ -1553,7 +1572,7 @@ class Binary_operation(object):
             result['emit'] += "Bit" + " " + result['result'] + ";\n"
         elif self.type == DATA_TYPE.BS_BIT_VAL:
             result['result'] += Target_factory.name(sym_count) + "_bin"
-            result['emit'] += "uint32_t" + " " + result['result'] + ";\n"
+            result['emit'] += "uint32_t" + " " + result['result'] + " = 0;\n"
         elif self.type == DATA_TYPE.BS_INT_VAL:
             result['result'] += Target_factory.name(sym_count) + "_bin"
             result['emit'] += "uint32_t" + " " + result['result'] + "[" + self.constraints.translate(sym_count)['result'] + "]" + " = {0};\n"

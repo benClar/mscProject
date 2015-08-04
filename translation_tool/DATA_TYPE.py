@@ -160,7 +160,7 @@ class DATA_TYPE(Enum):
         elif type_input == DATA_TYPE.SEQ_BIT_DECL:
             return DATA_TYPE.SEQ_BIT_VAL
         elif type_input == DATA_TYPE.SBOX_DECL:
-            return DATA_TYPE.SEQ_BS_BIT_VAL
+            return DATA_TYPE.SBOX_DECL
         else:
             traceback.print_stack(file=sys.stdout)
             raise ParseException("Unknown Value Type")

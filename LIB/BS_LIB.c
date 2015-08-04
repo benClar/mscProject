@@ -9,10 +9,19 @@
 void print(uint32_t *arr, int size)	{
 	int i;
 	for(i = 0; i < size; i++)	{
-		printf("%d ",arr[i]);
+		printf("%d",arr[i]);
 	}
 	printf("\n");
 }
+
+void rprint(uint32_t *arr, int size)	{
+	int i;
+	for(i = size - 1; i >= 0; i--)	{
+		printf("%d",arr[i]);
+	}
+	printf("\n");
+}
+
 
 void bitslice_bitwise(uint32_t *target, uint32_t *op_1, uint32_t *op_2, int var_size, char *op){
 	if(!strcmp(op, "^")) {
@@ -102,9 +111,11 @@ void bitslice_shift(uint32_t *target, uint32_t *source, int shift, int var_size,
 }
 
 void extract_bs_range(uint32_t *target, uint32_t *source, int start, int finish)	{
-	for(;start < finish; start++)	{
-		target[start] = source[start];
+	int i;
+	for(i = 0; start <= finish; i++, start++)	{
+		target[i] = source[start];
 	}
+
 }
 
 void bitslice(uint32_t *target, long source, int var_size)	{

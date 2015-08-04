@@ -50,6 +50,9 @@ class AST(object):
         else:
             return self._tree
 
+    def stand_alone_expr(self, tokens):
+        self.add_statement(Expr_ast(tokens[0]))
+
     def bit_decl(self, tokens):
         # print(tokens)
         token = tokens[0]

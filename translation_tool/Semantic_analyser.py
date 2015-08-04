@@ -22,7 +22,8 @@ class Semantic_analyser(object):
                         DATA_TYPE.SEQ_BIT_DECL: lambda self, node: self.analyse_bit_seq(node),
                         DATA_TYPE.BS_SEQ_INT_DECL: lambda self, node: self.analyse_bit_cnst_seq(node),
                         DATA_TYPE.BS_INT_DECL: lambda self, node: self.analyse_int_decl(node),
-                        DATA_TYPE.SBOX_DECL: lambda self, node: self.analyse_bit_cnst_seq(node)}
+                        DATA_TYPE.SBOX_DECL: lambda self, node: self.analyse_bit_cnst_seq(node),
+                        DATA_TYPE.EXPR: lambda self, node: self.analyse_expr(node) }
     def __init__(self):
         self.initialise()
 
@@ -354,6 +355,9 @@ class Semantic_analyser(object):
         elif size < 64:
             return Int_literal(value="64")
 
+    def analyse_expr(self, value):
+        return self.expr_type_is(value)
+
     def expr_type_is(self, expression):
         """Performs Semantic analysis on expression, building IR node"""
         # print("WHOLE EXPR TO ANAL")
@@ -557,12 +561,15 @@ class Semantic_analyser(object):
 
     def analyse_func_call(self, node):
         return_ = self.sym_table.f_table[node.ID]['return_type']
-        f_call = Call(node.ID, return_.ID.type, return_.ID.size, return_.ID.constraints, self.sym_table.f_table[node.ID]['return_type'])
+        if return_ != DATA_TYPE.VOID:
+            f_call = Call(node.ID, return_.ID.type, return_.ID.size, return_.ID.constraints, self.sym_table.f_table[node.ID]['return_type'])
+        else:
+            f_call = Call(node.ID, return_, None, None, return_)
         for i, p in enumerate(node.parameters):
             f_call.add_parameter(self.expr_type_is(p))
-            # print(f_call.parameters[i])
+            # print(f_call.parameters[i].name)
             if self.value_matches_expected(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i].ID.type) is False:
-                raise ParseException(str(f_call.parameters[i].type) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i].node_type))
+                raise ParseException(str(f_call.parameters[i].type) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i].ID.type))
                 return False
             # if DATA_TYPE.needs_cast(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i].ID.type):
             #     raise ParseException("needs Cast from " + str(f_call.parameters[i].type) + " to " + str(self.sym_table.f_table[node.ID]['parameters'][i].ID.type))
@@ -581,9 +588,11 @@ class Semantic_analyser(object):
                           DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL],
-                          DATA_TYPE.SEQ_BS_BIT_VAL : [DATA_TYPE.BS_INT_VAL]}
+                          DATA_TYPE.SEQ_BS_BIT_VAL: [DATA_TYPE.BS_INT_VAL, DATA_TYPE.SBOX_DECL, DATA_TYPE.SEQ_BS_BIT_VAL],
+                          DATA_TYPE.SBOX_DECL : [DATA_TYPE.SBOX_DECL]}
         if result_value in allowed_values[expected_value]:
             return True
+        print(str(result_value) + " " + str(expected_value))
         return False
 
     def analyse_if_stmt_decl(self, node):
