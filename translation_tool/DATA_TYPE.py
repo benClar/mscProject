@@ -135,6 +135,14 @@ class DATA_TYPE(Enum):
             return True
         return False
 
+    def bitwise_op_needs_cast(oper_1, oper_2):
+        allowed_operands = {DATA_TYPE.BS_INT_VAL: [DATA_TYPE.SEQ_BS_BIT_VAL],
+                            DATA_TYPE.SEQ_BS_BIT_VAL: [DATA_TYPE.BS_INT_VAL],
+                            DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.INT_VAL]}
+        if oper_1 in allowed_operands[oper_2]:
+            return False
+        return True
+
     def needs_cast(target, value):
         directly_assignable = {DATA_TYPE.INT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],
                                DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],

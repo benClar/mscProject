@@ -538,13 +538,35 @@ class Semantic_analyser(object):
             pass
         elif operation.type == DATA_TYPE.SEQ_BIT_VAL:
             pass
+        elif operation.type == DATA_TYPE.BS_BIT_VAL:
+            pass
+        elif operation.type == DATA_TYPE.SEQ_BS_BIT_VAL:
+            if operation.left.type == DATA_TYPE.SEQ_BS_BIT_VAL:
+                seq_val = operation.left
+            elif operation.right.type == DATA_TYPE.SEQ_BS_BIT_VAL:
+                seq_val = operation.right
+            assert seq_val.node_type == DATA_TYPE.INDEX_SELECT, "Assuming this type comes from index select operation"
+            if seq_val.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE:
+                operation.size = {'start': seq_val.indices[-1][-1].start, 'finish': seq_val.indices[-1][-1].finish}
+                operation.constraints = self.get_operator_of_type(operation.left, operation.right, DATA_TYPE.SEQ_BS_BIT_VAL).constraints
+            else:
+               raise ParseException("sequence of bitsliced values with unknown size " + str(seq_val.node_type))
+        else:
+            raise ParseException("Unknown size of binary operation " + str(operation.type))
+
+    def get_operator_of_type(self, op_1, op_2, exp_type):
+        if op_1.type == exp_type:
+            return op_1
+        elif op_2.type == exp_type:
+            return op_2
+        else:
+            raise ParseException("Internal Error: Tried to get op type that doesn't exist")
 
     def largest_int_lit(self, val1, val2):
         if int(val1.value) > int(val2.value):
             return val1
         else:
             return val2
-
 
     def analyse_cast(self, node):
         size = []
@@ -692,6 +714,8 @@ class Semantic_analyser(object):
     def reduce_bitwise_op(self, expression):
         if expression['OPERAND_0'] == DATA_TYPE.BS_INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL:
             return DATA_TYPE.BS_INT_VAL
+        elif expression['OPERAND_0'] == DATA_TYPE.SEQ_BS_BIT_VAL or expression['OPERAND_2'] == DATA_TYPE.SEQ_BS_BIT_VAL:
+            return DATA_TYPE.SEQ_BS_BIT_VAL
         else:
             return expression['OPERAND_0']
 

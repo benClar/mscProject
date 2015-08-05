@@ -97,6 +97,21 @@ void bs_copy(uint32_t *target, uint32_t *source, int size)	{
 	}
 }
 
+void int_to_bitsliced(uint32_t *target, uint32_t source, int var_size)	{
+	int bit;
+	int val;
+	for(bit = 0; bit < var_size; bit++)	{
+		if ((source >> bit) & 0x1)	{
+			// val = 0xffffffff;
+			val = 0x1;
+		} else {
+			val = 0x0;
+		}
+		target[bit] = val;
+	}
+	// rprint(target,var_size);
+}
+
 void bitslice_shift(uint32_t *target, uint32_t *source, int shift, int var_size, char *op)	{
 	if(!strcmp(op, ">>")) {
 		shift_left(target, source, var_size, shift);

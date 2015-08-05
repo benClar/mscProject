@@ -1,18 +1,17 @@
 def bit_in_0(D, C, B, A):
-    return (((~D & B & ~A) | (D & ~B & A) | (~C & ~B & A) | (~D & ~C & ~A) | (C & B & ~A) | (~D & C & B)) & 0x1)
+    return (((D & ~C & ~A) | (D & B & ~A) | (~D & B & A) | (~D & C & ~B & ~A) | (D & C & ~B & A) | (~D & ~C & A)) & 0x1)
 
 
 def bit_in_1(D, C, B, A):
-    return (((~B & ~A) | (~C & ~B) | (~D & ~C)) & 0x1)
+    return (((D & ~C & ~B) | (D & ~C & ~A) | (D & ~B & A) | (~C & B & ~A) | (~D & B & ~A) | (D & C & A) | (~D & ~C & B)) & 0x1)
 
 
 def bit_in_2(D, C, B, A):
-    return (((D & C) | (~B & A) | (D & ~B)) & 0x1)
+    return (((~D & ~C & ~A) | (~C & ~B & A) | (D & ~B & A) | (~C & B & ~A) | (~D & C & B & A) | (D & C & ~B)) & 0x1)
 
 
 def bit_in_3(D, C, B, A):
-    return (((D & B & ~A) | (~D & ~B) | (C & ~A)) & 0x1)
-
+    return (((D & ~C & A) | (~D & C & B) | (~D & B & A) | (D & ~C & B) | (~D & C & ~A) | (~D & ~B & ~A)) & 0x1);
 
 def conv(in_):
     D = in_ >> 3
