@@ -31,7 +31,8 @@ void bitslice_bitwise(uint32_t *target, uint32_t *op_1, uint32_t *op_2, int var_
 	} else if (!strcmp(op, "&"))	{
 		AND(target, op_1, op_2, var_size);
 	} else {
-		log_err("Unrecognised shift operator");
+		printf("Internal Error: Unrecognised bitwise operator\n");
+		exit(1);
 	}
 }
 
@@ -106,7 +107,8 @@ void bitslice_shift(uint32_t *target, uint32_t *source, int shift, int var_size,
 	}else if (!strcmp(op, "<<<"))	{
 		rotate_right(target, source, var_size, shift);
 	} else {
-		log_err("Unrecognised shift operator");
+		printf("Internal Error: Unrecognised shift operator\n");
+		exit(1);
 	}
 }
 

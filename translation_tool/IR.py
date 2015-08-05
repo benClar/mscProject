@@ -717,7 +717,7 @@ class Seq_decl(object):
         result['emit'] += "void " + v_name + "(uint32_t input[" + self.constraints.translate()['result'] + "]){\n"
         result['emit'] += sbox_output['emit']
         result['result'] = sbox_output['result']
-        print(Target_factory.make_bs_target(result['result'], self.constraints))
+        # print(Target_factory.make_bs_target(result['result'], self.constraints))
         for i in range(0, int(self.constraints.translate()['result'])):
             for bit in range(0, int(self.constraints.translate()['result'])):
                 p_list += "input[" + str(bit) + "], "
@@ -734,13 +734,14 @@ class Seq_decl(object):
         result = ""
         qm = QuineMcCluskey()
         for bit in range(0, 4):
+            function = ""
             result += "uint32_t " + name + "_" + str(bit) + "(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {\n"
             boolean_result = qm.simplify(ones=self.get_ones(bit))
             result += "return "
             for term in boolean_result:
-                result += self.translate_term(term) + " | "
-            result = result[:-3]
-            result += ";\n}\n"
+                function += self.translate_term(term) + " | "
+            function = function[:-3]
+            result += "((" + function + ") & 0x1);\n}\n"
         return result
 
     def translate_term(self, term):

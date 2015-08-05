@@ -4,8 +4,7 @@
 #include <stdint.h>
 
 #include "prince_dsl.h"
-
-void m0(uint32_t state[16], uint32_t output[16]){
+void m0(uint32_t state[16], uint32_t output[16]){ 
 uint32_t temp_0__bin = 0;
 uint32_t temp_1__bin = 0;
 uint32_t  temp_2_extracted[1] = {0};
@@ -183,7 +182,7 @@ temp_79_extracted[0] = state[0];
 temp_75__bin = temp_76__bin ^ temp_79_extracted[0];
 output[0] = temp_75__bin;
 }
-void m1(uint32_t state[16], uint32_t output[16]){
+void m1(uint32_t state[16], uint32_t output[16]){ 
 uint32_t temp_80__bin = 0;
 uint32_t temp_81__bin = 0;
 uint32_t  temp_82_extracted[1] = {0};
@@ -361,7 +360,7 @@ temp_159_extracted[0] = state[4];
 temp_155__bin = temp_156__bin ^ temp_159_extracted[0];
 output[0] = temp_155__bin;
 }
-void mPrime(uint32_t state[64]){
+void mPrime(uint32_t state[64]){ 
 uint32_t output[16];
 uint32_t temp_161_rnge[(15-0) + 1];
 extract_bs_range(temp_161_rnge, state, 0, 15);
@@ -412,10 +411,10 @@ for(temp_181_init = 0; temp_181_init < temp_182_rnge_size; temp_181_init++, temp
 state[temp_183_rng_start] = temp_180_rnge[temp_181_init];
 }
 }
-void sBox_layer(uint32_t state[64]){
+void sBox_layer(uint32_t state[64]){ 
 uint8_t i;
 i = 0;
-for(;i < 16;) {
+for(;i < 16;) { 
 uint8_t  temp_186__bin;
 temp_186__bin = i * 4;
 uint8_t  temp_187__bin;
@@ -443,12 +442,12 @@ state[temp_195_rng_start] = temp_185_rnge[temp_189_init];
 uint8_t  temp_184__bin;
 temp_184__bin = i + 1;
 i = temp_184__bin;
+} 
 }
-}
-void sBox_layer_inv(uint32_t state[64]){
+void sBox_layer_inv(uint32_t state[64]){ 
 uint8_t i;
 i = 0;
-for(;i < 16;) {
+for(;i < 16;) { 
 uint8_t  temp_198__bin;
 temp_198__bin = i * 4;
 uint8_t  temp_199__bin;
@@ -476,9 +475,9 @@ state[temp_207_rng_start] = temp_197_rnge[temp_201_init];
 uint8_t  temp_196__bin;
 temp_196__bin = i + 1;
 i = temp_196__bin;
+} 
 }
-}
-void shift_rows(uint32_t state[64], uint32_t output[64], uint8_t inverse){
+void shift_rows(uint32_t state[64], uint32_t output[64], uint8_t inverse){ 
 uint8_t target;
 target = 0;
 uint32_t temp_208_rnge[(63-59) + 1];
@@ -492,21 +491,21 @@ output[temp_211_rng_start] = temp_208_rnge[temp_209_init];
 }
 uint8_t nibble;
 nibble = 1;
-for(;nibble < 16;) {
-if(inverse == 1) {
+for(;nibble < 16;) { 
+if(inverse == 1) { 
 uint8_t  temp_213__bin;
 uint8_t  temp_214__bin;
 temp_214__bin = target + 5;
 temp_213__bin = temp_214__bin % 16;
 target = temp_213__bin;
-}
-if(inverse == 0) {
+} 
+if(inverse == 0) { 
 uint8_t  temp_215__bin;
 uint8_t  temp_216__bin;
 temp_216__bin = target + 13;
 temp_215__bin = temp_216__bin % 16;
 target = temp_215__bin;
-}
+} 
 uint8_t  temp_218__bin;
 uint8_t  temp_219__bin;
 uint8_t  temp_220__bin;
@@ -545,13 +544,13 @@ output[temp_233_rng_start] = temp_217_rnge[temp_223_init];
 uint8_t  temp_212__bin;
 temp_212__bin = nibble + 1;
 nibble = temp_212__bin;
+} 
 }
-}
-void first_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]){
+void first_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]){ 
 uint32_t sr_output[64];
 uint8_t r;
 r = 1;
-for(;r < 6;) {
+for(;r < 6;) { 
 sBox_layer(state);
 mPrime(state);
 shift_rows(state, sr_output, 0);
@@ -700,13 +699,13 @@ state[63] = temp_239__bin[63];
 uint8_t  temp_234__bin;
 temp_234__bin = r + 1;
 r = temp_234__bin;
+} 
 }
-}
-void last_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]){
+void last_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]){ 
 uint32_t sr_output[64];
 uint8_t r;
 r = 6;
-for(;r < 11;) {
+for(;r < 11;) { 
 uint32_t temp_243__bin[64] = {0};
 uint32_t temp_244__bin[64] = {0};
 uint32_t  temp_245_extracted[64] = {0};
@@ -855,33 +854,33 @@ sBox_layer_inv(state);
 uint8_t  temp_242__bin;
 temp_242__bin = r + 1;
 r = temp_242__bin;
-}
+} 
 }
 uint32_t prince_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~C & ~B & A) | (~D & B & ~A) | (D & ~B & A) | (~D & ~C & ~A) | (C & B & ~A) | (~D & C & B)) & 0x1);
+return (((~D & C & B) | (D & ~B & A) | (~D & B & ~A) | (~D & ~C & ~B) | (C & B & ~A) | (~C & ~B & A)) & 0x1);
 }
 uint32_t prince_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~B & ~A) | (~C & ~B) | (~D & ~C)) & 0x1);
+return (((~D & ~C) | (~C & ~B) | (~B & ~A)) & 0x1);
 }
 uint32_t prince_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((D & C) | (~B & A) | (D & ~B)) & 0x1);
+return (((D & C) | (D & ~B) | (~B & A)) & 0x1);
 }
 uint32_t prince_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((D & B & ~A) | (~D & ~B) | (C & ~A)) & 0x1);
+return (((C & ~A) | (~D & ~B) | (D & B & ~A)) & 0x1);
 }
 void prince(uint32_t input[4]){
-uint32_t __temp_238_sbox_out[4];
-__temp_238_sbox_out[0] = prince_0(input[0], input[1], input[2], input[3]);
-__temp_238_sbox_out[1] = prince_1(input[0], input[1], input[2], input[3]);
-__temp_238_sbox_out[2] = prince_2(input[0], input[1], input[2], input[3]);
-__temp_238_sbox_out[3] = prince_3(input[0], input[1], input[2], input[3]);
-input[0] = __temp_238_sbox_out[0];
-input[1] = __temp_238_sbox_out[1];
-input[2] = __temp_238_sbox_out[2];
-input[3] = __temp_238_sbox_out[3];
+uint32_t temp_256_sbox_out[4];
+temp_256_sbox_out[0] = prince_0(input[0], input[1], input[2], input[3]);
+temp_256_sbox_out[1] = prince_1(input[0], input[1], input[2], input[3]);
+temp_256_sbox_out[2] = prince_2(input[0], input[1], input[2], input[3]);
+temp_256_sbox_out[3] = prince_3(input[0], input[1], input[2], input[3]);
+input[0] = temp_256_sbox_out[0];
+input[1] = temp_256_sbox_out[1];
+input[2] = temp_256_sbox_out[2];
+input[3] = temp_256_sbox_out[3];
 }
 uint32_t prince_inv_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((C & B & A) | (~D & ~C & ~A) | (~D & ~B) | (C & ~B & ~A)) & 0x1);
+return (((~D & ~B) | (~D & ~C & ~A) | (C & B & A) | (C & ~B & ~A)) & 0x1);
 }
 uint32_t prince_inv_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
 return (((~D & ~C) | (~C & ~B) | (D & ~B & A) | (~D & ~B & ~A)) & 0x1);
@@ -890,7 +889,7 @@ uint32_t prince_inv_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
 return (((~B & A) | (C & ~B) | (D & B & ~A)) & 0x1);
 }
 uint32_t prince_inv_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((C & B & ~A) | (~D & C) | (C & ~B & A) | (~C & ~B & ~A)) & 0x1);
+return (((C & ~B & A) | (C & B & ~A) | (~D & C) | (~C & ~B & ~A)) & 0x1);
 }
 void prince_inv(uint32_t input[4]){
 uint32_t temp_257_sbox_out[4];
@@ -903,7 +902,7 @@ input[1] = temp_257_sbox_out[1];
 input[2] = temp_257_sbox_out[2];
 input[3] = temp_257_sbox_out[3];
 }
-uint32_t  (*enc(uint32_t RC[11][64], uint32_t state[64], uint32_t key_0[64], uint32_t key_1[64])){
+uint32_t  (*enc(uint32_t RC[11][64], uint32_t state[64], uint32_t key_0[64], uint32_t key_1[64])){ 
 uint32_t key_prime[64];
 uint32_t temp_250__bin[64] = {0};
 uint32_t temp_251__bin[64] = {0};
@@ -1313,29 +1312,6 @@ state[60] = temp_261__bin[60];
 state[61] = temp_261__bin[61];
 state[62] = temp_261__bin[62];
 state[63] = temp_261__bin[63];
-rprint(state, 64);
 return state;
 }
-
-int main(int argc, char *argv[])    {
-	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	uint32_t key_0[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	uint32_t key_1[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	uint32_t RC[12][64];
-	bitslice(RC[0],0x0000000000000000, 64);
-	bitslice(RC[1],0x13198a2e03707344, 64);
-	bitslice(RC[2],0xa4093822299f31d0, 64);
-	bitslice(RC[3],0x082efa98ec4e6c89, 64);
-	bitslice(RC[4],0x452821e638d01377, 64);
-	bitslice(RC[5],0xbe5466cf34e90c6c, 64);
-	bitslice(RC[6],0x7ef84f78fd955cb1, 64);
-	bitslice(RC[7],0x85840851f1ac43aa, 64);
-	bitslice(RC[8],0xc882d32f25323c54, 64);
-	bitslice(RC[9],0x64a51195e0e3610d, 64);
-	bitslice(RC[10],0xd3b5a399ca0c2399, 64);
-	bitslice(RC[11],0xc0ac29b7c97c50dd, 64);
-	enc(RC, state, key_0, key_1);
-	return 0;
-}
-
 
