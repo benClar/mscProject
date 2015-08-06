@@ -146,7 +146,7 @@ class DATA_TYPE(Enum):
     def needs_cast(target, value):
         directly_assignable = {DATA_TYPE.INT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],
                                DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],
-                               DATA_TYPE.BS_INT_VAL: [DATA_TYPE.BS_INT_VAL],
+                               DATA_TYPE.BS_INT_VAL: [DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
                                DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.BS_SEQ_INT_VAL],
                                DATA_TYPE.SEQ_BS_BIT_VAL: [DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
                                DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL]}

@@ -135,10 +135,10 @@ class Semantic_analyser(object):
                           DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
                           DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL],
                           DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.BS_BIT_VAL],
-                          DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
+                          DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.SEQ_BIT_VAL],
                           DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
                           DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],
-                          DATA_TYPE.SEQ_BS_BIT_VAL: [DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.BS_INT_VAL]}
+                          DATA_TYPE.SEQ_BS_BIT_VAL: [DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.INT_VAL]}
         if value_type in allowed_values[target_type]:
             return True
         return False

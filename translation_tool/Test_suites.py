@@ -1067,6 +1067,93 @@ class test_translation(unittest.TestCase):
         Data_reader.write("present_dsl", "present_dsl", par.semantic_analyser.IR.translate())
         assert_equals(subprocess.call(['../DSL/testing/present_dsl/./run_tests.sh']), 0)
 
+    # def test_LED_translation(self):
+    #     par = Parser()
+        # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) gmMult(@Int(8) a, @Int(8) b) {\
+        #                                                                 @Int(8) g = 0;\
+        #                                                                 for(Int(8) i = 0; i < 4; i = i + 1)   {\
+        #                                                                     if(b[0] == 1)   {\
+        #                                                                         g = g ^ a;\
+        #                                                                     }\
+        #                                                                     a = a << 1;\
+        #                                                                     if(a[3] == 1)   {\
+        #                                                                         a = a ^ 0x13;\
+        #                                                                     }\
+        #                                                                     b = b >> 1;\
+        #                                                                 }\
+        #                                                                 return g;\
+        #                                                             }\
+        #                                                             @Int(8)[16] MixColumnSerial(@Int(8)[16] state, @Int(8)[16] MDS) {\
+        #                                                                 @Int(8)[4] column;\
+        #                                                                 for(Int(8) c = 0; c < 4; c = c + 1)  {\
+        #                                                                     column[0] = state[c];\
+        #                                                                     column[1] = state[c + 4];\
+        #                                                                     column[2] = state[c + 8];\
+        #                                                                     column[3] = state[c + 12];\
+        #                                                                     for(Int(8) r = 0; r < 4; r = r + 4)  {\
+        #                                                                         state[(4*c) + r] = gmMult(MDS[4 * c], column[0]) ^\
+        #                                                                             gmMult(MDS[(4 * c) + 1],column[1]) ^\
+        #                                                                             gmMult(MDS[(4 * c) + 2],column[2]) ^\
+        #                                                                             gmMult(MDS[(4 * c) + 3],column[3]);\
+        #                                                                     }\
+        #                                                                 }\
+        #                                                                 return state;\
+        #                                                             }\
+        #                                                             @Int(4)[16] addConstants(@Int(4)[16] state, @Int(5) constant)  {\
+        #                                                                 Int(4)[16] roundConstant;\
+        #                                                                 for(Int(4) row = 0; row < 4; row = row + 1)  {\
+        #                                                                     roundConstant[row * 4] = row;\
+        #                                                                     if(row == 0 || row == 2)    {\
+        #                                                                         roundConstant[(row * 4) + 1] = (Int(4)) constant[3:5];\
+        #                                                                     }\
+        #                                                                     if(row == 1 || row == 3) {\
+        #                                                                         roundConstant[(row * 4) + 1] = (Int(4)) constant[0:2];\
+        #                                                                     }\
+        #                                                                     roundConstant[(row * 4) + 2] = 0;\
+        #                                                                     roundConstant[(row * 4) + 3] = 0;\
+        #                                                                 }\
+        #                                                                 return (state ^ roundConstant);\
+        #                                                             }\
+        #                                                             @Int(4)[16] shift_row(@Int(4)[16] state)   {\
+        #                                                                 state[0 : 3 ] = state[0 : 3] <<< 0;\
+        #                                                                 state[4 : 7] = state[4 : 7] <<< 1;\
+        #                                                                 state[8 : 11] = state[8 : 11] <<< 2;\
+        #                                                                 state[12 : 15] = state[12 : 15] <<< 3;\
+        #                                                                 return state;\
+        #                                                             }\
+        #                                                             ")), True)
+        # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void shift_row(@Int(64) state)   {\
+        #                                                                     state[0 : 15] = state[0 : 15] <<< 0;\
+        #                                                                     state[16 : 31] = state[16 : 31] <<< 1;\
+        #                                                                     state[31 : 47] = state[31 : 47] <<< 2;\
+        #                                                                     state[48 : 63] = state[48 : 63] <<< 3;\
+        #                                                                 }\
+        #                                                                 void addConstants(@Int(64) state, @Int(5) constant)  {\
+        #                                                                     @Int(64) roundConstant;\
+        #                                                                     for(Int(8) row = 0; row < 4; row = row + 1)  {\
+        #                                                                         roundConstant[row * 16 : (row * 16) + 3] = row[0:3];\
+        #                                                                         if(row == 0 || row == 2)    {\
+        #                                                                             roundConstant[(row * 16) + 4 : (row * 16) + 7] = constant[3:5];\
+        #                                                                         }\
+        #                                                                         if(row == 1 || row == 3) {\
+        #                                                                             roundConstant[(row * 16) + 4 : (row * 16) + 7] = constant[0:2];\
+        #                                                                         }\
+        #                                                                         roundConstant[(row * 16) + 8 :(row * 16) + 15 ] = 0;\
+        #                                                                     }\
+        #                                                                         state = state ^ roundConstant;\
+        #                                                                 }\
+        #                                                                 void sBox_layer(@Int(64) state, Sbox(4)[16] led)  {\
+        #                                                                     for(Int(8) i = 0; i < 16; i = i + 1){\
+        #                                                                         state[(i * 4) : (i * 4) + 3] = led[state[(i * 4) : (i * 4) + 3]];\
+        #                                                                     }\
+        #                                                                 }\
+        #                                                                 @Int(64)enc(@Int(64) state, @Int(64) key){\
+        #                                                                     Sbox(4)[16] led = [0xc, 0x5, 0x6, 0xB, 0x9, 0x0, 0xa, 0xd, 0x3, 0xe, 0xf, 0x8, 0x4, 0x7, 0x1, 0x2];\
+        #                                                                     return state;\
+        #                                                                 }\
+        #                                                                 ")), True)
+        # print(par.semantic_analyser.IR.translate())
+
 ###### OLD ########
 
 #         def test_PRESENT_translation(self):
