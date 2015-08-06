@@ -161,7 +161,6 @@ int main(){
 		printf("player\n");
 		print_array(state,64);
 	}
-	
 	add_round_key(round_key[round],state);
 	print_array(state,64);									
 }

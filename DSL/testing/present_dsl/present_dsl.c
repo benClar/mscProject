@@ -4,14 +4,7 @@
 #include <stdint.h>
 
 #include "present_dsl.h"
-int main()	{
-	uint32_t key[80] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	enc(key,state);
-	rprint(state,64);
-}
-
-void pLayer(uint32_t state[64]){
+void pLayer(uint32_t state[64]){ 
 uint8_t target_bit;
 uint32_t temp[64];
 temp[0] = state[0];
@@ -80,27 +73,27 @@ temp[62] = state[62];
 temp[63] = state[63];
 uint8_t bit;
 bit = 0;
-for(;bit < 64;) {
+for(;bit < 64;) { 
 uint32_t temp_1__bin = 0;
 uint32_t temp_2__bin = 0;
 temp_2__bin = 16 * bit;
 temp_1__bin = temp_2__bin % 63;
 target_bit = temp_1__bin;
-if(bit == 63) {
+if(bit == 63) { 
 target_bit = 63;
-}
+} 
 uint32_t  temp_3_extracted[1] = {0};
 temp_3_extracted[0] = temp[bit];
 state[target_bit] = temp_3_extracted[0];
 uint32_t temp_0__bin = 0;
 temp_0__bin = bit + 1;
 bit = temp_0__bin;
+} 
 }
-}
-void generate_round_keys(uint32_t key[80], uint32_t round_keys[32][64]){
+void generate_round_keys(uint32_t key[80], uint32_t round_keys[32][64]){ 
 uint8_t round;
 round = 1;
-for(;round < 33;) {
+for(;round < 33;) { 
 uint32_t temp_5_rnge[(79 - 16) + 1];
 extract_bs_range(temp_5_rnge, key, 16, 79);
 uint32_t temp_6__bin = 0;
@@ -228,12 +221,12 @@ key[temp_25_rng_start] = temp_16__bin[temp_23_init];
 uint32_t temp_4__bin = 0;
 temp_4__bin = round + 1;
 round = temp_4__bin;
+} 
 }
-}
-void sBox_layer(uint32_t state[64]){
+void sBox_layer(uint32_t state[64]){ 
 uint8_t i;
 i = 0;
-for(;i < 16;) {
+for(;i < 16;) { 
 uint32_t temp_28__bin = 0;
 temp_28__bin = i * 4;
 uint32_t temp_29__bin = 0;
@@ -261,19 +254,19 @@ state[temp_37_rng_start] = temp_27_rnge[temp_31_init];
 uint32_t temp_26__bin = 0;
 temp_26__bin = i + 1;
 i = temp_26__bin;
-}
+} 
 }
 uint32_t present_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((D & B & ~A) | (~D & ~C & A) | (~D & B & A) | (~D & C & ~B & ~A) | (D & ~C & ~A) | (D & C & ~B & A)) & 0x1);
+return (((~D & B & A) | (~D & ~C & A) | (~D & C & ~B & ~A) | (D & B & ~A) | (D & C & ~B & A) | (D & ~C & ~A)) & 0x1);
 }
 uint32_t present_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~D & B & ~A) | (~C & B & ~A) | (D & C & A) | (~D & ~C & B) | (D & ~B & A) | (D & ~C & ~A)) & 0x1);
+return (((~D & ~C & B) | (D & C & A) | (D & ~C & ~B) | (D & ~B & A) | (D & ~C & ~A) | (~D & B & ~A)) & 0x1);
 }
 uint32_t present_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~C & B & ~A) | (~C & ~B & A) | (~D & C & B & A) | (D & C & ~B) | (D & ~B & A) | (~D & ~C & ~A)) & 0x1);
+return (((~D & ~C & ~A) | (D & C & ~B) | (D & ~B & A) | (~D & C & B & A) | (~C & ~B & A) | (~C & B & ~A)) & 0x1);
 }
 uint32_t present_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~C & B & A) | (D & ~C & A) | (~D & ~B & ~A) | (~D & C & ~A) | (D & ~C & B) | (~D & C & B)) & 0x1);
+return (((~D & C & B) | (~C & B & A) | (~D & ~B & ~A) | (D & ~C & B) | (~D & C & ~A) | (D & ~C & A)) & 0x1);
 }
 void present(uint32_t input[4]){
 uint32_t temp_38_sbox_out[4];
@@ -286,12 +279,12 @@ input[1] = temp_38_sbox_out[1];
 input[2] = temp_38_sbox_out[2];
 input[3] = temp_38_sbox_out[3];
 }
-uint32_t  (*enc(uint32_t key[80], uint32_t state[64])){
+uint32_t  (*enc(uint32_t key[80], uint32_t state[64])){ 
 uint32_t round_keys[32][64];
 generate_round_keys(key, round_keys);
 uint8_t round;
 round = 0;
-for(;round < 31;) {
+for(;round < 31;) { 
 uint32_t temp_40__bin[64] = {0};
 uint32_t  temp_41_extracted[64] = {0};
 temp_41_extracted[0] = round_keys[round][0];
@@ -428,7 +421,7 @@ pLayer(state);
 uint32_t temp_39__bin = 0;
 temp_39__bin = round + 1;
 round = temp_39__bin;
-}
+} 
 uint32_t temp_42__bin[64] = {0};
 uint32_t  temp_43_extracted[64] = {0};
 temp_43_extracted[0] = round_keys[31][0];

@@ -857,16 +857,16 @@ r = temp_242__bin;
 } 
 }
 uint32_t prince_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~D & ~C & ~A) | (C & B & ~A) | (~D & C & B) | (~C & ~B & A) | (D & ~B & A) | (~D & B & ~A)) & 0x1);
+return (((~D & C & B) | (~D & ~C & ~A) | (C & B & ~A) | (D & ~B & A) | (~C & ~B & A) | (~D & B & ~A)) & 0x1);
 }
 uint32_t prince_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~B & ~A) | (~D & ~C) | (~C & ~B)) & 0x1);
+return (((~C & ~B) | (~B & ~A) | (~D & ~C)) & 0x1);
 }
 uint32_t prince_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((D & ~B) | (~B & A) | (D & C)) & 0x1);
+return (((D & ~B) | (D & C) | (~B & A)) & 0x1);
 }
 uint32_t prince_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((D & B & ~A) | (C & ~A) | (~D & ~B)) & 0x1);
+return (((C & ~A) | (~D & ~B) | (D & B & ~A)) & 0x1);
 }
 void prince(uint32_t input[4]){
 uint32_t temp_256_sbox_out[4];
@@ -880,16 +880,16 @@ input[2] = temp_256_sbox_out[2];
 input[3] = temp_256_sbox_out[3];
 }
 uint32_t prince_inv_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((C & B & A) | (C & ~B & ~A) | (~D & ~C & ~A) | (~D & ~B)) & 0x1);
+return (((C & ~B & ~A) | (~D & ~C & ~A) | (C & B & A) | (~D & ~B)) & 0x1);
 }
 uint32_t prince_inv_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~D & ~B & ~A) | (~D & ~C) | (D & ~B & A) | (~C & ~B)) & 0x1);
+return (((~C & ~B) | (~D & ~B & ~A) | (~D & ~C) | (D & ~B & A)) & 0x1);
 }
 uint32_t prince_inv_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((D & B & ~A) | (~B & A) | (C & ~B)) & 0x1);
+return (((C & ~B) | (D & C & ~A) | (~B & A) | (D & B & ~A)) & 0x1);
 }
 uint32_t prince_inv_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~D & ~B & ~A) | (~C & ~B & ~A) | (~D & C) | (C & B & ~A) | (C & ~B & A)) & 0x1);
+return (((~D & C) | (C & B & ~A) | (~D & ~B & ~A) | (~C & ~B & ~A) | (C & ~B & A)) & 0x1);
 }
 void prince_inv(uint32_t input[4]){
 uint32_t temp_257_sbox_out[4];
