@@ -24,13 +24,17 @@ class IR(object):
         return self._IR
 
     def translate(self):
-        ret = ""
+        result = {'main': "", 'header': ""}
         for node in self.IR:
             try: 
-                ret += node.translate(self.sym_count)
+                result['main'] += node.translate(self.sym_count)
             except TypeError:
-                ret += node.translate(self.sym_count)['emit']
-        return ret
+                result['main'] += node.translate(self.sym_count)['emit']
+            if node.node_type == DATA_TYPE.FUNC_DECL:
+                result['header'] += node.translate_header(self.sym_count) + ";\n"
+            elif node.node_type == DATA_TYPE.SBOX_DECL:
+                result['header'] += node.translate_header(self.sym_count)
+        return result
 
 
 class Function_decl(object):
@@ -672,6 +676,14 @@ class Seq_decl(object):
         result['emit'] += "}\n"
         result['emit'] = self.translate_qm(v_name) + result['emit']
         return result['emit']
+
+    def translate_header(self, sym_count):
+        res = ""
+        name = self.ID.translate()["result"]
+        res += "void " + name + "(uint32_t input[" + self.constraints.translate()['result'] + "]);\n"
+        for i in range(0, int(self.constraints.translate()['result'])):
+            res += "uint32_t " + name + "_" + str(i) + "(uint32_t A, uint32_t B, uint32_t C, uint32_t D);\n"
+        return res
 
     def translate_qm(self, name):
         result = ""

@@ -89,17 +89,18 @@ class Symbol_Table(object):
     def add_function(self, func_ID):
         if func_ID not in self.f_table:
             self.f_table[func_ID] = {}
-            self.f_table[func_ID]["return_type"] = None
+            self.f_table[func_ID]["return"] = {}
             self.f_table[func_ID]["parameters"] = []
-                # self.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type))
         else:
             raise ParseException("Redeclaration of function")
 
-    def add_function_parameter(self, func_ID, parameter):
-        self.f_table[func_ID]["parameters"].append(parameter)
+    def add_function_parameter(self, func_ID, param_type, constraints=None, size=None):
+        self.f_table[func_ID]["parameters"].append({"type": DATA_TYPE.decl_to_value(param_type), "size": size, "constraints": constraints})
 
-    def add_function_return(self, func_ID, return_type):
-        self.f_table[func_ID]["return_type"] = return_type
+    def add_function_return(self, func_ID, return_type, constraints=None, size=None):
+        self.f_table[func_ID]["return"]["type"] = DATA_TYPE.decl_to_value(return_type)
+        self.f_table[func_ID]["return"]["size"] = size
+        self.f_table[func_ID]["return"]["constraints"] = constraints
 
     def link_node(self, ID, node):
         for scope in self.symbols.stack:
@@ -107,19 +108,6 @@ class Symbol_Table(object):
                 scope[ID]["node"] = node
                 return
         raise ParseException("Internal Error: Tried to link node to non existent symbol")
-
-    # def add_id(self, scope, ID, id_type):
-    #     if scope in self.table:
-    #         if ID not in self.table[scope]:
-    #             self.table[scope][ID] = {}
-    #             self.table[scope][ID]["type"] = id_type
-    #         else:
-    #             raise ParseException("Redeclaration of symbol")
-    #     else:
-    #         raise ParseException("Scope Does Not Exist")
-
-    # def update_id(self, scope, ID, value):
-    #     self.table[scope][ID]["value"] = value
 
     def id_type(self, ID):
         # print(ID)

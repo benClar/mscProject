@@ -13,8 +13,12 @@ ParserElement.enablePackrat()
 
 class Parser(object):
 
+    @property
+    def semantic_analyser(self):
+        return self._AST.semantic_analyser
+    
+
     def __init__(self):
-        self.semantic_analyser = Semantic_analyser()
         self._AST = AST()
 
         # keywords
@@ -146,9 +150,12 @@ class Parser(object):
         self.return_stmt = Group(self.return_ + self.expr)
         self.return_stmt.setParseAction(self.AST.return_stmt)
 
+        self.function_start = Literal("{")
+        self.function_start.setParseAction(self.AST.function_start)
+        self.function_end = Literal("}")
         self.function_decl = Group((Group(self.seq_) | Group(self.int_size) | Group(self.bit_) | Group(self.void_))("return_type") + Group(self.ID)("func_ID") +
                                    Suppress(self.l_bracket) + Group(Optional(delimitedList(Group((self.seq_ | self.int_size | self.bit_) + Group(self.ID)))))("func_param") +  # NOQA
-                                   Suppress(self.r_bracket) + Suppress(self.l_brace) + Group(self.stmt)("body") + Suppress(self.r_brace))
+                                   Suppress(self.r_bracket) + Suppress(self.function_start) + Group(self.stmt)("body") + Suppress(self.r_brace))
         self.function_decl.setParseAction(self.AST.function_decl)
 
         self.for_init = Literal('(')

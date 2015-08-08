@@ -104,7 +104,7 @@ uint8_t *gm_bs(uint8_t *a, uint8_t *b) {
 
     b_in = shift_right(b_in,8,1);
   }
-  memmove(g,g+4,4*sizeof(uint8_t));
+  memmove(g,g+4,4 * sizeof(uint8_t));
   realloc(g,4 * sizeof(uint8_t));
   return g;
 }
@@ -126,7 +126,7 @@ void addConstants(uint8_t *state, int r)   {
     for(row = 0; row < 4; row++)    {
         for(col = 0; col<16; col++) {
             state[array_position(row,col,16)] ^= cnst[array_position(row,col,16)];
-        }
+        }p
     }
 }
 

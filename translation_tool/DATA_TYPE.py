@@ -169,6 +169,8 @@ class DATA_TYPE(Enum):
             return DATA_TYPE.SEQ_BIT_VAL
         elif type_input == DATA_TYPE.SBOX_DECL:
             return DATA_TYPE.SBOX_DECL
+        elif type_input == DATA_TYPE.VOID:
+            return DATA_TYPE.VOID
         else:
             traceback.print_stack(file=sys.stdout)
             raise ParseException("Unknown Value Type")

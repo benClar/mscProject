@@ -189,7 +189,6 @@ class Semantic_analyser(object):
             decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)), self.expr_type_is(node.value))
         else:
             decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)))
-
         try:
             if decl.constraints.type == DATA_TYPE.INT_VAL:
                 if node.value is not None and self.value_matches_expected(decl.value.type, node.node_type) is False:
@@ -581,20 +580,47 @@ class Semantic_analyser(object):
         cast = Cast(Cast_operation(node.cast_operation.target_type, cnst, size), self.expr_type_is(node.target))  # NOQA
         return cast
 
+    def return_type_to_IR(self, ID):
+        ret_type = self.sym_table.f_table[ID]["return"]['type']
+        width = None
+        if self.sym_table.f_table[ID]["return"]['constraints'] is not None:
+            width = self.expr_type_is(self.sym_table.f_table[ID]["return"]['constraints'])
+        size = None
+        if self.sym_table.f_table[ID]["return"]['size'] is not None:
+            size = []
+            for dim in self.sym_table.f_table[ID]["return"]['size']:
+                size.append(self.expr_type_is(dim))
+
+        if ret_type == DATA_TYPE.BIT_VAL:
+            return Bit_decl(Name(ID, DATA_TYPE.BIT_VAL))
+        elif ret_type == DATA_TYPE.BS_INT_VAL:
+            return Int_decl(DATA_TYPE.BS_INT_DECL, width, Name(ID, DATA_TYPE.BS_INT_VAL))
+        elif ret_type == DATA_TYPE.INT_VAL:
+            return Int_decl(DATA_TYPE.INT_DECL, width, Name(ID, DATA_TYPE.INT_VAL))
+        elif ret_type == DATA_TYPE.SEQ_INT_VAL:
+            return Seq_decl(DATA_TYPE.SEQ_INT_DECL, size, Name(ID, DATA_TYPE.SEQ_INT_VAL), constraints=width)
+        elif ret_type == DATA_TYPE.SEQ_BIT_VAL:
+            return Seq_decl(DATA_TYPE.SEQ_BIT_DECL, size, Name(ID, DATA_TYPE.SEQ_BIT_VAL))
+        elif ret_type == DATA_TYPE.SBOX_DECL:
+            return Seq_decl(DATA_TYPE.SBOX_DECL, size, width, Name(ID, DATA_TYPE.SBOX_DECL))
+        elif ret_type == DATA_TYPE.VOID:
+            return DATA_TYPE.VOID
+        else:
+            raise ParseException("Internal Error: Unknown Return type")
+
+
     def analyse_func_call(self, node):
-        return_ = self.sym_table.f_table[node.ID]['return_type']
+       
+        return_ = self.return_type_to_IR(node.ID)
         if return_ != DATA_TYPE.VOID:
-            f_call = Call(node.ID, return_.ID.type, return_.ID.size, return_.ID.constraints, self.sym_table.f_table[node.ID]['return_type'])
+            f_call = Call(node.ID, return_.ID.type, return_.ID.size, return_.ID.constraints, return_)
         else:
             f_call = Call(node.ID, return_, None, None, return_)
         for i, p in enumerate(node.parameters):
             f_call.add_parameter(self.expr_type_is(p))
-            # print(f_call.parameters[i].name)
-            if self.value_matches_expected(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i].ID.type) is False:
-                raise ParseException(str(f_call.parameters[i].type) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i].ID.type))
+            if self.value_matches_expected(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i]['type']) is False:
+                raise ParseException(str(f_call.parameters[i].type) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i]['type']))
                 return False
-            # if DATA_TYPE.needs_cast(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i].ID.type):
-            #     raise ParseException("needs Cast from " + str(f_call.parameters[i].type) + " to " + str(self.sym_table.f_table[node.ID]['parameters'][i].ID.type))
         return f_call
 
     def value_matches_expected(self, result_value, expected_value):
@@ -611,7 +637,7 @@ class Semantic_analyser(object):
                           DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.BS_INT_VAL],
                           DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL],
                           DATA_TYPE.SEQ_BS_BIT_VAL: [DATA_TYPE.BS_INT_VAL, DATA_TYPE.SBOX_DECL, DATA_TYPE.SEQ_BS_BIT_VAL],
-                          DATA_TYPE.SBOX_DECL : [DATA_TYPE.SBOX_DECL]}
+                          DATA_TYPE.SBOX_DECL: [DATA_TYPE.SBOX_DECL]}
         if result_value in allowed_values[expected_value]:
             return True
         print(str(result_value) + " " + str(expected_value))
@@ -739,20 +765,18 @@ class Semantic_analyser(object):
         self.sym_table.add_scope()
         ret_val = self.build_ret_val(node.return_value)
         func_decl = Function_decl(node.ID, ret_val)
-        self.sym_table.add_function(node.ID)
-        if func_decl.return_type != DATA_TYPE.VOID:
-            self.sym_table.add_function_return(node.ID, func_decl.return_value)
-        else:
-            self.sym_table.add_function_return(node.ID, func_decl.return_type)
+        # self.sym_table.add_function(node.ID)
+        # if func_decl.return_type != DATA_TYPE.VOID:
+        #     self.sym_table.add_function_return(node.ID, func_decl.return_value)
+        # else:
+        #     self.sym_table.add_function_return(node.ID, func_decl.return_type)
         ret_pres = False
         for p in node.parameters:
             func_decl.parameters.append(self.AST_func_param_to_IR(p))
-            self.sym_table.add_function_parameter(node.ID, func_decl.parameters[-1])
-            # if DATA_TYPE.is_seq_type(DATA_TYPE.decl_to_value(p.node_type)):
-            #     self.sym_table.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type), len(func_decl.parameters[-1].size))
-            # else:
-            #     self.sym_table.add_id(p.ID, DATA_TYPE.decl_to_value(p.node_type))
+            # self.sym_table.add_function_parameter(node.ID, func_decl.parameters[-1])
         for s in node.stmts:
+            if s.node_type == DATA_TYPE.SBOX_DECL:
+                raise ParseException("Sboxes must be declared as global variables")
             if s.node_type == DATA_TYPE.RETURN_STMT:
                 ret_pres = True
                 func_decl.body.append(self.analyse_return_stmt(s, func_decl))

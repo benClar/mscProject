@@ -1,6 +1,7 @@
 from DATA_TYPE import DATA_TYPE
 from pyparsing import ParseException
 import sys
+from Semantic_analyser import Semantic_analyser
 
 
 class AST(object):
@@ -20,9 +21,10 @@ class AST(object):
 
     def __init__(self):
         self._tree = []
-        self._statements = []
+        # self._statements = []
         self._target = []
-        self.add_target({'parent': self, 'target': self._statements})
+        self.add_target({'parent': self, 'target': self._tree})
+        self.semantic_analyser = Semantic_analyser()
 
     def add_target(self, target):
         self._target.insert(0, target)
@@ -39,16 +41,20 @@ class AST(object):
         self._target[0]['target'].append(node)
 
     @property
+    def target(self):
+        return self._target[0]
+    
+    @property
     def statements(self):
         return self._statements
 
     @property
     def tree(self):
         """returns the list of statement nodes for testing if there are no function nodes"""
-        if len(self._tree) == 0:
-            return self._statements
-        else:
-            return self._tree
+        # if len(self._tree) == 0:
+        #     return self._statements
+        # else:
+        return self._tree
 
     def stand_alone_expr(self, tokens):
         self.add_statement(Expr_ast(tokens[0]))
@@ -150,7 +156,16 @@ class AST(object):
         else:
             self.add_statement(ID_set_ast(ID_ast(token[AST.ID]), token[AST.ID_SET_VALUE]))
 
+    def function_start(self, tokens):
+        new_func = function_declaration_ast()
+        self.add_statement(new_func)
+        self.add_target({'parent': new_func, 'target': new_func.stmts})
+
+    # def function_end(self, tokens):
+
+
     def function_decl(self, tokens):
+
         token = tokens[0]
         params = []
         # print(tokens[0].dump())
@@ -167,9 +182,44 @@ class AST(object):
             else:
                 raise ParseException("Unknown Param Type")
 
-        self.add_function_node(function_declaration_ast(self.return_type(token[0]), token['func_ID'][1][0], params))
-        self.tree[-1].stmts += self.statements[:]
-        self.statements.clear()
+        self.target['parent'].return_value = self.return_type(token[0])
+        self.target['parent'].ID = ID_ast(token['func_ID'][1][0])
+        self.target['parent'].parameters = params
+        self.add_to_function_table(self.target['parent'])
+        # print("ADDED TO FUNC TABLE")
+        # print(self.target['parent'].return_value.node_type)
+
+        # self.add_function_node(function_declaration_ast(self.return_type(token[0]), token['func_ID'][1][0], params))
+        # self.tree[-1].stmts += self.statements[:]
+        # self.statements.clear()
+        self.remove_target()
+
+
+    def add_to_function_table(self, node):
+        self.semantic_analyser.sym_table.add_function(node.ID)
+        self.add_to_function_table_op(self.semantic_analyser.sym_table.add_function_return, node.return_value, node.ID)
+        for p in node.parameters:
+           self.add_to_function_table_op(self.semantic_analyser.sym_table.add_function_parameter, p, node.ID)
+
+    def add_to_function_table_op(self, function_table_op, var, ID):
+        if var == DATA_TYPE.VOID:
+            function_table_op(ID, DATA_TYPE.VOID)
+        elif var.node_type == DATA_TYPE.INT_DECL:
+            function_table_op(ID, DATA_TYPE.INT_DECL, constraints=var.bit_constraints)
+        elif var.node_type == DATA_TYPE.BS_INT_DECL:
+            function_table_op(ID, DATA_TYPE.BS_INT_DECL, constraints=var.bit_constraints)
+        elif var.node_type == DATA_TYPE.SEQ_INT_DECL:
+            function_table_op(ID, DATA_TYPE.SEQ_INT_DECL, constraints=var.bit_constraints, size=var.size)
+        elif var.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
+            function_table_op(ID, DATA_TYPE.BS_SEQ_INT_DECL, constraints=var.bit_constraints, size=var.size)
+        elif var.node_type == DATA_TYPE.SEQ_BIT_DECL:
+            function_table_op(ID, DATA_TYPE.SEQ_INT_DECL, size=var.size)
+        elif var.node_type == DATA_TYPE.BIT_DECL:
+            function_table_op(ID, DATA_TYPE.BIT_DECL)
+        elif var.node_type == DATA_TYPE.SBOX_DECL:
+            function_table_op(ID, DATA_TYPE.SBOX_DECL, constraints=var.bit_constraints.expressions[0].value, size=var.size)
+        else:
+            raise ParseException("Internal Error: Unrecognised var type for f table op " + str(var.node_type))
 
     def param_type(self, param):
         if param[0] == "@Int":
@@ -276,11 +326,15 @@ class function_declaration_ast(object):
 
     node_type = DATA_TYPE.FUNC_DECL
 
-    def __init__(self, return_value, ID, parameters):
+    # def __init__(self, return_value, ID, parameters):
+    def __init__(self):
         self._stmts = []
-        self._ID = ID_ast(ID)
-        self._parameters = parameters
-        self.return_value = return_value
+        self._ID = None
+        self._parameters = None
+        self.return_value = None
+        # self._ID = ID_ast(ID)
+        # self._parameters = parameters
+        # self.return_value = return_value
 
     @property
     def stmts(self):
@@ -293,6 +347,10 @@ class function_declaration_ast(object):
     def ID(self):
         return self._ID.ID
 
+    @ID.setter
+    def ID(self, value):
+        self._ID = value
+
     @stmts.setter
     def stmts(self, value):
         self._stmts = value
@@ -301,6 +359,9 @@ class function_declaration_ast(object):
     def parameters(self):
         return self._parameters
 
+    @parameters.setter
+    def parameters(self, value):
+        self._parameters = value
 
 class for_loop_ast(object):
 

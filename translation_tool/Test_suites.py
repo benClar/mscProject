@@ -306,10 +306,13 @@ import subprocess
 #         par = Parser()
 #         assert_equals(par.parse_test_integration("Bit function_1(Int(5) a, Bit b, Int(5)[4][4][4] test, Bit[5] b) { Int(10) a = 1; Int(10) b = 2; Int(10) c = 0xa; }")[1], True)  # NOQA
 #         assert_equals(par.AST.tree[0].ID, "function_1")
-#         assert_equals(len(par.AST._statements), 0)
 #         assert_equals(par.AST.tree[0].stmts[0].value.expressions[0].value, '1')
 #         assert_equals(par.AST.tree[0].stmts[1].value.expressions[0].value, '2')
 #         assert_equals(par.AST.tree[0].stmts[2].value.expressions[0].value, '10')
+#         par = Parser()
+#         assert_equals(par.parse_test_integration("Bit function_1(Int(5)[4][4][4] test) { Int(10) a = 1; Int(10) b = 2; Int(10) c = 0xa; }")[1], True)  # NOQA
+#         print(par.semantic_analyser.sym_table.f_table)
+
 
 #     def test_return_stmt(self):
 #         par = Parser()
@@ -475,7 +478,7 @@ import subprocess
 #     def test_func_decl(self):
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) test_func(Int(8) a, Bit c, Bit[5] e) { Int(10) d = 1;  Bit b = False; return d;}")), True)  # NOQA
-#         assert_equals(par.semantic_analyser.sym_table.f_table['test_func']['return_type'].ID.type, DATA_TYPE.INT_VAL)
+#         assert_equals(par.semantic_analyser.sym_table.f_table['test_func']['return']['type'], DATA_TYPE.INT_VAL)
 
 #     def test_func_call(self):
 #         par = Parser()
@@ -896,6 +899,20 @@ import subprocess
 #                                                                             return state;\
 #                                                                         }")), False)
 
+#     def test_sbox(self):
+#         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void test(Int(8) input){\
+#                                                                     @Int(4) i;\
+#                                                                     Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4];\
+#                                                                 }\
+#                                                                 ")), False)
+#         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4];\
+#                                                                     void test(Int(8) input){\
+#                                                                     @Int(4) i;\
+#                                                                 }\
+#                                                                 ")), True)
+
 class test_translation(unittest.TestCase):
 
     # def test_LFSR_translation(self):
@@ -914,9 +931,35 @@ class test_translation(unittest.TestCase):
     #     print(par.semantic_analyser.IR.translate())
         # File_comparison.comp("LFSR_1.txt", par)
 
+    # def test_trans(self):
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4];\
+    #                                                                     Int(8) test(Int(8) input){\
+    #                                                                         @Int(4) i;\
+    #                                                                         Int(8) t;\
+    #                                                                         return t;\
+    #                                                                     }\
+    #                                                                     ")), True)
+        # par.semantic_analyser.IR.translate()['header']
+
     def test_PRINCE_translation(self):
             par = Parser()
-            assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void m0(@Int(16) state, @Int(16) output)   {\
+            assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4];\
+                                                                            Sbox(4)[16] prince_inv = [0xb, 0x7, 0x3, 0x2, 0xf, 0xd, 0x8, 0x9, 0xa, 0x6, 0x4, 0x0, 0x5, 0xe, 0xc, 0x1];\
+                                                                            @Int(64) enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
+                                                                                @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
+                                                                                state = state ^ key_0;\
+                                                                                state = state ^ RC[0][0:64];\
+                                                                                first_rounds(state,key_1,RC,prince);\
+                                                                                sBox_layer(state, prince);\
+                                                                                mPrime(state);\
+                                                                                sBox_layer_inv(state, prince);\
+                                                                                last_rounds(state,key_1,RC,prince);\
+                                                                                state = ((RC[11] ^ key_1) ^ state);\
+                                                                                state = state ^ key_prime;\
+                                                                                return state;\
+                                                                            }\
+                                                                                void m0(@Int(16) state, @Int(16) output)   {\
                                                                                 output[15] = state[11] ^ state[7] ^ state[3];\
                                                                                 output[14] = state[14] ^ state[6] ^ state[2];\
                                                                                 output[13] = state[13] ^ state[9] ^ state[1];\
@@ -1006,28 +1049,14 @@ class test_translation(unittest.TestCase):
                                                                                     sBox_layer_inv(state, prince);\
                                                                                 }\
                                                                             }\
-                                                                            @Int(64) enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
-                                                                                @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
-                                                                                state = state ^ key_0;\
-                                                                                state = state ^ RC[0][0:64];\
-                                                                                Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4];\
-                                                                                Sbox(4)[16] prince_inv = [0xb, 0x7, 0x3, 0x2, 0xf, 0xd, 0x8, 0x9, 0xa, 0x6, 0x4, 0x0, 0x5, 0xe, 0xc, 0x1];\
-                                                                                first_rounds(state,key_1,RC,prince);\
-                                                                                sBox_layer(state, prince);\
-                                                                                mPrime(state);\
-                                                                                sBox_layer_inv(state, prince);\
-                                                                                last_rounds(state,key_1,RC,prince);\
-                                                                                state = ((RC[11] ^ key_1) ^ state);\
-                                                                                state = state ^ key_prime;\
-                                                                                return state;\
-                                                                            }\
                                                                             ")), True)
             Data_reader.write("prince_dsl", "prince_dsl", par.semantic_analyser.IR.translate())
             assert_equals(subprocess.call(['../DSL/testing/prince_dsl/./run_tests.sh']), 0)
 
     def test_PRESENT_translation(self):
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void pLayer(@Int(64) state) {\
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] present = [0xc, 0x5, 0x6, 0xB, 0x9, 0x0, 0xa, 0xd, 0x3, 0xe, 0xf, 0x8, 0x4, 0x7, 0x1, 0x2];\
+                                                                        void pLayer(@Int(64) state) {\
                                                                             Int(8) target_bit;\
                                                                             @Int(64) temp = state;\
                                                                             for(Int(8) bit = 0; bit < 64; bit = bit + 1)    {\
@@ -1052,7 +1081,6 @@ class test_translation(unittest.TestCase):
                                                                             }\
                                                                         }\
                                                                         @Int(64) enc(@Int(80) key, @Int(64) state){\
-                                                                            Sbox(4)[16] present = [0xc, 0x5, 0x6, 0xB, 0x9, 0x0, 0xa, 0xd, 0x3, 0xe, 0xf, 0x8, 0x4, 0x7, 0x1, 0x2];\
                                                                             @Int(64)[32] round_keys;\
                                                                             generate_round_keys(key, present, round_keys);\
                                                                             for(Int(8) round = 0; round < 31; round = round + 1) {\
@@ -1068,7 +1096,7 @@ class test_translation(unittest.TestCase):
         assert_equals(subprocess.call(['../DSL/testing/present_dsl/./run_tests.sh']), 0)
 
     # def test_LED_translation(self):
-    #     par = Parser()
+        # par = Parser()
         # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) gmMult(@Int(8) a, @Int(8) b) {\
         #                                                                 @Int(8) g = 0;\
         #                                                                 for(Int(8) i = 0; i < 4; i = i + 1)   {\
@@ -1153,6 +1181,24 @@ class test_translation(unittest.TestCase):
         #                                                                 }\
         #                                                                 ")), True)
         # print(par.semantic_analyser.IR.translate())
+        # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) gmMult(@Int(8) a, @Int(8) b) {\
+        #                                                                 @Int(8) g = 0;\
+        #                                                                 @Int(1) hbs = 0;\
+        #                                                                 @Int(1) flag = 0;\
+        #                                                                 for(Int(8) bit = 0; bit < 4; bit = bit + 1)   {\
+        #                                                                     if(b[0] == 1)   {\
+        #                                                                         g = g ^ a;\
+        #                                                                     }\
+        #                                                                     hbs = a[7];\
+        #                                                                     a = a << 1;\
+        #                                                                     if(hbs[0] == 1)   {\
+        #                                                                         a = a ^ 0x13;\
+        #                                                                     }\
+        #                                                                     b = b >> 1;\
+        #                                                                 }\
+        #                                                                 return g;\
+        #                                                             }\
+        #                                                             ")), True)
 
 ###### OLD ########
 
