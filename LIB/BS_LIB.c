@@ -142,6 +142,13 @@ void bitslice(uint32_t *target, long source, int var_size)	{
 	}
 }
 
+void bitslice_bend(uint32_t *target, long source, int var_size)	{
+	int bit;
+	for(bit = 0; bit < var_size; bit++)	{
+		target[(var_size - bit) - 1] = ((source >> bit) & 1);
+	}
+}
+
 /*Tests*/
 
 // int main(){

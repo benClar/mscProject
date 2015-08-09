@@ -8,320 +8,98 @@
 /*---------- Custom Headers	-----------*/
 
 #include "prince_tests.h"
-#include "sput.h"
 
 
-void run_PRINCE_tests()	{
+int main() {
 	sput_start_testing();
-	// sput_run_test(test_gen_block_matrix);
-	sput_enter_suite("Sbox tests");
-	sput_run_test(sbox_tests);
+	sput_enter_suite("Prince Test 1");
+	sput_run_test(prince_test_1);
+	// sput_enter_suite("Prince Test 2");
+	// sput_run_test(prince_test_2);
+	// sput_enter_suite("Prince Test 3");
+	// sput_run_test(prince_test_3);
 	sput_finish_testing();
+	return sput_get_return_value();
 }
 
-void run_tests()	{
-	run_lib_tests();
-	run_PRINCE_tests();
+void prince_test_1()	{
+	uint32_t exp_res[64] = {0,1,0,1,1,0,1,1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,1,0,1,0,0,1,1,0,1,1,0,0,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,0,1,1,0};
+	uint32_t state[64] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	uint32_t key_0[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint32_t key_1[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint32_t RC[12][64];
+	int bit;
+	bitslice_bend(RC[0],0x0000000000000000, 64);
+	bitslice_bend(RC[1],0x13198a2e03707344, 64);
+	bitslice_bend(RC[2],0xa4093822299f31d0, 64);
+	bitslice_bend(RC[3],0x082efa98ec4e6c89, 64);
+	bitslice_bend(RC[4],0x452821e638d01377, 64);
+	bitslice_bend(RC[5],0xbe5466cf34e90c6c, 64);
+	bitslice_bend(RC[6],0x7ef84f78fd955cb1, 64);
+	bitslice_bend(RC[7],0x85840851f1ac43aa, 64);
+	bitslice_bend(RC[8],0xc882d32f25323c54, 64);
+	bitslice_bend(RC[9],0x64a51195e0e3610d, 64);
+	bitslice_bend(RC[10],0xd3b5a399ca0c2399, 64);
+	bitslice_bend(RC[11],0xc0ac29b7c97c50dd, 64);
+
+	// clock_t start, end;
+	// double cpu_time_used;
+	// start = clock();
+	enc(RC, state, key_0, key_1);
+	// end = clock();
+	// cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+	// printf("cpu time used : %f \n", cpu_time_used);
+	for(bit = 0; bit < 64; bit++)	{
+		sput_fail_unless(state[bit] == exp_res[63 - bit],"Prince Test 1");
+	}
 }
 
-void sbox_tests()	{
-	uint8_t *input = malloc(4 * sizeof(uint8_t));
-	input[0] = 1;
-	input[1] = 0;
-	input[2] = 0;
-	input[3] = 0;
-	input = sBox_nibble(input,0);
-	sput_fail_unless(input[0] == 0,"Sbox tests");
-	sput_fail_unless(input[1] == 1,"Sbox tests");
-	sput_fail_unless(input[2] == 1,"Sbox tests");
-	sput_fail_unless(input[3] == 0,"Sbox tests");
-	input[0] = 0;
-	input[1] = 0;
-	input[2] = 0;
-	input[3] = 0;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 1,"Sbox tests - 0");
-	sput_fail_unless(input[1] == 0,"Sbox tests");
-	sput_fail_unless(input[2] == 1,"Sbox tests");
-	sput_fail_unless(input[3] == 1,"Sbox tests");
-
-	input[0] = 0;
-	input[1] = 0;
-	input[2] = 0;
-	input[3] = 1;
-
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 0,"Sbox tests - 1");
-	sput_fail_unless(input[1] == 1,"Sbox tests");
-	sput_fail_unless(input[2] == 1,"Sbox tests");
-	sput_fail_unless(input[3] == 1,"Sbox tests");
-
-	input[0] = 0;
-	input[1] = 0;
-	input[2] = 1;
-	input[3] = 0;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 0,"Sbox tests - 2");
-	sput_fail_unless(input[1] == 0,"Sbox tests");
-	sput_fail_unless(input[2] == 1,"Sbox tests");
-	sput_fail_unless(input[3] == 1,"Sbox tests");
-
-	input[0] = 0;
-	input[1] = 0;
-	input[2] = 1;
-	input[3] = 1;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 0,"Sbox tests - 3");
-	sput_fail_unless(input[1] == 0,"Sbox tests");
-	sput_fail_unless(input[2] == 1,"Sbox tests");
-	sput_fail_unless(input[3] == 0,"Sbox tests");
-
-	input[0] = 0;
-	input[1] = 1;
-	input[2] = 0;
-	input[3] = 0;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 1,"Sbox tests - 4");
-	sput_fail_unless(input[1] == 1,"Sbox tests");
-	sput_fail_unless(input[2] == 1,"Sbox tests");
-	sput_fail_unless(input[3] == 1,"Sbox tests");
-
-	input[0] = 0;
-	input[1] = 1;
-	input[2] = 0;
-	input[3] = 1;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 1,"Sbox tests - 5");
-	sput_fail_unless(input[1] == 1,"Sbox tests");
-	sput_fail_unless(input[2] == 0,"Sbox tests");
-	sput_fail_unless(input[3] == 1,"Sbox tests");
-
-	input[0] = 0;
-	input[1] = 1;
-	input[2] = 1;
-	input[3] = 0;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 1,"Sbox tests - 6");
-	sput_fail_unless(input[1] == 0,"Sbox tests");
-	sput_fail_unless(input[2] == 0,"Sbox tests");
-	sput_fail_unless(input[3] == 0,"Sbox tests");
-
-	input[0] = 0;
-	input[1] = 1;
-	input[2] = 1;
-	input[3] = 1;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 1,"Sbox tests - 7");
-	sput_fail_unless(input[1] == 0,"Sbox tests");
-	sput_fail_unless(input[2] == 0,"Sbox tests");
-	sput_fail_unless(input[3] == 1,"Sbox tests");
-
-	input[0] = 1;
-	input[1] = 0;
-	input[2] = 0;
-	input[3] = 0;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 1,"Sbox tests - 8");
-	sput_fail_unless(input[1] == 0,"Sbox tests");
-	sput_fail_unless(input[2] == 1,"Sbox tests");
-	sput_fail_unless(input[3] == 0,"Sbox tests");
-
-	input[0] = 1;
-	input[1] = 0;
-	input[2] = 0;
-	input[3] = 1;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 0,"Sbox tests - 9");
-	sput_fail_unless(input[1] == 1,"Sbox tests");
-	sput_fail_unless(input[2] == 1,"Sbox tests");
-	sput_fail_unless(input[3] == 0,"Sbox tests");
-
-	input[0] = 1;
-	input[1] = 0;
-	input[2] = 1;
-	input[3] = 0;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 0,"Sbox tests - 10");
-	sput_fail_unless(input[1] == 1,"Sbox tests");
-	sput_fail_unless(input[2] == 0,"Sbox tests");
-	sput_fail_unless(input[3] == 0,"Sbox tests");
-
-	input[0] = 1;
-	input[1] = 0;
-	input[2] = 1;
-	input[3] = 1;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 0,"Sbox tests - 11");
-	sput_fail_unless(input[1] == 0,"Sbox tests");
-	sput_fail_unless(input[2] == 0,"Sbox tests");
-	sput_fail_unless(input[3] == 0,"Sbox tests");
-
-	input[0] = 1;
-	input[1] = 1;
-	input[2] = 0;
-	input[3] = 0;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 0,"Sbox tests - 12");
-	sput_fail_unless(input[1] == 1,"Sbox tests ");
-	sput_fail_unless(input[2] == 0,"Sbox tests");
-	sput_fail_unless(input[3] == 1,"Sbox tests");
-
-	input[0] = 1;
-	input[1] = 1;
-	input[2] = 0;
-	input[3] = 1;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 1,"Sbox tests - 13");
-	sput_fail_unless(input[1] == 1,"Sbox tests");
-	sput_fail_unless(input[2] == 1,"Sbox tests");
-	sput_fail_unless(input[3] == 0,"Sbox tests");
-
-	input[0] = 1;
-	input[1] = 1;
-	input[2] = 1;
-	input[3] = 0;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 1,"Sbox tests - 14");
-	sput_fail_unless(input[1] == 1,"Sbox tests");
-	sput_fail_unless(input[2] == 0,"Sbox tests");
-	sput_fail_unless(input[3] == 0,"Sbox tests");
-	input[0] = 1;
-	input[1] = 1;
-	input[2] = 1;
-	input[3] = 1;
-	input = sBox_nibble(input,1);
-	sput_fail_unless(input[0] == 0,"Sbox tests - 15");
-	sput_fail_unless(input[1] == 0,"Sbox tests");
-	sput_fail_unless(input[2] == 0,"Sbox tests");
-	sput_fail_unless(input[3] == 1,"Sbox tests");
+void prince_test_2()	{
+	uint32_t exp_res[64] = {0,1,0,1,1,0,1,1,1,1,1,1,1,0,1,1,0,1,0,0,0,0,0,0,1,0,1,1,0,0,0,0,0,1,0,1,0,1,0,1,1,0,1,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0,0,0,0,0,1};
+	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint32_t key_0[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint32_t key_1[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint32_t RC[12][64];
+	int bit;
+	bitslice_bend(RC[0],0x0000000000000000, 64);
+	bitslice_bend(RC[1],0x13198a2e03707344, 64);
+	bitslice_bend(RC[2],0xa4093822299f31d0, 64);
+	bitslice_bend(RC[3],0x082efa98ec4e6c89, 64);
+	bitslice_bend(RC[4],0x452821e638d01377, 64);
+	bitslice_bend(RC[5],0xbe5466cf34e90c6c, 64);
+	bitslice_bend(RC[6],0x7ef84f78fd955cb1, 64);
+	bitslice_bend(RC[7],0x85840851f1ac43aa, 64);
+	bitslice_bend(RC[8],0xc882d32f25323c54, 64);
+	bitslice_bend(RC[9],0x64a51195e0e3610d, 64);
+	bitslice_bend(RC[10],0xd3b5a399ca0c2399, 64);
+	bitslice_bend(RC[11],0xc0ac29b7c97c50dd, 64);
+	enc(RC, state, key_0, key_1);
+	for(bit = 0; bit < 64; bit++)	{
+		sput_fail_unless(state[bit] == exp_res[63 - bit],"Prince Test 2");
+	}
 }
 
-// void test_gen_block_matrix()	{
-// 	uint8_t **M = malloc(4 * sizeof(uint8_t*));
-// 	M = gen_basic_blocks(M);
-	// int ele,row,col, matrix;
-	// sput_fail_unless(test_for_basic_m0(M[0]) == 1,"basic M blocks test");
-	// sput_fail_unless(test_for_basic_m1(M[1]) == 1,"basic M blocks test");
-	// sput_fail_unless(test_for_basic_m2(M[2]) == 1,"basic M blocks test");
-	// sput_fail_unless(test_for_basic_m3(M[3]) == 1,"basic M blocks test");
-	// sput_fail_unless(test_for_basic_m3(M[2]) == 0,"basic M blocks test");
-
-	// uint8_t *M_block_0 = gen_block_matrix(M,0);
-	// uint8_t *M_block_1 = gen_block_matrix(M,1);
-
-	// uint8_t *z_block = malloc(16 * 16 * sizeof(uint8_t*));
-	// for(ele = 0; ele < 256; ele++)	{
-	// 	z_block[ele] = 0;
-	// }
-	// uint8_t *dia_m_prime = gen_diagonal_matrix(M_block_0,M_block_1,z_block);
-
-	// uint8_t *dia__m = shift_rows(dia_m_prime);
-	// for(ele = 0; ele < 64 * 64;){
-	// 	for(matrix = 0; matrix < 4; matrix++)	{
-	// 		for(col = 0; col < 16; col++,ele++)	{
-	// 			printf("%d", dia_matrix[ele]);
-	// 		}
-	// 		printf(" ");
-	// 	}
-	// 	printf("\n");
-	// }
-// }
-
-/*Doesnt work with new blocks*/
-// void block_m_tester(uint8_t *M_block, int start)	{
-// 	int ele, col, m = start;
-// 	uint8_t *test_M = malloc(16 * sizeof(uint8_t));
-// 	for(ele = 0; ele < 256;)	{
-// 		for(col = 0; col < 4; col++,ele+=16){
-// 			memcpy(test_M,&(M_block[ele]),16 * sizeof(uint8_t));
-// 			switch(m)	{
-// 				case 0:
-// 					sput_fail_unless(test_for_basic_m0(test_M) == 1,"M block test");
-// 					break;
-// 				case 1:
-// 					sput_fail_unless(test_for_basic_m1(test_M) == 1,"M block test");
-// 					break;
-// 				case 2:
-// 					sput_fail_unless(test_for_basic_m2(test_M) == 1,"M block test");
-// 					break;
-// 				case 3:
-// 					sput_fail_unless(test_for_basic_m3(test_M) == 1,"M block test");
-// 					break;
-// 			}
-// 			m = (m + 1) % BASIC_BLOCK_NUM;
-// 		}
-// 		m = (m + 1) % BASIC_BLOCK_NUM;
-// 	}
-// }
-
-// int test_for_basic_m0(uint8_t *m)	{
-// 	uint8_t row_1[4] = {0,0,0,0};
-// 	uint8_t row_2[4] = {0,1,0,0};
-// 	uint8_t row_3[4] = {0,0,1,0};
-// 	uint8_t row_4[4] = {0,0,0,1};
-// 	uint8_t *test_rows[4] = {row_1,row_2,row_3,row_4};
-// 	int row,col;
-
-// 	for(row = 0; row < 4; row++)	{
-// 		for (col = 0; col < 4; col++)	{
-// 			if(m[4 * row + col] != test_rows[row][col])	{
-// 				return 0;
-// 			}
-// 		}
-// 	}
-// 	return 1;
-// }
-
-// int test_for_basic_m1(uint8_t *m)	{
-// 	uint8_t row_1[4] = {1,0,0,0};
-// 	uint8_t row_2[4] = {0,0,0,0};
-// 	uint8_t row_3[4] = {0,0,1,0};
-// 	uint8_t row_4[4] = {0,0,0,1};
-// 	uint8_t *test_rows[4] = {row_1,row_2,row_3,row_4};
-// 	int row,col;
-
-// 	for(row = 0; row < 4; row++)	{
-// 		for (col = 0; col < 4; col++)	{
-// 			if(m[4 * row + col] != test_rows[row][col])	{
-// 				return 0;
-// 			}
-// 		}
-// 	}
-// 	return 1;
-// }
-
-// int test_for_basic_m2(uint8_t *m)	{
-// 	uint8_t row_1[4] = {1,0,0,0};
-// 	uint8_t row_2[4] = {0,1,0,0};
-// 	uint8_t row_3[4] = {0,0,0,0};
-// 	uint8_t row_4[4] = {0,0,0,1};
-// 	uint8_t *test_rows[4] = {row_1,row_2,row_3,row_4};
-// 	int row,col;
-
-// 	for(row = 0; row < 4; row++)	{
-// 		for (col = 0; col < 4; col++)	{
-// 			if(m[4 * row + col] != test_rows[row][col])	{
-// 				return 0;
-// 			}
-// 		}
-// 	}
-// 	return 1;
-// }
-
-// int test_for_basic_m3(uint8_t *m)	{
-// 	uint8_t row_1[4] = {1,0,0,0};
-// 	uint8_t row_2[4] = {0,1,0,0};
-// 	uint8_t row_3[4] = {0,0,1,0};
-// 	uint8_t row_4[4] = {0,0,0,0};
-// 	uint8_t *test_rows[4] = {row_1,row_2,row_3,row_4};
-// 	int row,col;
-
-// 	for(row = 0; row < 4; row++)	{
-// 		for (col = 0; col < 4; col++)	{
-// 			if(m[4 * row + col] != test_rows[row][col])	{
-// 				return 0;
-// 			}
-// 		}
-// 	}
-// 	return 1;
-// }
+void prince_test_3() {
+	uint32_t exp_res[64] = {0,0,1,0,0,1,0,0,1,0,1,0,1,1,1,1,1,0,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,0,0,1,0,0,1,1,0,0,0,1,0,1,0,1,1,0,1,1,1,1,1,1,0,0,1};
+	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint32_t key_0[64] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	uint32_t key_1[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint32_t RC[12][64];
+	int bit;
+	bitslice_bend(RC[0],0x0000000000000000, 64);
+	bitslice_bend(RC[1],0x13198a2e03707344, 64);
+	bitslice_bend(RC[2],0xa4093822299f31d0, 64);
+	bitslice_bend(RC[3],0x082efa98ec4e6c89, 64);
+	bitslice_bend(RC[4],0x452821e638d01377, 64);
+	bitslice_bend(RC[5],0xbe5466cf34e90c6c, 64);
+	bitslice_bend(RC[6],0x7ef84f78fd955cb1, 64);
+	bitslice_bend(RC[7],0x85840851f1ac43aa, 64);
+	bitslice_bend(RC[8],0xc882d32f25323c54, 64);
+	bitslice_bend(RC[9],0x64a51195e0e3610d, 64);
+	bitslice_bend(RC[10],0xd3b5a399ca0c2399, 64);
+	bitslice_bend(RC[11],0xc0ac29b7c97c50dd, 64);
+	enc(RC, state, key_0, key_1);
+	for(bit = 0; bit < 64; bit++)	{
+		sput_fail_unless(state[bit] == exp_res[63 - bit],"Prince Test 1");
+	}
+}

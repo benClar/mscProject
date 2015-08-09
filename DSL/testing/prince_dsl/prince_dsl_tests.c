@@ -36,7 +36,14 @@ void prince_test_1()	{
 	bitslice(RC[9],0x64a51195e0e3610d, 64);
 	bitslice(RC[10],0xd3b5a399ca0c2399, 64);
 	bitslice(RC[11],0xc0ac29b7c97c50dd, 64);
+	// clock_t start, end;
+	// double cpu_time_used;
+
+	// start = clock();
 	enc(RC, state, key_0, key_1);
+	// end = clock();
+	// cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+	// printf("cpu time used : %f \n", cpu_time_used);
 	for(bit = 0; bit < 64; bit++)	{
 		sput_fail_unless(state[bit] == exp_res[bit],"Prince Test 1");
 	}

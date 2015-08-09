@@ -2,7 +2,7 @@
 #define TEST_Prince_h
 
 
-#include "dsl_lib.h"
+#include "../../../LIB/BS_LIB.h"
 #include "prince_tests.h"
 
 #define A 0
@@ -316,25 +316,21 @@
 
 
 
-void run();
-uint8_t* sBox(uint8_t *input, int invert);
-uint8_t sbox_1(uint8_t *input);
-uint8_t sbox_2(uint8_t *input);
-uint8_t sbox_3(uint8_t *input);
-uint8_t sbox_4(uint8_t *input);
-uint8_t inv_sbox_1(uint8_t *input);
-uint8_t inv_sbox_2(uint8_t *input);
-uint8_t inv_sbox_3(uint8_t *input);
-uint8_t inv_sbox_4(uint8_t *input);
-uint8_t **gen_basic_blocks();
-uint8_t *gen_diagonal_matrix(uint8_t *M_block_0, uint8_t *M_block_1, uint8_t *zero);
-uint8_t *gen_block_matrix(uint8_t **m_blocks, int start);
-uint8_t *m0(uint8_t *data);
-uint8_t *m1(uint8_t *data);
-uint8_t *mprime(uint8_t *state);
-uint8_t *shift_rows(uint8_t *input, int inverse);
-uint8_t *init_state();
-uint8_t* sBox_nibble(uint8_t *current,int invert);
+uint32_t (*enc(uint32_t RC[12][64], uint32_t state[64],uint32_t key_0[64],uint32_t key_1[64]));
+void m0(uint32_t ret[16], uint32_t data[16]);
+void m1(uint32_t ret[16], uint32_t data[16]);
+void mprime(uint32_t state[64]);
+void sBox(uint32_t input[64], int invert);
+void sBox_nibble(uint32_t current[4],int invert);
+void shift_rows(uint32_t input[64], int inverse);
+uint8_t inv_sbox_1(uint32_t input[4]);
+uint8_t inv_sbox_2(uint32_t input[4]);
+uint8_t inv_sbox_3(uint32_t input[4]);
+uint8_t inv_sbox_4(uint32_t input[4]);
+uint8_t sbox_1(uint32_t input[4]);
+uint8_t sbox_2(uint32_t input[4]);
+uint8_t sbox_3(uint32_t input[4]);
+uint8_t sbox_4(uint32_t input[4]);
 #endif
 
 
