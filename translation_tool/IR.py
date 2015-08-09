@@ -757,7 +757,7 @@ class Seq_val(object):
         self._value = []
         if value is not None:
             self._value.append(value)
-
+        self.constraints = None
         self._type = s_type
         self.node_type = DATA_TYPE.SEQ_VAL
 

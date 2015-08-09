@@ -542,7 +542,7 @@ class Expr_ast(object):
                  '&&': DATA_TYPE.LOG_OP}
 
     operand_lookup = {'Seq_val': DATA_TYPE.SEQ_VAL,
-                      'index_select': DATA_TYPE.INDEX_SEL,
+                      'index_select': DATA_TYPE.INDEX_SELECT,
                       'function_call': DATA_TYPE.FUNCTION_CALL,
                       'ID': DATA_TYPE.ID,
                       'Int_val': DATA_TYPE.INT_VAL,
@@ -609,7 +609,7 @@ class Expr_ast(object):
                 self.expressions.append(seq_value_ast(token[Expr_ast.CONTENT][0]))
             except IndexError:
                 self.expressions.append(seq_value_ast())
-        elif operand_type == DATA_TYPE.INDEX_SEL:
+        elif operand_type == DATA_TYPE.INDEX_SELECT:
             ID = None
             if token[1][0] == "cast":
                 ID = Expr_ast([token[1]])
@@ -763,7 +763,7 @@ class Bit_literal_ast(object):
 
 class index_select_ast(object):
 
-    node_type = DATA_TYPE.INDEX_SEL
+    node_type = DATA_TYPE.INDEX_SELECT
 
     def __init__(self, target, indices):
         self._target = target

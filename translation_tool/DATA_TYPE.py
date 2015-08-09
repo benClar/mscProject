@@ -49,6 +49,49 @@ class DATA_TYPE(Enum):
     BS_BIT_VAL = 42,
     SEQ_BS_BIT_VAL = 43
 
+    def __str__(type_input):
+        to_string ={DATA_TYPE.SEQ_VAL: "Sequence Value",
+                    DATA_TYPE.INT_VAL: "Integer Value",
+                    DATA_TYPE.BIT_VAL: "Bit Value",
+                    DATA_TYPE.CAST: "Cast Operation",
+                    DATA_TYPE.FUNCTION_CALL: "Function Call",
+                    DATA_TYPE.ID: "ID",
+                    DATA_TYPE.SEQ_DECL: "Sequence Variable Declaration",
+                    DATA_TYPE.BIT_DECL: "Bit Variable Declaration",
+                    DATA_TYPE.INT_DECL: "Integer Variable Declaration",
+                    DATA_TYPE.EXPR: "Expression",
+                    DATA_TYPE.ARITH_OP: "Arithmetic Operation",
+                    DATA_TYPE.BITWISE_OP: "Bitwise Operation",
+                    DATA_TYPE.COMP_OP: "Comparison Operation",
+                    DATA_TYPE.INDEX_RANGE: "Index Range Operation",
+                    DATA_TYPE.ID_SET: "ID Set Statement",
+                    DATA_TYPE.SHIFT_OP: "Shift Operation",
+                    DATA_TYPE.SEQ_INT_VAL: "Sequence of Integers",
+                    DATA_TYPE.SEQ_BIT_VAL: "Sequence of Bits",
+                    DATA_TYPE.FUNC_DECL: "Function Declaration",
+                    DATA_TYPE.RETURN_STMT: "Return Statement",
+                    DATA_TYPE.FOR_LOOP: "For Loop Statement",
+                    DATA_TYPE.IF_STMT: "If Statement",
+                    DATA_TYPE.BS_INT_VAL: "Bitsliced Integer Value",
+                    DATA_TYPE.BS_SEQ_INT_VAL: "Sequence of Bitsliced Integers",
+                    DATA_TYPE.VOID: "Void",
+                    DATA_TYPE.FUNCTION_PARAM: "Function Parameter",
+                    DATA_TYPE.BS_INT_DECL: "Bitsliced Integer Declaration",
+                    DATA_TYPE.BS_SEQ_INT_DECL: "Sequence of Bitsliced Integers",
+                    DATA_TYPE.SEQ_INT_DECL: "Sequence of Integers Declaration",
+                    DATA_TYPE.SEQ_BIT_DECL: "Sequence of Bits Declaration",
+                    DATA_TYPE.INDEX_SET: "ID Set Statement",
+                    DATA_TYPE.INT_LITERAL: "Int Literal",
+                    DATA_TYPE.BIT_LITERAL: "Bit Literal",
+                    DATA_TYPE.LOG_OP: "Logical Operation",
+                    DATA_TYPE.CAST_OP: "Cast Operation",
+                    DATA_TYPE.SBOX_DECL: "Sbox Declaration",
+                    DATA_TYPE.INDEX_SELECT: "Index Select Operation",
+                    DATA_TYPE.BS_BIT_VAL: "Bitsliced Bit",
+                    DATA_TYPE.SEQ_BS_BIT_VAL: "Sequence of Bitsliced Bits"}
+        return to_string[type_input]
+
+
     def is_int_val(type_input):
         sequence_types = [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL]
         if type_input in sequence_types:

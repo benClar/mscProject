@@ -8,7 +8,7 @@ from IR import Int_literal, Name, Int_decl, Set, Bit_literal, Binary_operation,\
     Cast_operation, Cast, IR, Call, Bit_decl, Seq_decl, Seq_val, If_stmt, For_loop,\
     Function_decl, Index_select, Element_range, Return, Int_literal
 import sys
-
+from Translation_exceptions import SemanticException, InternalException, Semantic_analysis_errors
 
 class Semantic_analyser(object):
 
@@ -68,14 +68,14 @@ class Semantic_analyser(object):
                     if self.allowed_index_range(new_ind.type):
                         indices_list.append(new_ind)
                     else:
-                        raise ParseException("Cannot use " + new_ind.type + " as Lookup value in Sequence")
+                        raise SemanticException("Cannot use " + new_ind.type + " as Lookup value in Sequence")
                 collected_indices.append(indices_list)
             else:
                 new_ind = self.expr_type_is(i)
                 if self.allowed_index_range(new_ind.type):
                     collected_indices.append([new_ind])
                 else:
-                    raise ParseException("Cannot use " + str(new_ind.type) + " as Lookup value in Sequence")
+                    raise SemanticException("Cannot use " + str(new_ind.type) + " as Lookup value in Sequence")
         return collected_indices
 
     def allowed_index_range(self, type_input):
@@ -86,30 +86,21 @@ class Semantic_analyser(object):
 
     def index_set(self, node):
         id_set = None
-        # if node.target.target.node_type == DATA_TYPE.ID:
-            # Setting an ID or sequence element
-            # id_set = Index_set(Name(node.target.ID, self.sym_table.id_type(node.ID)), self.collect_indices(node), self.expr_type_is(node.value))
-            # if DATA_TYPE.is_seq_type(self.sym_table.id_type(node.target.ID)):
-            #     id_set = self.analyse_seq_index_set(node)
-            # elif DATA_TYPE.is_int_val(self.sym_table.id_type(node.target.ID)):
-            #     id_set = self.analyse_int_index_set(node)
-            # print(">>>>")
-            # print(node.target)
         id_set = Set(self.analyse_index_sel(node.target), self.expr_type_is(node.value))
         if DATA_TYPE.is_seq_type(id_set.target.type) and DATA_TYPE.is_seq_type(id_set.value.type):
             pass
-            #If both values are sequences, user is trying to set a sequence to the value of another sequence.  For now allow ranges.
-            # for dimension in id_set.target.indices:
-            #     for element in dimension:
-            #         if element.node_type == DATA_TYPE.INDEX_RANGE:
-            #             raise ParseException("Cannot use ranges to assign multiple elements inside a sequence")
+        if id_set.target.target.node_type == DATA_TYPE.CAST:
+            if self.get_cast_target(id_set.target.target) != DATA_TYPE.ID:
+                raise SemanticException("Cannot assign to a " + str(self.get_cast_target(id_set.target.target)))
         if self.can_assign_type(id_set.target.type, id_set.value.type) is False:
-            raise ParseException(str(id_set.value.type) + " Cannot be assigned to " + str(id_set.target.type))
-        # else:
-            # Setting a casted value
-            # id_set = Set(Index_select(self.expr_type_is(node.target.target), self.collect_indices(node.target.indices)),  self.expr_type_is(node.value))
-            # self.validate_cast_seq_set(id_set)
+            raise SemanticException(str(id_set.value.type) + " Cannot be assigned to " + str(id_set.target.type))
         return id_set
+
+    def get_cast_target(self, target):
+        if target.node_type == DATA_TYPE.CAST:
+            return self.get_cast_target(target.target)
+        else:
+            return target.node_type
 
     def analyse_seq_index_set(self, ast_node):
         id_set = Set(self.build_seq_index_ir(ast_node.target, self.collect_indices(ast_node.target.indices)),  self.expr_type_is(ast_node.value))
@@ -124,17 +115,17 @@ class Semantic_analyser(object):
         if self.is_range(id_set.target.indices[0]):
             id_set.target.type = DATA_TYPE.SEQ_BIT_VAL
         elif len(id_set.target.indices) > 1:
-            raise ("Cannot treat Integer value as a 2d bit array")
+            raise SemanticException("Cannot treat Integer value as a 2d bit array")
         else:
             id_set.target.type = DATA_TYPE.BIT_VAL
         if self.value_matches_expected(id_set.value.type, id_set.target.type) is False:
-            raise ParseException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
+            raise SemanticException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
 
     def can_assign_type(self, target_type, value_type):
         allowed_values = {DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
                           DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
                           DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL],
-                          DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.BS_BIT_VAL],
+                          DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.BS_BIT_VAL, DATA_TYPE.SEQ_BIT_VAL],
                           DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.SEQ_BIT_VAL],
                           DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
                           DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],
@@ -152,36 +143,35 @@ class Semantic_analyser(object):
 
     def validate_cast_seq_set(self, id_set):
         if len(id_set.target.indices) > 1:
-            raise ParseException(str(id_set.target.type) + len(id_set.target.indices) * "[]" + " cannot set " + str(id_set.target.type) + "[]")
+            raise SemanticException(str(id_set.target.type) + len(id_set.target.indices) * "[]" + " cannot set " + str(id_set.target.type) + "[]")
 
     def validate_id_seq_set(self, id_set, node):
         if len(id_set.target.indices) == self.sym_table.dimension(node.target.ID):
             if self.value_matches_expected(DATA_TYPE.seq_to_index_sel(id_set.target.type), id_set.value.type) is False:
-                raise ParseException(str(DATA_TYPE.seq_to_index_sel(id_set.target.type)) + " Cannot be set to " + str(id_set.value.type))
+                raise SemanticException(str(DATA_TYPE.seq_to_index_sel(id_set.target.type)) + " Cannot be set to " + str(id_set.value.type))
         elif len(id_set.target.indices) > self.sym_table.dimension(node.target.ID):
             if (id_set.target.type == DATA_TYPE.BS_SEQ_INT_VAL or id_set.target.type == DATA_TYPE.SEQ_INT_VAL) and (len(node.indices) == len(id_set.target.indices) + 1):
                 pass
             else:
-                raise ParseException(str(self.sym_table.id(node.target.ID)['type']) + str("[]" * self.sym_table.dimension(node.target.ID)) + " cannot be set to " + "[]" * len(id_set.target.indices))  # NOQA
+                raise SemanticException(str(self.sym_table.id(node.target.ID)['type']) + str("[]" * self.sym_table.dimension(node.target.ID)) + " cannot be set to " + "[]" * len(id_set.target.indices))  # NOQA
         else:
             if self.value_matches_expected(id_set.target.target.type, id_set.value.type) is False:
-                raise ParseException(str(id_set.target.target.type) + " Cannot be set to " + str(id_set.value.type))
+                raise SemanticException(str(id_set.target.target.type) + " Cannot be set to " + str(id_set.value.type))
 
     def analyse_ID_set(self, node):
         if node.target.node_type == DATA_TYPE.ID:
             return self.basic_id_set(node)
-        elif node.target.node_type == DATA_TYPE.INDEX_SEL:
+        elif node.target.node_type == DATA_TYPE.INDEX_SELECT:
             return self.index_set(node)
-            pass
         else:
-            raise ParseException("Internal Error: Unknown type " + node.target.node_type)
+            raise InternalException("Internal Error: Unknown type " + node.target.node_type)
 
     def basic_id_set(self, node):
         id_set = Set(Name(node.target.ID, self.sym_table.id_type(node.target.ID)), self.expr_type_is(node.value))
         id_set.target.constraints = self.sym_table.id(node.target.ID)['constraints']
         id_set.target.size = self.sym_table.id(node.target.ID)['size']
         if self.can_assign_type(id_set.target.type, id_set.value.type, ) is False:
-            raise ParseException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
+            raise SemanticException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
         return id_set
 
     def analyse_int_decl(self, node):
@@ -189,51 +179,29 @@ class Semantic_analyser(object):
             decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)), self.expr_type_is(node.value))
         else:
             decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)))
-        try:
-            if decl.constraints.type == DATA_TYPE.INT_VAL:
-                if node.value is not None and self.value_matches_expected(decl.value.type, node.node_type) is False:
-                    raise ParseException(str(decl.value.type) + " value not as expected for " + str(node.node_type) + " assignment")
-            else:
-                raise ParseException("Number of bits must be an int literal")
-            if decl.ID.name is not None:
-                self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
-                # print(self.target.id)
-                self.sym_table.id(node.ID)['constraints'] = decl.constraints
-                self.sym_table.id(node.ID)['size'] = None
-            # self.IR.add(decl)
-            return decl
-        except ParseException as details:
-            print(details)
-            return False
+        if decl.constraints.node_type != DATA_TYPE.INT_LITERAL:
+            raise SemanticException("Word Length cannot be variable")
+        if node.value is not None and self.value_matches_expected(decl.value.type, node.node_type) is False:  #Should be more specific
+                raise SemanticException(str(decl.value.type) + " Cannot be assigned to " + str(node.node_type) + " assignment")
+        if decl.ID.name is not None:
+            self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
+            self.sym_table.id(node.ID)['constraints'] = decl.constraints
+            self.sym_table.id(node.ID)['size'] = None
+        return decl
 
     def analyse_bit_decl(self, node):
         if node.value is not None:
             decl = Bit_decl(Name(node.ID, DATA_TYPE.BIT_VAL), self.expr_type_is(node.value))
         else:
             decl = Bit_decl(Name(node.ID, DATA_TYPE.BIT_VAL))
-        try:
-            if node.value is not None:
-                if decl.value.type != DATA_TYPE.BIT_VAL:
-                    return False
-            if node.ID is not None:
-                self.sym_table.add_bit_id(node.ID)
-                self.sym_table.id(node.ID)['constraints'] = None
-                self.sym_table.id(node.ID)['size'] = None
-            # self.IR.add(decl)
-            return decl
-        except ParseException as details:
-            print(details)
-            return False
-
-    # def analyse_seq_decl(self, node):
-    #     print("HERE")
-    #     if node.type == DATA_TYPE.SEQ_INT_VAL or node.type == DATA_TYPE.BS_SEQ_INT_VAL:
-    #         return self.analyse_bit_cnst_seq(node)
-    #     elif node.type == DATA_TYPE.SEQ_BIT_VAL:
-    #         return self.analyse_bit_seq(node)
-    #     else:
-    #         print("Unknown Sequence Type")
-    #         return False
+        if node.value is not None:
+            if decl.value.type != DATA_TYPE.BIT_VAL:
+                raise SemanticException("Cannot Assign " + str(decl.value.type) + " in " +  str(DATA_TYPE.BIT_DECL))
+        if node.ID is not None:
+            self.sym_table.add_bit_id(node.ID)
+            self.sym_table.id(node.ID)['constraints'] = None
+            self.sym_table.id(node.ID)['size'] = None
+        return decl
 
     def analyse_bit_seq(self, node):
         if node.value is None:
@@ -241,7 +209,7 @@ class Semantic_analyser(object):
         else:
             decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value))
             if decl.value.type != DATA_TYPE.SEQ_BIT_VAL:
-                raise ParseException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
+                raise SemanticException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
         if node.ID is not None:
             self.sym_table.add_id(node.ID, decl.ID.type, len(decl.size))
             self.sym_table.id(node.ID)['size'] = decl.size
@@ -269,14 +237,14 @@ class Semantic_analyser(object):
             dimensions.append(self.seq_value_dimension(expr))
         dimensions = list(set(dimensions))
         if len(dimensions) > 1:
-            raise ParseException("Cannot Combine Sequence Types")
+            raise SemanticException("Sequence must be of homogeneous type")
         else:
             return dimensions[0]
 
     def analyse_return_stmt(self, ast_node, func_decl):
         ret = Return(self.expr_type_is(ast_node.expr))
         if ret.type != func_decl.return_type:
-            raise ParseException("Function " + str(func_decl.ID.name) + " returns " + str(ret.type) +
+            raise SemanticException("Function " + str(func_decl.ID.name) + " returns " + str(ret.type) +
                                  ". requires return value " + str(func_decl.return_type))
         return ret
 
@@ -284,24 +252,19 @@ class Semantic_analyser(object):
         """Analyse Sequences that have bit constraints set on their members and build IR node"""
         if node.value is None:
             if node.node_type == DATA_TYPE.SBOX_DECL:
-                raise ParseException("Sbox declaractions cannot be unitialised")
+                raise SemanticException("Sbox declaractions cannot be unitialised")
             decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, constraints=self.expr_type_is(node.bit_constraints))
         else:
             decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value), self.expr_type_is(node.bit_constraints))
             if self.seq_expr_dimension(decl.value) != len(decl.size):
-                raise ParseException((str(decl.value.type) + "[]" * self.seq_value_dimension(decl.value)) +
+                raise SemanticException((str(decl.value.type) + "[]" * self.seq_value_dimension(decl.value)) +
                                      " Cannot be assigned to " + str(decl.value.type) + ("[]" * len(decl.size)))
-        # print(decl.constraints.node_type)
         if decl.constraints.node_type != DATA_TYPE.INT_LITERAL:
-            raise ParseException("Must use an Integer literal to declare word length")
-        # if node.value is not None:
-        #     if decl.value.type != DATA_TYPE.SEQ_INT_VAL or decl.value.type != DATA_TYPE.BS_SEQ_INT_VAL:
-        #         raise ParseException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
+            raise SemanticException("Must use an Integer literal to declare word length")
         if node.ID is not None:
             self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type), len(decl.size))
             self.sym_table.id(node.ID)['constraints'] = decl.constraints
             self.sym_table.id(node.ID)['size'] = decl.size
-        # self.IR.add(decl)
         return decl
 
     def analyse_array_size(self, node):
@@ -309,29 +272,24 @@ class Semantic_analyser(object):
         for size_param in node.size:
             size.append(self.expr_type_is(size_param))
             if size[-1].type != DATA_TYPE.INT_VAL:
-                raise ParseException("Sequence Size Parameter Must be Literal Integers")
+                raise SemanticException("Sequence Size Parameter Must be Literal Integers")
         return size
 
     def seq_type_is(self, seq_value):
-        # print("CHECKING NEW SEQ TYPE")
         values = []
         val = Seq_val()
         for i in seq_value.value:
-            # print("CURR SEQUENCE MEMBER:")
-            # print(i)
-            # print("______")
             curr = self.expr_type_is(i)
             val.add_element(curr)
-            # print("SEQUENCE TYPE")
-            # print(curr)
-            # print("_____")
             values.append(curr.type)
         val.type = self.analyse_seq_val_type(list(set(values)))
+        if val.type == DATA_TYPE.SEQ_BIT_VAL:
+            val.constraints = Int_literal(value=str(len(values)))
         return val
 
     def analyse_seq_val_type(self, seq_val):
         if len(seq_val) > 1:
-            raise ParseException("Combined Types in sequence")
+            raise SemanticException("Combined Types in sequence")
         elif seq_val[0] == DATA_TYPE.INT_VAL:
             seq_val = DATA_TYPE.SEQ_INT_VAL
         elif seq_val[0] == DATA_TYPE.BIT_VAL:
@@ -339,7 +297,7 @@ class Semantic_analyser(object):
         elif seq_val[0] == DATA_TYPE.SEQ_INT_VAL or seq_val[0] == DATA_TYPE.SEQ_BIT_VAL:
             seq_val = seq_val[0]
         else:
-            raise ParseException("Unknown Sequence Type")
+            raise InternalException("Unknown Sequence Type")
         return seq_val
 
     def get_constraints(self, value):
@@ -359,15 +317,9 @@ class Semantic_analyser(object):
 
     def expr_type_is(self, expression):
         """Performs Semantic analysis on expression, building IR node"""
-        # print("WHOLE EXPR TO ANAL")
-        # print(expression.expressions)
-        # print("_______")
         expr_types = {}
         IR_expression = []
         for i, expr in enumerate(expression.expressions):
-            # print("CURR OPERAND:")
-            # print(expr)
-            # print("_______")
             if expr.node_type == DATA_TYPE.INT_VAL:
                 expr_types["OPERAND_" + str(len(expr_types))] = DATA_TYPE.INT_VAL
                 IR_expression.append(Int_literal(value=expr.value, constraints=self.get_constraints(expr.value)))
@@ -392,22 +344,22 @@ class Semantic_analyser(object):
             elif expr.node_type == DATA_TYPE.CAST:
                 IR_expression.append(self.analyse_cast(expr))
                 expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
-            elif expr.node_type == DATA_TYPE.INDEX_SEL:
+            elif expr.node_type == DATA_TYPE.INDEX_SELECT:
                 IR_expression.append(self.analyse_index_sel(expr))
                 expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
             elif expr.node_type == DATA_TYPE.INDEX_RANGE:
                 IR_expression.append(self.analyse_index_range(expr))
             else:
-                raise ParseException(str(expr.node_type) + " Is an unknown type")
+                raise SemanticException(str(expr.node_type) + " Is an unknown type")
             if len(expr_types) == 3:
                 if self.sub_expr_valid(expr_types) is True:
                     expr_types = self.reduce_sub_expr(expr_types)
                     self.clean_up_expr(IR_expression, expr_types)
                 else:
-                    raise ParseException("cannot combine a " + str(expr_types['OPERAND_0']) + " value with a " +
+                    raise SemanticException("cannot combine a " + str(expr_types['OPERAND_0']) + " value with a " +
                                          str(expr_types['OPERAND_2']) + " in " + str(expr_types['OP']) + " Operation")
         if len(IR_expression) != 1:
-            raise ParseException("Internal Error with expression")
+            raise InternalException("Internal Error with expression")
         return IR_expression[0]
 
     def analyse_id(self, node):
@@ -427,7 +379,7 @@ class Semantic_analyser(object):
         start = self.expr_type_is(node.start)
         finish = self.expr_type_is(node.finish)
         if start.type != DATA_TYPE.INT_VAL or finish.type != DATA_TYPE.INT_VAL:
-            raise ParseException("Can only use integers to select sequence elements")
+            raise SemanticException("Can only use integers to select sequence elements")
         return Element_range(self.expr_type_is(node.start), self.expr_type_is(node.finish))
 
     def analyse_index_sel(self, node):
@@ -438,7 +390,7 @@ class Semantic_analyser(object):
             target = self.expr_type_is(node.target)
             index_sel = Index_select(target, ir_indices)
             if(len(ir_indices) > 1):
-                raise ParseException(str(target.type) + ("[]" * len(ir_indices)) + "Cannot be selected from" + str(target.type) + "[]")
+                raise SemanticException(str(target.type) + ("[]" * len(ir_indices)) + " Cannot be selected from " + str(target.type) + "[]")
             elif len(ir_indices[-1]) > 1 or ir_indices[-1][0].type == DATA_TYPE.INDEX_RANGE:
                 # selection is of type sequence
                 pass
@@ -454,7 +406,7 @@ class Semantic_analyser(object):
                 #  Bit index select on int
                 return self.build_int_index_ir(node, ir_indices)
             else:
-                raise ParseException("Trying to do index selection on invalid " + str(self.sym_table.id(node.ID)['type']) + " type")
+                raise SemanticException("Trying to do index selection on invalid " + str(self.sym_table.id(node.ID)['type']) + " type")
 
     def build_int_index_ir(self, node, ir_indices):
         target_id = self.sym_table.id(node.ID)
@@ -465,7 +417,7 @@ class Semantic_analyser(object):
             elif target_id['type'] == DATA_TYPE.BS_INT_VAL:
                 select_type = DATA_TYPE.SEQ_BS_BIT_VAL
             else:
-                raise ParseException("internal error: Unrecognised type in int index select " + str(target_id['type']))
+                raise InternalException("internal error: Unrecognised type in int index select " + str(target_id['type']))
             index_sel = Index_select(Name(node.ID, target_id['type']), ir_indices, select_type)
             index_sel.target.constraints = self.sym_table.id(node.ID)['constraints']
             return index_sel
@@ -475,12 +427,12 @@ class Semantic_analyser(object):
             elif target_id['type'] == DATA_TYPE.BS_INT_VAL:
                 select_type = DATA_TYPE.BS_BIT_VAL
             else:
-                raise ParseException("internal error: Unrecognised type in int index select " + str(target_id['type']))
+                raise InternalException("internal error: Unrecognised type in int index select " + str(target_id['type']))
             index_sel = Index_select(Name(node.ID, target_id['type']), ir_indices, select_type)
             index_sel.target.constraints = self.sym_table.id(node.ID)['constraints']
             return index_sel
         elif (len(ir_indices) > 1 and DATA_TYPE.is_int_val(self.sym_table.id(node.ID)['type'])):
-            raise ParseException("Cannot select 2d element from integer")
+            raise SemanticException("Integer cannot be treated as having more than one dimension")
 
     def build_seq_index_ir(self, node, ir_indices):
         target_id = self.sym_table.id(node.ID)
@@ -506,7 +458,7 @@ class Semantic_analyser(object):
                 else:
                     return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)    # Selecting a bit value of an integer element in an integer array
             else:
-                raise ParseException(str(target_id['type']) + "[]" * len(ir_indices) + " cannot be selected from " + str(target_id['type']) + (self.sym_table.dimension(node.ID) * "[]"))
+                raise SemanticException(str(target_id['type']) + "[]" * len(ir_indices) + " cannot be selected from " + str(target_id['type']) + (self.sym_table.dimension(node.ID) * "[]"))
 
     def clean_up_expr(self, IR_expressions, result_type):
         """Reorders collected expression nodes"""
@@ -519,8 +471,7 @@ class Semantic_analyser(object):
 
     def analyse_operation_type_size(self, operation):
         if operation.type == DATA_TYPE.INT_VAL:
-            # print(operation.right)
-            operation.constraints = self.largest_int_lit(operation.left.constraints, operation.right.constraints)
+                operation.constraints = self.largest_int_lit(operation.left.constraints, operation.right.constraints)
         elif operation.type == DATA_TYPE.BIT_VAL:
             operation.constraints = Int_literal("8")
         elif operation.type == DATA_TYPE.BS_INT_VAL:
@@ -532,7 +483,7 @@ class Semantic_analyser(object):
                 if operation.left.node_type == DATA_TYPE.SEQ_VAL or operation.right.node_type == DATA_TYPE.SEQ_VAL:
                     pass
                 else:
-                    raise ParseException("Internal Error: Sequence Value does not have constraint " + str(operation.left.node_type) + " " + str(operation.right.node_type))
+                    raise InternalException("Internal Error: Sequence Value does not have constraint " + str(operation.left.node_type) + " " + str(operation.right.node_type))
         elif operation.type == DATA_TYPE.BS_SEQ_INT_VAL:
             pass
         elif operation.type == DATA_TYPE.SEQ_BIT_VAL:
@@ -549,9 +500,9 @@ class Semantic_analyser(object):
                 operation.size = {'start': seq_val.indices[-1][-1].start, 'finish': seq_val.indices[-1][-1].finish}
                 operation.constraints = self.get_operator_of_type(operation.left, operation.right, DATA_TYPE.SEQ_BS_BIT_VAL).constraints
             else:
-               raise ParseException("sequence of bitsliced values with unknown size " + str(seq_val.node_type))
+               raise InternalException("sequence of bitsliced values with unknown size " + str(seq_val.node_type))
         else:
-            raise ParseException("Unknown size of binary operation " + str(operation.type))
+            raise InternalException("Unknown size of binary operation " + str(operation.type))
 
     def get_operator_of_type(self, op_1, op_2, exp_type):
         if op_1.type == exp_type:
@@ -559,7 +510,7 @@ class Semantic_analyser(object):
         elif op_2.type == exp_type:
             return op_2
         else:
-            raise ParseException("Internal Error: Tried to get op type that doesn't exist")
+            raise InternalException("Internal Error: Tried to get op type that doesn't exist")
 
     def largest_int_lit(self, val1, val2):
         if int(val1.value) > int(val2.value):
@@ -606,11 +557,11 @@ class Semantic_analyser(object):
         elif ret_type == DATA_TYPE.VOID:
             return DATA_TYPE.VOID
         else:
-            raise ParseException("Internal Error: Unknown Return type")
+            raise InternalException("Internal Error: Unknown Return type")
 
 
     def analyse_func_call(self, node):
-       
+
         return_ = self.return_type_to_IR(node.ID)
         if return_ != DATA_TYPE.VOID:
             f_call = Call(node.ID, return_.ID.type, return_.ID.size, return_.ID.constraints, return_)
@@ -619,7 +570,7 @@ class Semantic_analyser(object):
         for i, p in enumerate(node.parameters):
             f_call.add_parameter(self.expr_type_is(p))
             if self.value_matches_expected(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i]['type']) is False:
-                raise ParseException(str(f_call.parameters[i].type) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i]['type']))
+                raise SemanticException(str(f_call.parameters[i].type) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i]['type']))
                 return False
         return f_call
 
@@ -640,13 +591,12 @@ class Semantic_analyser(object):
                           DATA_TYPE.SBOX_DECL: [DATA_TYPE.SBOX_DECL]}
         if result_value in allowed_values[expected_value]:
             return True
-        print(str(result_value) + " " + str(expected_value))
         return False
 
     def analyse_if_stmt_decl(self, node):
         self.sym_table.add_scope()
         if len(node.condition) > 1:
-            raise ParseException("Internal Error: If stmt has more than one condition token")
+            raise InternalException("Internal Error: If stmt has more than one condition token")
         if_stmt = If_stmt(self.expr_type_is(node.condition[0]))
         for stmt in node.body:
             if_stmt.add_stmt(self.analyse_sub_stmt(stmt))
@@ -688,7 +638,7 @@ class Semantic_analyser(object):
         elif expression['OP'] is DATA_TYPE.LOG_OP:
             return self.log_expr_valid(expression)
         else:
-            raise ParseException("Internal error: Invalid Operand")
+            raise InternalException("Internal error: Invalid Operand")
 
     def log_expr_valid(self, expression):
         if expression['OPERAND_2'] == DATA_TYPE.BIT_VAL or expression['OPERAND_2'] == DATA_TYPE.BIT_VAL:
@@ -729,7 +679,7 @@ class Semantic_analyser(object):
         if expression['OP'] is DATA_TYPE.LOG_OP:
             return {'OPERAND_0': DATA_TYPE.BIT_VAL}
         else:
-            raise ParseException("Unrecognised operator")
+            raise InternalException("Unrecognised operator")
 
     def reduce_arith_op(self, expression):
         if expression['OPERAND_0'] == DATA_TYPE.BS_INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL:
@@ -758,25 +708,19 @@ class Semantic_analyser(object):
         elif ast_node.node_type == DATA_TYPE.BIT_DECL:
             return self.analyse_bit_decl(ast_node)
         else:
-            raise ParseException("Internal Error: Unrecognised return type")
+            raise InternalException("Internal Error: Unrecognised return type")
 
     def analyse_func_decl(self, node):
         """Performs Semantic Analysis on function declaration and body, creating an IR node if successful"""
         self.sym_table.add_scope()
         ret_val = self.build_ret_val(node.return_value)
         func_decl = Function_decl(node.ID, ret_val)
-        # self.sym_table.add_function(node.ID)
-        # if func_decl.return_type != DATA_TYPE.VOID:
-        #     self.sym_table.add_function_return(node.ID, func_decl.return_value)
-        # else:
-        #     self.sym_table.add_function_return(node.ID, func_decl.return_type)
         ret_pres = False
         for p in node.parameters:
             func_decl.parameters.append(self.AST_func_param_to_IR(p))
-            # self.sym_table.add_function_parameter(node.ID, func_decl.parameters[-1])
         for s in node.stmts:
             if s.node_type == DATA_TYPE.SBOX_DECL:
-                raise ParseException("Sboxes must be declared as global variables")
+                raise SemanticException("Sboxes must be declared as global variables")
             if s.node_type == DATA_TYPE.RETURN_STMT:
                 ret_pres = True
                 func_decl.body.append(self.analyse_return_stmt(s, func_decl))
@@ -784,7 +728,7 @@ class Semantic_analyser(object):
                 func_decl.body.append(self.analyse_sub_stmt(s))
 
         if func_decl.return_type != DATA_TYPE.VOID and ret_pres is False:
-            raise ParseException("Function " + str(func_decl.ID.name) + " requires return value " + str(func_decl.return_type))
+            raise SemanticException("Function " + str(func_decl.ID.name) + " requires return value " + str(func_decl.return_type))
         self.sym_table.leave_scope()
         return func_decl
 
@@ -815,13 +759,13 @@ class Semantic_analyser(object):
             self.sym_table.id(decl.ID.name)['constraints'] = None
             self.sym_table.id(decl.ID.name)['size'] = None
         else:
-            raise ParseException("Internal Error: Unknown Parameter Type " + str(old_decl.node_type))
+            raise InternalException("Internal Error: Unknown Parameter Type " + str(old_decl.node_type))
         return decl
 
     def analyse_sub_stmt(self, node):
         stmt = Semantic_analyser.node_type_lookup[node.node_type](self, node)
         if stmt is False:
-            raise ParseException("Error in sub statement")
+            raise SemanticException("Error in sub statement")
         return stmt
 
     def analyse(self, AST):
@@ -832,7 +776,7 @@ class Semantic_analyser(object):
                     return False
                 else:
                     self.IR.add(result)
-        except ParseException as details:
-            print(details)
+        except SemanticException as details:
+            Semantic_analysis_errors.semantic_err(node, details)
             return False
         return True

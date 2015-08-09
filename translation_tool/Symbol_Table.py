@@ -4,7 +4,7 @@ from DATA_TYPE import DATA_TYPE
 from Stack import Stack
 import traceback
 import sys
-
+from Translation_exceptions import SemanticException, InternalException
 class Symbol_Table(object):
 
     def __init__(self):
@@ -47,13 +47,13 @@ class Symbol_Table(object):
             if ID in scope:
                 scope[ID]["value"] = value
                 return
-        raise ParseException("Tried to update nonexistent ID")
+        raise SemanticException("Tried to update nonexistent ID")
 
     def id(self, ID):
         for scope in self.symbols.stack:
             if ID in scope:
                 return scope[ID]
-        raise ParseException("Tried to update nonexistent ID")
+        raise SemanticException("Tried to update nonexistent ID")
 
     def add_id(self, ID, id_type, size=None):
         if ID not in self.symbols.peek():
@@ -68,7 +68,7 @@ class Symbol_Table(object):
             #     raise ParseException("Internal Error: " + str(id_type) + " " + ID + " Created with no dimension")
 
         else:
-            raise ParseException("Redeclaration of symbol")
+            raise SemanticException("Redeclaration of symbol")
 
 
 
@@ -107,14 +107,14 @@ class Symbol_Table(object):
             if ID in scope:
                 scope[ID]["node"] = node
                 return
-        raise ParseException("Internal Error: Tried to link node to non existent symbol")
+        raise InternalException("Internal Error: Tried to link node to non existent symbol")
 
     def id_type(self, ID):
         # print(ID)
         for scope in self.symbols.stack:
             if ID in scope:
                 return scope[ID]["type"]
-        raise ParseException("Symbol " + ID + " Does not exist")
+        raise SemanticException("Symbol " + ID + " Does not exist")
 
     # def id_details(self, scope, ID):
     #     return self.table[scope][ID]
