@@ -311,8 +311,6 @@ class TestASTTree(unittest.TestCase):
         assert_equals(par.AST.tree[0].stmts[2].value.expressions[0].value, '10')
         par = Parser()
         assert_equals(par.parse_test_integration("Bit function_1(Int(5)[4][4][4] test) { Int(10) a = 1; Int(10) b = 2; Int(10) c = 0xa; }")[1], True)  # NOQA
-        print(par.semantic_analyser.sym_table.f_table)
-
 
     def test_return_stmt(self):
         par = Parser()

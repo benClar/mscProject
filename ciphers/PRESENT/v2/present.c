@@ -15,353 +15,363 @@
 
 /*---------- Main -----------*/
 
-uint8_t *reverse(uint8_t *array, int start, int end)	{
-
-		while(start < end)	{
-			int tmp = array[start];
-			array[start] = array[end];
-			array[end] = tmp;
-			start++;
-			end--;
-		}	
-		return array;
-}
-
-uint8_t *rotate(uint8_t *key, int var_size ,int shift)    {
-    reverse(key, 0, var_size - 1);
-    reverse(key, 0, var_size - shift - 1);
-    reverse(key, var_size - shift, var_size - 1);
-    return key;
-}
-
-uint8_t *keyXOR(uint8_t *key, int round)	{
-	// printf("%d%d%d%d%d\n",key[79 - 15], key[79 - 16], key[79 - 17],key[79 - 18],key[79 - 19]);
-	// printf("%d%d%d%d%d\n", (round >>4 & 1),(round >>3 & 1),(round >>2 & 1),(round >>1 & 1),(round & 1));
-	// printf("-\n");
-	key[79 - 19] ^= (round >>4 & 1);
-	key[79 - 18] ^= (round >>3 & 1);
-	key[79 - 17] ^= (round >>2 & 1);
-	key[79 - 16] ^= (round >>1 & 1);
+void keyXOR(uint32_t key[80], int round)	{
+	key[79 - 19] ^= ((round >> 4) & 1);
+	key[79 - 18] ^= ((round >> 3) & 1);
+	key[79 - 17] ^= ((round >> 2) & 1);
+	key[79 - 16] ^= ((round >> 1) & 1);
 	key[79 - 15] ^= (round & 1);
-	// printf("bit 0->%d ",(round & 1));
-	// printf("bit 1->%d ",(round >>1 & 1));
-	// printf("bit 2->%d ",(round >>2 & 1));
-	// printf("bit 3->%d ",(round >>3 & 1));
-	// printf("bit 4->%d\n ",(round >>4 & 1));
-	return key;
 }
 
-int generateRoundKey(uint8_t *key, uint8_t *subKey, int round) {
-    int keyBit;
-    for(keyBit = 0; keyBit < 64; keyBit++)   {
-        subKey[ keyBit ] = key[ keyBit ];
-    }
-    rotate(key,KEY_SIZE,61);
-    memcpy(&key[0],sBox(key[0],key[1],key[2],key[3]),4);
+int generateRoundKey(uint32_t key[80], uint32_t subKey[64], int round) {
+    uint32_t key_temp[80];
+    uint32_t sbox_temp[4];
+	subKey[0] = key[0];
+	subKey[1] = key[1];
+	subKey[2] = key[2];
+	subKey[3] = key[3];
+	subKey[4] = key[4];
+	subKey[5] = key[5];
+	subKey[6] = key[6];
+	subKey[7] = key[7];
+	subKey[8] = key[8];
+	subKey[9] = key[9];
+	subKey[10] = key[10];
+	subKey[11] = key[11];
+	subKey[12] = key[12];
+	subKey[13] = key[13];
+	subKey[14] = key[14];
+	subKey[15] = key[15];
+	subKey[16] = key[16];
+	subKey[17] = key[17];
+	subKey[18] = key[18];
+	subKey[19] = key[19];
+	subKey[20] = key[20];
+	subKey[21] = key[21];
+	subKey[22] = key[22];
+	subKey[23] = key[23];
+	subKey[24] = key[24];
+	subKey[25] = key[25];
+	subKey[26] = key[26];
+	subKey[27] = key[27];
+	subKey[28] = key[28];
+	subKey[29] = key[29];
+	subKey[30] = key[30];
+	subKey[31] = key[31];
+	subKey[32] = key[32];
+	subKey[33] = key[33];
+	subKey[34] = key[34];
+	subKey[35] = key[35];
+	subKey[36] = key[36];
+	subKey[37] = key[37];
+	subKey[38] = key[38];
+	subKey[39] = key[39];
+	subKey[40] = key[40];
+	subKey[41] = key[41];
+	subKey[42] = key[42];
+	subKey[43] = key[43];
+	subKey[44] = key[44];
+	subKey[45] = key[45];
+	subKey[46] = key[46];
+	subKey[47] = key[47];
+	subKey[48] = key[48];
+	subKey[49] = key[49];
+	subKey[50] = key[50];
+	subKey[51] = key[51];
+	subKey[52] = key[52];
+	subKey[53] = key[53];
+	subKey[54] = key[54];
+	subKey[55] = key[55];
+	subKey[56] = key[56];
+	subKey[57] = key[57];
+	subKey[58] = key[58];
+	subKey[59] = key[59];
+	subKey[60] = key[60];
+	subKey[61] = key[61];
+	subKey[62] = key[62];
+	subKey[63] = key[63];
+
+    bitslice_shift(key_temp, key, 61, 80, ">>>");
+	key[0] = key_temp[0];
+	key[1] = key_temp[1];
+	key[2] = key_temp[2];
+	key[3] = key_temp[3];
+	key[4] = key_temp[4];
+	key[5] = key_temp[5];
+	key[6] = key_temp[6];
+	key[7] = key_temp[7];
+	key[8] = key_temp[8];
+	key[9] = key_temp[9];
+	key[10] = key_temp[10];
+	key[11] = key_temp[11];
+	key[12] = key_temp[12];
+	key[13] = key_temp[13];
+	key[14] = key_temp[14];
+	key[15] = key_temp[15];
+	key[16] = key_temp[16];
+	key[17] = key_temp[17];
+	key[18] = key_temp[18];
+	key[19] = key_temp[19];
+	key[20] = key_temp[20];
+	key[21] = key_temp[21];
+	key[22] = key_temp[22];
+	key[23] = key_temp[23];
+	key[24] = key_temp[24];
+	key[25] = key_temp[25];
+	key[26] = key_temp[26];
+	key[27] = key_temp[27];
+	key[28] = key_temp[28];
+	key[29] = key_temp[29];
+	key[30] = key_temp[30];
+	key[31] = key_temp[31];
+	key[32] = key_temp[32];
+	key[33] = key_temp[33];
+	key[34] = key_temp[34];
+	key[35] = key_temp[35];
+	key[36] = key_temp[36];
+	key[37] = key_temp[37];
+	key[38] = key_temp[38];
+	key[39] = key_temp[39];
+	key[40] = key_temp[40];
+	key[41] = key_temp[41];
+	key[42] = key_temp[42];
+	key[43] = key_temp[43];
+	key[44] = key_temp[44];
+	key[45] = key_temp[45];
+	key[46] = key_temp[46];
+	key[47] = key_temp[47];
+	key[48] = key_temp[48];
+	key[49] = key_temp[49];
+	key[50] = key_temp[50];
+	key[51] = key_temp[51];
+	key[52] = key_temp[52];
+	key[53] = key_temp[53];
+	key[54] = key_temp[54];
+	key[55] = key_temp[55];
+	key[56] = key_temp[56];
+	key[57] = key_temp[57];
+	key[58] = key_temp[58];
+	key[59] = key_temp[59];
+	key[60] = key_temp[60];
+	key[61] = key_temp[61];
+	key[62] = key_temp[62];
+	key[63] = key_temp[63];
+	key[64] = key_temp[64];
+	key[65] = key_temp[65];
+	key[66] = key_temp[66];
+	key[67] = key_temp[67];
+	key[68] = key_temp[68];
+	key[69] = key_temp[69];
+	key[70] = key_temp[70];
+	key[71] = key_temp[71];
+	key[72] = key_temp[72];
+	key[73] = key_temp[73];
+	key[74] = key_temp[74];
+	key[75] = key_temp[75];
+	key[76] = key_temp[76];
+	key[77] = key_temp[77];
+	key[78] = key_temp[78];
+	key[79] = key_temp[79];
+    sbox_temp[0] = key[0];
+    sbox_temp[1] = key[1];
+    sbox_temp[2] = key[2];
+    sbox_temp[3] = key[3];
+    key[0] = sbox_1(sbox_temp);
+	key[1] = sbox_2(sbox_temp);
+	key[2] = sbox_3(sbox_temp);
+	key[3] = sbox_4(sbox_temp);
 	keyXOR(key,round);
     return 1;
 }
 
-uint8_t* sBox(uint8_t a,uint8_t b,uint8_t c,uint8_t d)	{
-	uint8_t input[4] = {a,b,c,d};
-	uint8_t *output = (uint8_t*) malloc(4*sizeof(uint8_t));
-	output[0] = sbox_1(input);
-	output[1] = sbox_2(input);
-	output[2] = sbox_3(input);
-	output[3] = sbox_4(input);
-	return output;
-}
-
-uint8_t* sBox_array_input(uint8_t *input)	{
-	uint8_t *output = (uint8_t*) malloc(4*sizeof(uint8_t));
-	output[0] = sbox_1(input);
-	output[1] = sbox_2(input);
-	output[2] = sbox_3(input);
-	output[3] = sbox_4(input);
-	return output;
-}
-
-uint8_t sbox_1(uint8_t *input)	{
+uint32_t sbox_1(uint32_t input[4])	{
 	return (((~input[A] & ~input[C] & ~input[D] ) | (~input[A] & input[C] & input[D] ) | (input[A] & ~input[B] & input[D]) | (input[A] & ~input[B] & input[C]) | (~input[A] & input[B] & input[C])) & 1);
 }
 
-uint8_t sbox_2(uint8_t *input)	{
+uint32_t sbox_2(uint32_t input[4])	{
 	return (((~input[B] & input[C] & ~input[D]) | (input[A] & input[B] & ~input[C]) | (~input[B] & ~input[C] & input[D]) | (~input[A] & ~input[B] & ~input[C]) | (~input[A] & input[B] & input[C] & input[D])) & 1);
 }
 
-uint8_t sbox_3(uint8_t *input)  {
+uint32_t sbox_3(uint32_t input[4])  {
 	return (((input[A] & input[B] & input[D]) | (input[A] & ~input[B] & ~input[C]) | (~input[A] & input[C] & ~input[D]) | (~input[A] & ~input[B] & input[C]) | (input[A] & ~input[B] & ~input[D])) & 1);
 }
 
-uint8_t sbox_4(uint8_t *input)  {
+uint32_t sbox_4(uint32_t input[4])  {
 	return (((~input[A] & input[C] & input[D] ) | ( input[A] & input[C] & ~input[D] ) | (input[A] & ~input[B] & ~input[D] ) | (~input[A] & ~input[B] & input[D]) | ( ~input[A] & input[B] & ~input[C] & ~input[D]) | (input[A] & input[B] & ~input[C] & input[D])) & 1);
 }
 
 
-void pLayer(uint8_t *state)	{
+void pLayer(uint32_t state[64])	{
 	int bit;
-	uint8_t *temp = (uint8_t*) malloc(STATE_SIZE * sizeof(uint8_t));
-	memcpy(temp, state, STATE_SIZE);
+	uint32_t temp[64];
+	temp[0] = state[0];
+	temp[1] = state[1];
+	temp[2] = state[2];
+	temp[3] = state[3];
+	temp[4] = state[4];
+	temp[5] = state[5];
+	temp[6] = state[6];
+	temp[7] = state[7];
+	temp[8] = state[8];
+	temp[9] = state[9];
+	temp[10] = state[10];
+	temp[11] = state[11];
+	temp[12] = state[12];
+	temp[13] = state[13];
+	temp[14] = state[14];
+	temp[15] = state[15];
+	temp[16] = state[16];
+	temp[17] = state[17];
+	temp[18] = state[18];
+	temp[19] = state[19];
+	temp[20] = state[20];
+	temp[21] = state[21];
+	temp[22] = state[22];
+	temp[23] = state[23];
+	temp[24] = state[24];
+	temp[25] = state[25];
+	temp[26] = state[26];
+	temp[27] = state[27];
+	temp[28] = state[28];
+	temp[29] = state[29];
+	temp[30] = state[30];
+	temp[31] = state[31];
+	temp[32] = state[32];
+	temp[33] = state[33];
+	temp[34] = state[34];
+	temp[35] = state[35];
+	temp[36] = state[36];
+	temp[37] = state[37];
+	temp[38] = state[38];
+	temp[39] = state[39];
+	temp[40] = state[40];
+	temp[41] = state[41];
+	temp[42] = state[42];
+	temp[43] = state[43];
+	temp[44] = state[44];
+	temp[45] = state[45];
+	temp[46] = state[46];
+	temp[47] = state[47];
+	temp[48] = state[48];
+	temp[49] = state[49];
+	temp[50] = state[50];
+	temp[51] = state[51];
+	temp[52] = state[52];
+	temp[53] = state[53];
+	temp[54] = state[54];
+	temp[55] = state[55];
+	temp[56] = state[56];
+	temp[57] = state[57];
+	temp[58] = state[58];
+	temp[59] = state[59];
+	temp[60] = state[60];
+	temp[61] = state[61];
+	temp[62] = state[62];
+	temp[63] = state[63];
+
 	for(bit = 63; bit >= 0; bit-- )	{
-		
-		int target = ((16*(63 - bit)) % (STATE_SIZE - 1));
+		int target = ((16 * (63 - bit)) % (STATE_SIZE - 1));
 		if(bit == 0)	{
 			target = 0;
 		}	else {
-			target = 63-target;
+			target = 63 - target;
 		}
 		state[ target] = temp[ bit ];
 	}
-	free(temp);
 }
 
-void add_round_key(uint8_t *key, uint8_t *state)	{
-	int bit;
-	for(bit = 0; bit < 64; bit++)	{
-		state[bit] = key[bit] ^ state[bit];
-	}
+void add_round_key(uint32_t key[64], uint32_t state[64])	{
+	state[0] ^= key[0];
+	state[1] ^= key[1];
+	state[2] ^= key[2];
+	state[3] ^= key[3];
+	state[4] ^= key[4];
+	state[5] ^= key[5];
+	state[6] ^= key[6];
+	state[7] ^= key[7];
+	state[8] ^= key[8];
+	state[9] ^= key[9];
+	state[10] ^= key[10];
+	state[11] ^= key[11];
+	state[12] ^= key[12];
+	state[13] ^= key[13];
+	state[14] ^= key[14];
+	state[15] ^= key[15];
+	state[16] ^= key[16];
+	state[17] ^= key[17];
+	state[18] ^= key[18];
+	state[19] ^= key[19];
+	state[20] ^= key[20];
+	state[21] ^= key[21];
+	state[22] ^= key[22];
+	state[23] ^= key[23];
+	state[24] ^= key[24];
+	state[25] ^= key[25];
+	state[26] ^= key[26];
+	state[27] ^= key[27];
+	state[28] ^= key[28];
+	state[29] ^= key[29];
+	state[30] ^= key[30];
+	state[31] ^= key[31];
+	state[32] ^= key[32];
+	state[33] ^= key[33];
+	state[34] ^= key[34];
+	state[35] ^= key[35];
+	state[36] ^= key[36];
+	state[37] ^= key[37];
+	state[38] ^= key[38];
+	state[39] ^= key[39];
+	state[40] ^= key[40];
+	state[41] ^= key[41];
+	state[42] ^= key[42];
+	state[43] ^= key[43];
+	state[44] ^= key[44];
+	state[45] ^= key[45];
+	state[46] ^= key[46];
+	state[47] ^= key[47];
+	state[48] ^= key[48];
+	state[49] ^= key[49];
+	state[50] ^= key[50];
+	state[51] ^= key[51];
+	state[52] ^= key[52];
+	state[53] ^= key[53];
+	state[54] ^= key[54];
+	state[55] ^= key[55];
+	state[56] ^= key[56];
+	state[57] ^= key[57];
+	state[58] ^= key[58];
+	state[59] ^= key[59];
+	state[60] ^= key[60];
+	state[61] ^= key[61];
+	state[62] ^= key[62];
+	state[63] ^= key[63];
 }
 
-void print_array(uint8_t *array,int size)	{
-	int ele;
-	for(ele = 0; ele < size; ele++)	{
-		printf("%d", array[ele]);
-	}
-	printf("\n");
-}
+uint32_t (*enc(uint32_t key[80], uint32_t state[64])){
 
-
-int main(){
-	uint8_t key[ KEY_SIZE ] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-								
-	uint8_t state[ STATE_SIZE ] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-
-	uint8_t **round_key = (uint8_t**) malloc(32 * sizeof(uint8_t*));
+	uint32_t round_key[32][64] = {{0}};
 	int round_key_ele, round, bit_ele, nibble_ele;
-	uint8_t nibble[4];
+	uint32_t nibble[4];
 
 	for(round_key_ele = 1; round_key_ele < 33; round_key_ele++)	{
-		round_key[round_key_ele - 1] = (uint8_t*) malloc(64 * sizeof(uint8_t));
 		generateRoundKey(key,round_key[round_key_ele - 1],round_key_ele);
-		print_array(round_key[round_key_ele - 1],64);
 	}
 
 	for(round = 0; round < 31; round++)	{
 		add_round_key(round_key[round],state);
-		printf("roundkey\n");
-		print_array(state,64);
 		for(nibble_ele = 0; nibble_ele < 16; nibble_ele++)	{
 			bit_ele = (nibble_ele * 4);
-			memcpy(nibble,&state[bit_ele],4);
-			memcpy(&state[bit_ele],sBox_array_input(nibble),4);
+			nibble[0] = state[bit_ele];
+			nibble[1] = state[bit_ele + 1];
+			nibble[2] = state[bit_ele + 2];
+			nibble[3] = state[bit_ele + 3];
+		    state[bit_ele] = sbox_1(nibble);
+			state[bit_ele + 1] = sbox_2(nibble);
+			state[bit_ele + 2] = sbox_3(nibble);
+			state[bit_ele + 3] = sbox_4(nibble);
 		}
-		printf("sbox\n");
-		print_array(state,64);
 		pLayer(state);
-		printf("player\n");
-		print_array(state,64);
 	}
 	add_round_key(round_key[round],state);
-	print_array(state,64);									
+	return state;								
 }
-
-
-
-// void test_pLayer()	{
-// 	uint8_t test[64] = {63,62,61,60,59,58,57,56,55,54,53,52,
-//  						51,50,49,48,47,46,45,44,43,42,41,40,
-//  						39,38,37,36,35,34,33,32,31,30,29,28,
-//  						27,26,25,24,23,22,21,20,19,18,17,16,
-//  						15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0};
-// 	pLayer(test);
-// 	sput_fail_unless(test[0] == 63,"pLayer Test");
-// 	sput_fail_unless(test[1] == 59,"pLayer Test");
-// 	sput_fail_unless(test[2] == 55,"pLayer Test");
-// 	sput_fail_unless(test[3] == 51,"pLayer Test");
-// 	sput_fail_unless(test[4] == 47,"pLayer Test");
-// 	sput_fail_unless(test[5] == 43,"pLayer Test");
-// 	sput_fail_unless(test[6] == 39,"pLayer Test");
-// 	sput_fail_unless(test[7] == 35,"pLayer Test");
-// 	sput_fail_unless(test[8] == 31,"pLayer Test");
-// 	sput_fail_unless(test[9] == 27,"pLayer Test");
-// 	sput_fail_unless(test[10] == 23,"pLayer Test");
-// 	sput_fail_unless(test[11] == 19,"pLayer Test");
-// 	sput_fail_unless(test[12] == 15,"pLayer Test");
-// 	sput_fail_unless(test[13] == 11,"pLayer Test");
-// 	sput_fail_unless(test[14] == 7,"pLayer Test");
-// 	sput_fail_unless(test[15] == 3,"pLayer Test");
-// 	sput_fail_unless(test[16] == 62,"pLayer Test");
-// 	sput_fail_unless(test[17] == 58,"pLayer Test");
-// 	sput_fail_unless(test[18] == 54,"pLayer Test");
-// 	sput_fail_unless(test[19] == 50,"pLayer Test");
-// 	sput_fail_unless(test[20] == 46,"pLayer Test");
-// }
-
-
-// void test_keyXOR()	{
-// 	uint8_t test[80] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-// 				0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-// 				0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-// 				0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-// 				0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	};
-
-// 	keyXOR(test,4);
-// 	sput_fail_unless(test[60] == 0,"key XOR");
-// 	sput_fail_unless(test[61] == 0,"key XOR");
-// 	sput_fail_unless(test[62] == 1,"key XOR");
-// 	sput_fail_unless(test[63] == 0,"key XOR");
-// 	sput_fail_unless(test[64] == 0,"key XOR");
-// 	keyXOR(test,5);
-// 	sput_fail_unless(test[60] == 0,"key XOR");
-// 	sput_fail_unless(test[61] == 0,"key XOR");
-// 	sput_fail_unless(test[62] == 0,"key XOR");
-// 	sput_fail_unless(test[63] == 0,"key XOR");
-// 	sput_fail_unless(test[64] == 1,"key XOR");
-// 	keyXOR(test,31);
-// 	sput_fail_unless(test[60] == 1,"key XOR");
-// 	sput_fail_unless(test[61] == 1,"key XOR");
-// 	sput_fail_unless(test[62] == 1,"key XOR");
-// 	sput_fail_unless(test[63] == 1,"key XOR");
-// 	sput_fail_unless(test[64] == 0,"key XOR");
-// }
-
-// void test_sbox()	{
-// 	uint8_t test_1[4] = {0,0,0,0};
-// 	uint8_t test_2[4] = {0,0,0,1};
-// 	uint8_t test_3[4] = {0,0,1,0};
-// 	uint8_t test_4[4] = {0,0,1,1};
-// 	uint8_t test_5[4] = {0,1,0,0};
-// 	uint8_t test_6[4] = {0,1,0,1};
-// 	uint8_t test_7[4] = {0,1,1,0};
-// 	uint8_t test_8[4] = {0,1,1,1};
-// 	uint8_t test_9[4] = {1,0,0,0};
-// 	uint8_t test_10[4] = {1,0,0,1};
-// 	uint8_t test_11[4] = {1,0,1,0};
-// 	uint8_t test_12[4] = {1,0,1,1};	
-// 	uint8_t test_13[4] = {1,1,0,0};
-// 	uint8_t test_14[4] = {1,1,0,1};
-// 	uint8_t test_15[4] = {1,1,1,0};
-// 	uint8_t test_16[4] = {1,1,1,1};
-// 	uint8_t *output;
-// 	output = sBox_array_input(test_1);
-// 	sput_fail_unless(output[0] == 1,"Sbox Testing 1");
-// 	sput_fail_unless(output[1] == 1,"Sbox Testing 1");
-// 	sput_fail_unless(output[2] == 0,"Sbox Testing 1");
-// 	sput_fail_unless(output[3] == 0,"Sbox Testing 1");
-// 	output = sBox_array_input(test_2);
-// 	sput_fail_unless(output[0] == 0,"Sbox Testing 2");
-// 	sput_fail_unless(output[1] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 1,"Sbox Testing");
-// 	output = sBox_array_input(test_3);
-// 	sput_fail_unless(output[0] == 0,"Sbox Testing 3");
-// 	sput_fail_unless(output[1] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 0,"Sbox Testing");
-// 	output = sBox_array_input(test_4);
-// 	sput_fail_unless(output[0] == 1,"Sbox Testing 4");
-// 	sput_fail_unless(output[1] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 1,"Sbox Testing");
-// 	output = sBox_array_input(test_5);
-// 	sput_fail_unless(output[0] == 1,"Sbox Testing 5");
-// 	sput_fail_unless(output[1] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 1,"Sbox Testing");
-// 	output = sBox_array_input(test_6);
-// 	sput_fail_unless(output[0] == 0,"Sbox Testing 6");
-// 	sput_fail_unless(output[1] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 0,"Sbox Testing");
-// 	output = sBox_array_input(test_7);
-// 	sput_fail_unless(output[0] == 1,"Sbox Testing 7");
-// 	sput_fail_unless(output[1] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 0,"Sbox Testing");
-// 	output = sBox_array_input(test_8);
-// 	sput_fail_unless(output[0] == 1,"Sbox Testing 8");
-// 	sput_fail_unless(output[1] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 1,"Sbox Testing");
-// 	output = sBox_array_input(test_9);
-// 	sput_fail_unless(output[0] == 0,"Sbox Testing 9");
-// 	sput_fail_unless(output[1] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 1,"Sbox Testing");
-// 	output = sBox_array_input(test_10);
-// 	sput_fail_unless(output[0] == 1,"Sbox Testing 10");
-// 	sput_fail_unless(output[1] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 0,"Sbox Testing");
-// 	output = sBox_array_input(test_11);
-// 	sput_fail_unless(output[0] == 1,"Sbox Testing 11");
-// 	sput_fail_unless(output[1] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 1,"Sbox Testing");
-// 	output = sBox_array_input(test_12);
-// 	sput_fail_unless(output[0] == 1,"Sbox Testing 12");
-// 	sput_fail_unless(output[1] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 0,"Sbox Testing");
-// 	output = sBox_array_input(test_13);
-// 	sput_fail_unless(output[0] == 0,"Sbox Testing 13");
-// 	sput_fail_unless(output[1] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 0,"Sbox Testing");
-// 	output = sBox_array_input(test_14);
-// 	sput_fail_unless(output[0] == 0,"Sbox Testing 14");
-// 	sput_fail_unless(output[1] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 1,"Sbox Testing");
-// 	output = sBox_array_input(test_15);
-// 	sput_fail_unless(output[0] == 0,"Sbox Testing 15");
-// 	sput_fail_unless(output[1] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 1,"Sbox Testing");
-// 	output = sBox_array_input(test_16);
-// 	sput_fail_unless(output[0] == 0,"Sbox Testing 16");
-// 	sput_fail_unless(output[1] == 0,"Sbox Testing");
-// 	sput_fail_unless(output[2] == 1,"Sbox Testing");
-// 	sput_fail_unless(output[3] == 0,"Sbox Testing");
-// }
-
-// char *int2bin(uint64_t a, char *buffer, int buf_size) {
-//     buffer += (buf_size - 1);
-
-//     for (int i = 63; i >= 0; i--) {
-//         *buffer-- = (a & 1) + '0';
-
-//         a >>= 1;
-//     }
-
-//     return buffer;
-// }
-
-// void test_rotate()	{
-// 		uint8_t test[80] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
-// 						17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,
-// 						33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,
-// 						49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,
-// 						65,66,67,68,69,70,71,72,73,74,75,76,77,78,79};
-// 		reverse(test,0,79);
-// 		sput_fail_unless(test[0] == 79,"reverse");
-// 		sput_fail_unless(test[79] == 0,"reverse");
-// 		rotate(test,80,61);
-// 		sput_fail_unless(test[0] == 18,"rotate by 61");
-// 		sput_fail_unless(test[1] == 17,"rotate by 61");
-// 		sput_fail_unless(test[78] == 20,"rotate by 61");
-// 		sput_fail_unless(test[79] == 19,"rotate by 61");
-// }
-
-// void test_present()	{
-// 	sput_start_testing();
-// 	sput_enter_suite("Test Rotate");
-// 	sput_run_test(test_rotate);
-// 	sput_enter_suite("Test keyXOR");
-// 	sput_run_test(test_keyXOR);
-// 	sput_enter_suite("Test pLayer");
-// 	sput_run_test(test_pLayer);
-// 	sput_enter_suite("Test sbox");
-// 	sput_run_test(test_sbox);
-// 	sput_finish_testing();
-// }

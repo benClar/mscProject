@@ -6,7 +6,7 @@
 #include "led_dsl.h"
 
 void rotate(void *target, void *base, int nmem, int size, int start, int finish) {
-
+	
 }
 
 int main()	{
@@ -22,7 +22,7 @@ int main()	{
 		printf("\n");
 	}
 	// printf("%lu\n ",sizeof(test[4]));
-	// rotate(test_1, test, sizeof(test[4]))
+	rotate(test_1, test, sizeof(test[4]))
 
 }
 

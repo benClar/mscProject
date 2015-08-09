@@ -9,17 +9,13 @@
 #include "../LIB/sput.h"
 
 int main(){
-    if(TESTING) {
-       tests();
-    } else  {
-        run();
-    }
+    run();
 }
 
-void tests()  {
-  run_lib_tests();  
-  run_led_tests();
-}
+// void tests()  {
+//   run_lib_tests();  
+//   run_led_tests();
+// }
 
 
 void run()  {
@@ -189,95 +185,95 @@ void subCells(uint8_t *curr_state)   {
 
 /* testing */
 
-void run_led_tests()    {
-    sput_start_testing();
-    sput_enter_suite("gm_bs tests");
-    sput_run_test(gm_bs_test); 
-    sput_enter_suite("shiftRow tests");
-    sput_run_test(shift_row_test); 
-}
+// void run_led_tests()    {
+//     sput_start_testing();
+//     sput_enter_suite("gm_bs tests");
+//     sput_run_test(gm_bs_test); 
+//     sput_enter_suite("shiftRow tests");
+//     sput_run_test(shift_row_test); 
+// }
 
-void shift_row_test()   {
-    uint8_t test_m_2[64] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
-                    17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,
-                    33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,
-                    49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64 
-                  };
-    shiftRow(test_m_2);
-    print_array(test_m_2,64);
-    sput_fail_unless(test_m_2[0]==1,"shift row test");
-    sput_fail_unless(test_m_2[1]==2,"shift row test");
-    sput_fail_unless(test_m_2[2]==3,"shift row test");
-    sput_fail_unless(test_m_2[3]==4,"shift row test");
-    sput_fail_unless(test_m_2[4]==5,"shift row test");
-    sput_fail_unless(test_m_2[5]==6,"shift row test");
-    sput_fail_unless(test_m_2[6]==7,"shift row test");
-    sput_fail_unless(test_m_2[7]==8,"shift row test");
-    sput_fail_unless(test_m_2[8]==9,"shift row test");
-    sput_fail_unless(test_m_2[9]==10,"shift row test");
-    sput_fail_unless(test_m_2[10]==11,"shift row test");
-    sput_fail_unless(test_m_2[11]==12,"shift row test");
-    sput_fail_unless(test_m_2[12]==13,"shift row test");
-    sput_fail_unless(test_m_2[13]==14,"shift row test");
-    sput_fail_unless(test_m_2[14]==15,"shift row test");
-    sput_fail_unless(test_m_2[15]==16,"shift row test");
-    sput_fail_unless(test_m_2[16]==21,"shift row test");
-    sput_fail_unless(test_m_2[17]==22,"shift row test");
-    sput_fail_unless(test_m_2[18]==23,"shift row test");
-    sput_fail_unless(test_m_2[19]==24,"shift row test");
-    sput_fail_unless(test_m_2[20]==25,"shift row test");
-    sput_fail_unless(test_m_2[21]==26,"shift row test");
-    sput_fail_unless(test_m_2[22]==27,"shift row test");
-    sput_fail_unless(test_m_2[23]==28,"shift row test");
-    sput_fail_unless(test_m_2[24]==29,"shift row test");
-    sput_fail_unless(test_m_2[25]==30,"shift row test");
-    sput_fail_unless(test_m_2[26]==31,"shift row test");
-    sput_fail_unless(test_m_2[27]==32,"shift row test");
-    sput_fail_unless(test_m_2[28]==17,"shift row test");
-    sput_fail_unless(test_m_2[29]==18,"shift row test");
-    sput_fail_unless(test_m_2[30]==19,"shift row test");
-    sput_fail_unless(test_m_2[31]==20,"shift row test");
-    sput_fail_unless(test_m_2[32]==41,"shift row test");
-    sput_fail_unless(test_m_2[33]==42,"shift row test");
-    sput_fail_unless(test_m_2[34]==43,"shift row test");
-    sput_fail_unless(test_m_2[35]==44,"shift row test");
-    sput_fail_unless(test_m_2[36]==45,"shift row test");
-    sput_fail_unless(test_m_2[37]==46,"shift row test");
-    sput_fail_unless(test_m_2[38]==47,"shift row test");
-    sput_fail_unless(test_m_2[39]==48,"shift row test");
-    sput_fail_unless(test_m_2[40]==33,"shift row test");
-    sput_fail_unless(test_m_2[41]==34,"shift row test");
-    sput_fail_unless(test_m_2[42]==35,"shift row test");
-    sput_fail_unless(test_m_2[43]==36,"shift row test");
-    sput_fail_unless(test_m_2[44]==37,"shift row test");
-    sput_fail_unless(test_m_2[45]==38,"shift row test");
-    sput_fail_unless(test_m_2[46]==39,"shift row test");
-    sput_fail_unless(test_m_2[47]==40,"shift row test");
-    sput_fail_unless(test_m_2[48]==61,"shift row test");
-    sput_fail_unless(test_m_2[49]==62,"shift row test");
-    sput_fail_unless(test_m_2[50]==63,"shift row test");
-    sput_fail_unless(test_m_2[51]==64,"shift row test");
-    sput_fail_unless(test_m_2[52]==49,"shift row test");
-    sput_fail_unless(test_m_2[53]==50,"shift row test");
-    sput_fail_unless(test_m_2[54]==51,"shift row test");
-    sput_fail_unless(test_m_2[55]==52,"shift row test");
-    sput_fail_unless(test_m_2[56]==53,"shift row test");
-    sput_fail_unless(test_m_2[57]==54,"shift row test");
-    sput_fail_unless(test_m_2[58]==55,"shift row test");
-    sput_fail_unless(test_m_2[59]==56,"shift row test");
-    sput_fail_unless(test_m_2[60]==57,"shift row test");
-    sput_fail_unless(test_m_2[61]==58,"shift row test");
-    sput_fail_unless(test_m_2[62]==59,"shift row test");
-    sput_fail_unless(test_m_2[63]==60,"shift row test");
-}
+// void shift_row_test()   {
+//     uint8_t test_m_2[64] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+//                     17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,
+//                     33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,
+//                     49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64 
+//                   };
+//     shiftRow(test_m_2);
+//     print_array(test_m_2,64);
+//     sput_fail_unless(test_m_2[0]==1,"shift row test");
+//     sput_fail_unless(test_m_2[1]==2,"shift row test");
+//     sput_fail_unless(test_m_2[2]==3,"shift row test");
+//     sput_fail_unless(test_m_2[3]==4,"shift row test");
+//     sput_fail_unless(test_m_2[4]==5,"shift row test");
+//     sput_fail_unless(test_m_2[5]==6,"shift row test");
+//     sput_fail_unless(test_m_2[6]==7,"shift row test");
+//     sput_fail_unless(test_m_2[7]==8,"shift row test");
+//     sput_fail_unless(test_m_2[8]==9,"shift row test");
+//     sput_fail_unless(test_m_2[9]==10,"shift row test");
+//     sput_fail_unless(test_m_2[10]==11,"shift row test");
+//     sput_fail_unless(test_m_2[11]==12,"shift row test");
+//     sput_fail_unless(test_m_2[12]==13,"shift row test");
+//     sput_fail_unless(test_m_2[13]==14,"shift row test");
+//     sput_fail_unless(test_m_2[14]==15,"shift row test");
+//     sput_fail_unless(test_m_2[15]==16,"shift row test");
+//     sput_fail_unless(test_m_2[16]==21,"shift row test");
+//     sput_fail_unless(test_m_2[17]==22,"shift row test");
+//     sput_fail_unless(test_m_2[18]==23,"shift row test");
+//     sput_fail_unless(test_m_2[19]==24,"shift row test");
+//     sput_fail_unless(test_m_2[20]==25,"shift row test");
+//     sput_fail_unless(test_m_2[21]==26,"shift row test");
+//     sput_fail_unless(test_m_2[22]==27,"shift row test");
+//     sput_fail_unless(test_m_2[23]==28,"shift row test");
+//     sput_fail_unless(test_m_2[24]==29,"shift row test");
+//     sput_fail_unless(test_m_2[25]==30,"shift row test");
+//     sput_fail_unless(test_m_2[26]==31,"shift row test");
+//     sput_fail_unless(test_m_2[27]==32,"shift row test");
+//     sput_fail_unless(test_m_2[28]==17,"shift row test");
+//     sput_fail_unless(test_m_2[29]==18,"shift row test");
+//     sput_fail_unless(test_m_2[30]==19,"shift row test");
+//     sput_fail_unless(test_m_2[31]==20,"shift row test");
+//     sput_fail_unless(test_m_2[32]==41,"shift row test");
+//     sput_fail_unless(test_m_2[33]==42,"shift row test");
+//     sput_fail_unless(test_m_2[34]==43,"shift row test");
+//     sput_fail_unless(test_m_2[35]==44,"shift row test");
+//     sput_fail_unless(test_m_2[36]==45,"shift row test");
+//     sput_fail_unless(test_m_2[37]==46,"shift row test");
+//     sput_fail_unless(test_m_2[38]==47,"shift row test");
+//     sput_fail_unless(test_m_2[39]==48,"shift row test");
+//     sput_fail_unless(test_m_2[40]==33,"shift row test");
+//     sput_fail_unless(test_m_2[41]==34,"shift row test");
+//     sput_fail_unless(test_m_2[42]==35,"shift row test");
+//     sput_fail_unless(test_m_2[43]==36,"shift row test");
+//     sput_fail_unless(test_m_2[44]==37,"shift row test");
+//     sput_fail_unless(test_m_2[45]==38,"shift row test");
+//     sput_fail_unless(test_m_2[46]==39,"shift row test");
+//     sput_fail_unless(test_m_2[47]==40,"shift row test");
+//     sput_fail_unless(test_m_2[48]==61,"shift row test");
+//     sput_fail_unless(test_m_2[49]==62,"shift row test");
+//     sput_fail_unless(test_m_2[50]==63,"shift row test");
+//     sput_fail_unless(test_m_2[51]==64,"shift row test");
+//     sput_fail_unless(test_m_2[52]==49,"shift row test");
+//     sput_fail_unless(test_m_2[53]==50,"shift row test");
+//     sput_fail_unless(test_m_2[54]==51,"shift row test");
+//     sput_fail_unless(test_m_2[55]==52,"shift row test");
+//     sput_fail_unless(test_m_2[56]==53,"shift row test");
+//     sput_fail_unless(test_m_2[57]==54,"shift row test");
+//     sput_fail_unless(test_m_2[58]==55,"shift row test");
+//     sput_fail_unless(test_m_2[59]==56,"shift row test");
+//     sput_fail_unless(test_m_2[60]==57,"shift row test");
+//     sput_fail_unless(test_m_2[61]==58,"shift row test");
+//     sput_fail_unless(test_m_2[62]==59,"shift row test");
+//     sput_fail_unless(test_m_2[63]==60,"shift row test");
+// }
 
-void gm_bs_test()   {
-    uint8_t a[4] = {0,1,0,0};
-    uint8_t b[4] = {0,0,1,0};
-    uint8_t *res = gm_bs(a,b);
-    sput_fail_unless(res[0] == 1,"gm_mult test");
-    sput_fail_unless(res[1] == 0,"gm_mult test");
-    sput_fail_unless(res[2] == 0,"gm_mult test");
-    sput_fail_unless(res[3] == 0,"gm_mult test");
-}
+// void gm_bs_test()   {
+//     uint8_t a[4] = {0,1,0,0};
+//     uint8_t b[4] = {0,0,1,0};
+//     uint8_t *res = gm_bs(a,b);
+//     sput_fail_unless(res[0] == 1,"gm_mult test");
+//     sput_fail_unless(res[1] == 0,"gm_mult test");
+//     sput_fail_unless(res[2] == 0,"gm_mult test");
+//     sput_fail_unless(res[3] == 0,"gm_mult test");
+// }
 

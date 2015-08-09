@@ -1,8 +1,6 @@
-#include "present_dsl.h"
+#include "present.h"
 #include "sput.h"
 #include "../../../LIB/BS_LIB.h"
-#include <time.h>
-
 
 void present_test_1();
 void present_test_2();
