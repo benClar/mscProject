@@ -231,6 +231,13 @@ class Cast(object):
     def constraints(self):
         return self._cast_op.constraints
 
+    def int_to_bs_cast(sym_count, target, size=None):
+        result = {'emit': "", 'result': ""}
+        result['result'] = Target_factory.name(sym_count, "casted_bs")
+        result['emit'] += "uint32_t " + result['result'] + "[" + size + "]" + "= {0};\n"
+        result['emit'] += "int_to_bitsliced(" + result['result'] + ", " + target + ", " + size + ");\n"
+        return result
+
 class Index_select(object):
 
     def __init__(self, target, indices, output_type=None):
@@ -482,12 +489,16 @@ class Set(object):
             assignment_result = self.translate_index_selection_set(sym_count, value_result)
             result['emit'] += assignment_result['emit']
         elif self.target.node_type == DATA_TYPE.ID:
+            value_result = self.value.translate(sym_count)
+            result['emit'] += value_result['emit']
             if DATA_TYPE.needs_cast(self.target.type, self.value.type):
-                raise ParseException(str(self.value.type) + " being assigned to a  " + str(self.target.type) + " : Cast needed")
+                value_result = self.implicit_cast(sym_count)
+                result['emit'] += value_result['emit']
+                # raise ParseException(str(self.value.type) + " being assigned to a  " + str(self.target.type) + " : Cast needed")
             if self.target.type == DATA_TYPE.INT_VAL or self.target.type == DATA_TYPE.BS_BIT_VAL or self.target.type == DATA_TYPE.BIT_VAL: 
-                self.translate_integer_set(result, sym_count)
+                self.translate_integer_set(result, value_result, sym_count)
             elif self.target.type == DATA_TYPE.BS_INT_VAL:
-                self.translate_bs_int_set(result, sym_count)
+                self.translate_bs_int_set(result, value_result, sym_count)
             else:
                 raise ParseException("Unrecognised Target type " + str(self.target.node_type))
         else:
@@ -554,19 +565,15 @@ class Set(object):
 
         return result
 
-    def translate_bs_int_set(self, result, sym_count):
-        value_result = self.value.translate(sym_count)
-        result['emit'] += value_result['emit']
+    def translate_bs_int_set(self, result, value_result, sym_count):
         target_result = self.target.translate(sym_count)
         result['emit'] += target_result['emit']
         for i in range(int(self.target.constraints.value)):
             result['emit'] += target_result['result'] + "[" + str(i) + "]" + " = " + value_result['result'] + "[" + str(i) + "]" + ";\n"
 
-    def translate_integer_set(self, result, sym_count):
+    def translate_integer_set(self, result, value_result, sym_count):
             target_result = self.target.translate(sym_count)
             result['emit'] += target_result['emit']
-            value_result = self.value.translate(sym_count)
-            result['emit'] += value_result['emit']
             result['emit'] += target_result['result'] + " = " + value_result['result'] + self.translate_index(0, value_result) + ";\n"
 
     def translate_index(self, ele, result):
@@ -1365,20 +1372,31 @@ class Binary_operation(object):
         else:
             return self.int_compute_operation(sym_count)
 
-
     def implicit_cast(self, sym_count, target, size=None):
         result = {'emit': "", 'result': ""}
         operand_for_cast = self.get_operand_for_cast()
         if self.type == DATA_TYPE.SEQ_BS_BIT_VAL:
             # print(operand_for_cast.type)
             if operand_for_cast.type == DATA_TYPE.SEQ_BIT_VAL:
-                result['result'] += Target_factory.name(sym_count, "casted_bs")
-                result['emit'] += "uint32_t " + result['result'] + "[" + size + "]" + "= {0};\n"
-                result['emit'] += "int_to_bitsliced(" + result['result'] + ", " + target + ", " + size + ");\n"
+                cast_res = Cast.int_to_bs_cast(sym_count, target, size)
+                # result['result'] = Target_factory.name(sym_count, "casted_bs")
+                # result['emit'] += "uint32_t " + result['result'] + "[" + size + "]" + "= {0};\n"
+                # result['emit'] += "int_to_bitsliced(" + result['result'] + ", " + target + ", " + size + ");\n"
+                result['result'] = cast_res['result']
+                result['emit'] = cast_res['emit']
+            else:
+                raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
+        elif self.type == DATA_TYPE.BS_INT_VAL:
+            if operand_for_cast.type == DATA_TYPE.INT_VAL:
+                cast_res = Cast.int_to_bs_cast(sym_count, target, size)
+                result['result'] = cast_res['result']
+                result['emit'] = cast_res['emit']
+            else:
+                raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
         else:
-            raise ParseException("Unsupported implicit cast type required")
+            raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
         return result
-            
+
     def get_operand_for_cast(self):
         if self.left.type != self.type:
             return self.left

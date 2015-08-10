@@ -47,13 +47,13 @@ class Symbol_Table(object):
             if ID in scope:
                 scope[ID]["value"] = value
                 return
-        raise SemanticException("Tried to update nonexistent ID")
+        raise SemanticException("Tried to update nonexistent ID " + ID)
 
     def id(self, ID):
         for scope in self.symbols.stack:
             if ID in scope:
                 return scope[ID]
-        raise SemanticException("Tried to update nonexistent ID")
+        raise SemanticException("Tried to update nonexistent ID " + ID)
 
     def add_id(self, ID, id_type, size=None):
         if ID not in self.symbols.peek():

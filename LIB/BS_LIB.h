@@ -1,3 +1,7 @@
+#include <time.h>
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+
 #define log_err(M, ...) fprintf(stderr, "[ERROR] (%s:%d:) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 void rotate_left(uint32_t *target, uint32_t *source, int var_size, int shift);
@@ -15,7 +19,7 @@ void bitslice_bitwise(uint32_t *target, uint32_t *op_1, uint32_t *op_2, int var_
 void bitslice(uint32_t *target, long source, int var_size);
 void bitslice_bend(uint32_t *target, long source, int var_size);
 void int_to_bitsliced(uint32_t *target, uint32_t source, int var_size);
-
+double get_time();
 /*Tests*/
 
 void shift_testing();

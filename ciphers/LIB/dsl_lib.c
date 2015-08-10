@@ -10,7 +10,7 @@
 #include "sput.h"
 
 
-void extract_bs_range(uint32_t *target, uint32_t *source, int start, int finish)	{
+void extract_bs_range(uint8_t *target, uint8_t *source, int start, int finish)	{
 	int i;
 	for(i = 0; start <= finish; start++)	{
 		target[i] = source[start];
@@ -18,7 +18,7 @@ void extract_bs_range(uint32_t *target, uint32_t *source, int start, int finish)
 }
 
 /*Assumes nibble size of 4*/
-void hex_print(uint32_t *state, int row_width, int area)	{
+void hex_print(uint8_t *state, int row_width, int area)	{
 
 	char hex_lookup[16] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 	int row, nibble, lookup = 0,bit;
@@ -36,16 +36,16 @@ void hex_print(uint32_t *state, int row_width, int area)	{
 
 }
 
-uint32_t *rotate_left(uint32_t *input, int var_size ,int shift)    {
-	uint32_t *input_copy = clone(input,var_size);
+uint8_t *rotate_left(uint8_t *input, int var_size ,int shift)    {
+	uint8_t *input_copy = clone(input,var_size);
     reverse(input_copy, 0, var_size - 1);
     reverse(input_copy, 0, var_size - shift - 1);
     reverse(input_copy, var_size - shift, var_size - 1);
     return input_copy;
 }
 
-uint32_t *bitslice(long var, int var_size)	{
-	uint32_t* bs = malloc(var_size * sizeof(uint32_t));
+uint8_t *bitslice(long var, int var_size)	{
+	uint8_t* bs = malloc(var_size * sizeof(uint8_t));
 	int bit;
 	for(bit = 0; bit < var_size; bit++)	{
 		bs[var_size - bit - 1] = ((var >> bit) & 1);
@@ -67,20 +67,20 @@ void bits_in_test()	{
 	sput_fail_unless(bits_in(10000) == 14,"Bits_in_test");
 }
 
-uint32_t *rotate_right(uint32_t *input, int var_size ,int shift)    {
-	uint32_t *input_copy = clone(input,var_size);
+uint8_t *rotate_right(uint8_t *input, int var_size ,int shift)    {
+	uint8_t *input_copy = clone(input,var_size);
     reverse(input_copy, 0, var_size - 1);
     reverse(input_copy, 0, shift - 1);
     reverse(input_copy, shift, var_size - 1);
     return input_copy;
 }
 
-uint32_t *matrix_column(uint32_t *matrix, int col_width, int row_width, int col, int area)	{
+uint8_t *matrix_column(uint8_t *matrix, int col_width, int row_width, int col, int area)	{
 	int t_row = area / row_width,row;
-	uint32_t *output = malloc(t_row * (col_width * sizeof(uint32_t)));
+	uint8_t *output = malloc(t_row * (col_width * sizeof(uint8_t)));
 
 	for(row = 0; row < t_row; row++)	{
-		memcpy(&(output[array_position(row,0,col_width)]),&(matrix[array_position(row,col * col_width,row_width)]),col_width * sizeof(uint32_t)); 
+		memcpy(&(output[array_position(row,0,col_width)]),&(matrix[array_position(row,col * col_width,row_width)]),col_width * sizeof(uint8_t)); 
 	}
 	return output;
 }
@@ -89,19 +89,27 @@ int array_position(int curr_row, int curr_col, int row_width)	{
 	return ((row_width * curr_row) + curr_col);
 }
 
-uint32_t *shift_right(uint32_t *input, int var_size ,int shift)	{
-	uint32_t *input_copy = calloc(var_size, sizeof(uint32_t));
-	memcpy(input_copy + shift,input,(var_size - shift) * sizeof(uint32_t));
+uint8_t *shift_right(uint8_t *input, int var_size ,int shift)	{
+	uint8_t *input_copy = calloc(var_size, sizeof(uint8_t));
+	memcpy(input_copy + shift,input,(var_size - shift) * sizeof(uint8_t));
 	return input_copy;
 }
 
-uint32_t *shift_left(uint32_t *input, int var_size ,int shift)	{
-	uint32_t *input_copy = calloc(var_size, sizeof(uint32_t));
-	memcpy(input_copy,input + shift,(var_size - shift) * sizeof(uint32_t));
+uint8_t *shift_left(uint8_t *input, int var_size ,int shift)	{
+	uint8_t *input_copy = calloc(var_size, sizeof(uint8_t));
+	memcpy(input_copy,input + shift,(var_size - shift) * sizeof(uint8_t));
 	return input_copy;
 }
 
-uint32_t *shift(uint32_t *input, int var_size, int shift, char *op)	{
+void shift_right_2(uint8_t *target, uint8_t *source, int var_size, int shift)	{
+	memcpy(target + shift, source,(var_size - shift) * sizeof(uint8_t));
+}
+
+void shift_left_2(uint8_t *target, uint8_t *source, int var_size, int shift)	{
+	memcpy(target, source + shift,(var_size - shift) * sizeof(uint8_t));
+}
+
+uint8_t *shift(uint8_t *input, int var_size, int shift, char *op)	{
 	if(!strcmp(op, ">>")) {
 		return shift_right(input, var_size, shift);
 	} else if (!strcmp(op, "<<")) {
@@ -116,13 +124,13 @@ uint32_t *shift(uint32_t *input, int var_size, int shift, char *op)	{
 	return NULL;
 }
 
-uint32_t *clone(uint32_t *input, int var_size)	{
-	uint32_t *input_copy = malloc(var_size * sizeof(uint32_t));
-	memcpy(input_copy,input,var_size * sizeof(uint32_t));
+uint8_t *clone(uint8_t *input, int var_size)	{
+	uint8_t *input_copy = malloc(var_size * sizeof(uint8_t));
+	memcpy(input_copy,input,var_size * sizeof(uint8_t));
 	return input_copy;
 }
 
-uint32_t *reverse(uint32_t *array, int start, int end)	{
+uint8_t *reverse(uint8_t *array, int start, int end)	{
 		while(start < end)	{
 			int tmp = array[start];
 			array[start] = array[end];
@@ -134,25 +142,25 @@ uint32_t *reverse(uint32_t *array, int start, int end)	{
 }
 
 /* Only XORS to equal sized vars*/
-uint32_t *XOR(uint32_t *a, uint32_t *b, int size)	{
+uint8_t *XOR(uint8_t *a, uint8_t *b, int size)	{
 	int bit;
-	uint32_t *output = calloc(size,sizeof(uint32_t));
+	uint8_t *output = calloc(size,sizeof(uint8_t));
 	for(bit = size - 1; bit >= 0; bit--)	{
 		output[bit] = a[bit] ^ b[bit];
 	}
 	return output;
 }
 
-uint32_t *AND(uint32_t *a, uint32_t *b, int size)	{
+uint8_t *AND(uint8_t *a, uint8_t *b, int size)	{
 	int bit;
-	uint32_t *output = calloc(size,sizeof(uint32_t));
+	uint8_t *output = calloc(size,sizeof(uint8_t));
 	for(bit = size -1; bit >= 0; bit--)	{
 		output[bit] = a[bit] & b[bit];
 	}
 	return output;
 }
 
-int compare(uint32_t *a, uint32_t *b, int size)	{
+int compare(uint8_t *a, uint8_t *b, int size)	{
 	int ele;
 	for(ele = 0; ele < size; ele++)	{
 		if(a[ele] != b[ele])	{
@@ -162,12 +170,12 @@ int compare(uint32_t *a, uint32_t *b, int size)	{
 	return 1;
 }
 
-void assign(uint32_t *array, int value)	{
+void assign(uint8_t *array, int value)	{
 	free(array);
 	array = bitslice(value,bits_in(value));
 }
 
-void print_array(uint32_t *array,int size)	{
+void print_array(uint8_t *array,int size)	{
 	int ele;
 	for(ele = 0; ele < size; ele++)	{
 		printf("%d", array[ele]);
@@ -176,14 +184,14 @@ void print_array(uint32_t *array,int size)	{
 }
 
 /*std implementation GF 24*/
-uint32_t gm(uint32_t a, uint32_t b) {
-  uint32_t g = 0;
+uint8_t gm(uint8_t a, uint8_t b) {
+  uint8_t g = 0;
   int i;
   for (i = 0; i < 4; i++) {
     if ( (b & 0x1) == 1 ) { 
         g ^= a;
     }
-    uint32_t hbs = (a & 0x8);
+    uint8_t hbs = (a & 0x8);
     a <<= 0x1;
     if ( hbs == 0x8) { 
         a ^= GF_POLY;
@@ -214,9 +222,9 @@ void run_lib_tests()	{
 
 
 void rotate_tests()	{
-	uint32_t test_right[10] = {1,2,3,4,5,6,7,8,9,10};
-	uint32_t test_left[10] = {1,2,3,4,5,6,7,8,9,10};
-	uint32_t *result;
+	uint8_t test_right[10] = {1,2,3,4,5,6,7,8,9,10};
+	uint8_t test_left[10] = {1,2,3,4,5,6,7,8,9,10};
+	uint8_t *result;
 	result = rotate_right(test_right,10,3);
 	sput_fail_unless(result[0] == 8,"rotate_right test");
 	sput_fail_unless(result[1] == 9,"rotate_right test");
@@ -243,9 +251,9 @@ void rotate_tests()	{
 }
 
 void shift_tests()	{
-	uint32_t test_right[10] = {1,2,3,4,5,6,7,8,9,10};
-	uint32_t test_left[10] = {1,2,3,4,5,6,7,8,9,10};
-	uint32_t *result;
+	uint8_t test_right[10] = {1,2,3,4,5,6,7,8,9,10};
+	uint8_t test_left[10] = {1,2,3,4,5,6,7,8,9,10};
+	uint8_t *result;
 	result = shift_right(test_right,10,3);
 	sput_fail_unless(result[0] == 0,"shift_right test");
 	sput_fail_unless(result[1] == 0,"shift_right test");
@@ -271,7 +279,7 @@ void shift_tests()	{
 }
 
 void test_bitslice()	{
-	uint32_t *result = bitslice(15,4);	
+	uint8_t *result = bitslice(15,4);	
 	sput_fail_unless(result[0] == 1,"bitslice test");
 	sput_fail_unless(result[1] == 1,"bitslice test");
 	sput_fail_unless(result[2] == 1,"bitslice test");
@@ -286,16 +294,16 @@ void test_bitslice()	{
 }
 
 void test_matrix_column()	{
-	uint32_t test_m[16] = {1,2,3,4,
+	uint8_t test_m[16] = {1,2,3,4,
 						  5,6,7,8,
 						  9,10,11,12,
 						  13,14,15,16};
-	uint32_t test_m_2[64] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+	uint8_t test_m_2[64] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
 					  	17,18,18,20,21,22,23,24,25,26,27,28,29,30,31,32,
 					  	33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,
 					  	49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64
 					  };
-	uint32_t *result;
+	uint8_t *result;
 	result = matrix_column(test_m,1,4,0,16);
 	sput_fail_unless(result[0] = 1,"Testing Matrix Column");
 	sput_fail_unless(result[1] = 5,"Testing Matrix Column");	
@@ -328,8 +336,8 @@ void test_array_position()	{
 }
 
 
-// uint32_t  (*gmMult(uint32_t a[8], uint32_t b[8]))[8]{
-// 	uint32_t g[8];
+// uint8_t  (*gmMult(uint8_t a[8], uint8_t b[8]))[8]{
+// 	uint8_t g[8];
 // 	g = bitslice(0,8);
 // 	uint8_t i = 0;
 
@@ -347,8 +355,8 @@ void test_array_position()	{
 // 	return g;
 // }
 
-// uint32_t (*MixColumnSerial(uint32_t state[16][8], uint32_t MDS[16]))[8]{
-// 	uint32_t column[4][8];
+// uint8_t (*MixColumnSerial(uint8_t state[16][8], uint8_t MDS[16]))[8]{
+// 	uint8_t column[4][8];
 // 	uint8_t c = 0;
 
 // 	for(; c < 4; c = c + 1) {

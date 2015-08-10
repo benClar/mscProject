@@ -9,7 +9,8 @@
 #include "../LIB/sput.h"
 
 int main(){
-    run();
+    // run();
+    run_led_tests();
 }
 
 // void tests()  {
@@ -105,6 +106,91 @@ uint8_t *gm_bs(uint8_t *a, uint8_t *b) {
   return g;
 }
 
+void gm_bs_2(uint8_t g[8], uint8_t a[4], uint8_t b[4]){
+    uint8_t hbs[1] = {0};
+    uint8_t gf_poly[8] = {0,0,0,1,0,0,1,1};
+    uint8_t one[8] = {0,0,0,0,0,0,0,1};
+    uint8_t a_in[8] = {0};
+    uint8_t b_in[8] = {0};
+    for(int bit = 0; bit < 4; bit++)    {
+        a_in[4 + bit] = a[bit];
+    }
+    for(int bit = 0; bit < 4; bit++)    {
+        b_in[4 + bit] = b[bit];
+    }
+    for(int deg = 0; deg < 4; deg++)    {
+        printf("A\n");
+        print_array(a_in,8);
+        printf("B\n");
+        print_array(b_in, 8);
+        uint8_t f[1] = {0};
+        uint8_t m[8] = {0};
+        uint8_t t[8] = {0};
+        uint8_t temp_a[8] = {0};
+        uint8_t temp_b[8] = {0};
+        for(int bit = 0; bit <8; bit++) {
+            t[bit] = b_in[bit] & one[bit];
+        }
+        printf("T\n");
+        print_array(t,8);
+        for(int bit = 0; bit < 8; bit++) {
+            f[0] = f[0] | t[bit];
+        }
+        printf("FLAG : %d \n", f[0]);
+        for(int bit = 0; bit < 8; bit++)    {
+            m[bit] = f[0] & a_in[bit];
+        }
+        for(int bit = 0; bit <8; bit++) {
+            g[bit] ^= (m[bit] & a_in[bit]);
+        }
+        hbs[0] = a_in[7 - 3];
+        shift_left_2(temp_a, a_in, 8, 1);
+        for(int bit = 0; bit < 8; bit++)  {
+            a_in[bit] = temp_a[bit];
+        }
+        for(int bit = 0; bit < 8; bit++)    {
+            a_in[bit] ^= (hbs[0] & gf_poly[bit]);
+        }       
+        shift_right_2(temp_b,b_in, 8, 1);
+        for(int bit = 0; bit < 8; bit++)  {
+            b_in[bit] = temp_b[bit];
+        }
+
+    }
+}
+
+uint8_t gm_std(uint8_t a, uint8_t b){
+  uint8_t g = 0;
+  int i;
+  for (i = 0; i < 4; i++) {
+    if ( (b & 0x1) == 1 ) { 
+        g ^= a; 
+    }
+    uint8_t hbs = (a & 0x8);
+    a <<= 0x1;
+    if ( hbs == 0x8) { 
+        a ^= 0x13; 
+    }
+    b >>= 0x1;
+  }
+  return g;
+
+}
+
+uint8_t gm_std_mask(uint8_t a, uint8_t b){
+  uint8_t g = 0;
+  int i;
+  for (i = 0; i < 4; i++) {
+    g ^= (a & (b & 0x1));
+    uint8_t hbs = (a & 0x8);
+    a <<= 0x1;
+    a ^= ((hbs * 0x8) & 0x13);
+    b >>= 0x1;
+  }
+  return g;
+
+}
+
 void addConstants(uint8_t *state, int r)   {
     uint8_t *cnst = calloc(16 * 16,sizeof(uint8_t));
     uint8_t *zerod = bitslice(0x00,8);
@@ -122,7 +208,7 @@ void addConstants(uint8_t *state, int r)   {
     for(row = 0; row < 4; row++)    {
         for(col = 0; col<16; col++) {
             state[array_position(row,col,16)] ^= cnst[array_position(row,col,16)];
-        }p
+        }
     }
 }
 
@@ -185,13 +271,13 @@ void subCells(uint8_t *curr_state)   {
 
 /* testing */
 
-// void run_led_tests()    {
-//     sput_start_testing();
-//     sput_enter_suite("gm_bs tests");
-//     sput_run_test(gm_bs_test); 
+void run_led_tests()    {
+    sput_start_testing();
+    sput_enter_suite("gm_bs tests");
+    sput_run_test(gm_bs_test); 
 //     sput_enter_suite("shiftRow tests");
 //     sput_run_test(shift_row_test); 
-// }
+}
 
 // void shift_row_test()   {
 //     uint8_t test_m_2[64] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
@@ -267,13 +353,20 @@ void subCells(uint8_t *curr_state)   {
 //     sput_fail_unless(test_m_2[63]==60,"shift row test");
 // }
 
-// void gm_bs_test()   {
-//     uint8_t a[4] = {0,1,0,0};
-//     uint8_t b[4] = {0,0,1,0};
-//     uint8_t *res = gm_bs(a,b);
-//     sput_fail_unless(res[0] == 1,"gm_mult test");
-//     sput_fail_unless(res[1] == 0,"gm_mult test");
-//     sput_fail_unless(res[2] == 0,"gm_mult test");
-//     sput_fail_unless(res[3] == 0,"gm_mult test");
-// }
+void gm_bs_test()   {
+    uint8_t a[4] = {0,1,1,0};
+    uint8_t b[4] = {0,0,1,1};
+    uint8_t g[8]= {0};
+    uint8_t *res = gm_bs(a,b);
+    gm_bs_2(g,a,b);
+    printf("RES\n");
+    print_array(g,8);
+    // print_array(res,4);
+    printf("RES: %d \n",gm_std(6,3));
+    // printf("%d\n",gm_std_mask(8,10));
+    // sput_fail_unless(res[0] == 1,"gm_mult test");
+    // sput_fail_unless(res[1] == 0,"gm_mult test");
+    // sput_fail_unless(res[2] == 0,"gm_mult test");
+    // sput_fail_unless(res[3] == 0,"gm_mult test");
+}
 

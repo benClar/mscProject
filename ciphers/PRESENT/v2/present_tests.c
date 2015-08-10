@@ -9,12 +9,12 @@ int main() {
 	sput_start_testing();
 	sput_enter_suite("Present Test 1");
 	sput_run_test(present_test_1);
-	sput_enter_suite("Present Test 2");
-	sput_run_test(present_test_2);
-	sput_enter_suite("Present Test 3");
-	sput_run_test(present_test_3);	
-	sput_enter_suite("Present Test 4");
-	sput_run_test(present_test_4);
+	// sput_enter_suite("Present Test 2");
+	// sput_run_test(present_test_2);
+	// sput_enter_suite("Present Test 3");
+	// sput_run_test(present_test_3);	
+	// sput_enter_suite("Present Test 4");
+	// sput_run_test(present_test_4);
 	sput_finish_testing();
 	return sput_get_return_value();
 }
@@ -26,14 +26,18 @@ void present_test_1()	{
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t key[80] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 	int bit;
-	// clock_t start, end;
+	clock_t start, end;
 	// double cpu_time_used;
-
 	// start = clock();
+	start = mach_absolute_time();
+	// uint64_t test =  mach_absolute_time();
 	enc(key, state);
-	for(bit = 0; bit < 64; bit++)	{
-		sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
-	}
+	end = mach_absolute_time();
+
+	printf("%lu\n", end - start);
+	// for(bit = 0; bit < 64; bit++)	{
+	// 	sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
+	// }
 
 	// end = clock();
 	// cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;

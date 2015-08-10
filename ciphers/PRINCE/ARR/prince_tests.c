@@ -42,16 +42,19 @@ void prince_test_1()	{
 	bitslice_bend(RC[10],0xd3b5a399ca0c2399, 64);
 	bitslice_bend(RC[11],0xc0ac29b7c97c50dd, 64);
 
-	// clock_t start, end;
+	clock_t start, end;
 	// double cpu_time_used;
 	// start = clock();
+	start = mach_absolute_time();
 	enc(RC, state, key_0, key_1);
+	end = mach_absolute_time();
+	printf("%lu\n", end - start);
 	// end = clock();
 	// cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 	// printf("cpu time used : %f \n", cpu_time_used);
-	for(bit = 0; bit < 64; bit++)	{
-		sput_fail_unless(state[bit] == exp_res[63 - bit],"Prince Test 1");
-	}
+	// for(bit = 0; bit < 64; bit++)	{
+	// 	sput_fail_unless(state[bit] == exp_res[63 - bit],"Prince Test 1");
+	// }
 }
 
 void prince_test_2()	{

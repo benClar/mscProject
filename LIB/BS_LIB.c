@@ -14,6 +14,16 @@ void print(uint32_t *arr, int size)	{
 	printf("\n");
 }
 
+double get_time()	{
+	double timeConvert;
+		mach_timebase_info_data_t timeBase;
+		(void)mach_timebase_info( &timeBase );
+		timeConvert = (double)timeBase.numer /
+			(double)timeBase.denom /
+			1000000000.0;
+	return (double)mach_absolute_time( ) * timeConvert;
+}
+
 void rprint(uint32_t *arr, int size)	{
 	int i;
 	for(i = size - 1; i >= 0; i--)	{
@@ -77,7 +87,7 @@ void shift_right(uint32_t *target, uint32_t *source, int var_size, int shift)	{
 }
 
 void shift_left(uint32_t *target, uint32_t *source, int var_size, int shift)	{
-	memcpy(target, source,(var_size - shift) * sizeof(uint32_t));
+	memcpy(target, source + shift,(var_size - shift) * sizeof(uint32_t));
 }
 
 void reverse(uint32_t *target, int start, int end)	{
