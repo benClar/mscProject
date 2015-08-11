@@ -5,16 +5,16 @@
 
 #include "present_dsl.h"
 uint32_t present_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((D & C & ~B & A) | (~D & B & A) | (D & ~C & ~A) | (~D & ~C & A) | (~D & C & ~B & ~A) | (D & B & ~A)) & 0x1);
+return (((D & B & ~A) | (D & C & ~B & A) | (~D & B & A) | (D & ~C & ~A) | (~D & C & ~B & ~A) | (~D & ~C & A)) & 0x1);
 }
 uint32_t present_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((D & ~C & ~A) | (~D & B & ~A) | (D & C & A) | (~D & ~C & B) | (D & ~B & A)) & 0x1);
+return (((D & C & A) | (~D & ~C & B) | (~D & B & ~A) | (D & ~C & ~A) | (D & ~B & A)) & 0x1);
 }
 uint32_t present_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~D & C & B & A) | (~C & ~B & A) | (~D & ~C & ~B) | (D & C & ~B) | (~C & B & ~A) | (D & ~B & A)) & 0x1);
+return (((D & ~B & A) | (D & C & ~B) | (~D & C & B & A) | (~D & ~C & ~B) | (~C & B & ~A) | (~C & ~B & A)) & 0x1);
 }
 uint32_t present_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~C & B & A) | (~D & B & A) | (~D & C & B) | (D & ~C & A) | (~D & ~B & ~A) | (~D & C & ~A) | (D & ~C & B)) & 0x1);
+return (((~D & B & A) | (~D & C & B) | (D & ~C & B) | (~D & ~B & ~A) | (~D & C & ~A) | (D & ~C & A)) & 0x1);
 }
 void present(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -29,7 +29,7 @@ input[3] = temp_0_sbox_out[3];
 }
 void pLayer(uint32_t state[64]){ 
 uint8_t target_bit;
-uint32_t temp[64];
+uint32_t temp[64] = {0};
 temp[0] = state[0];
 temp[1] = state[1];
 temp[2] = state[2];
@@ -117,7 +117,7 @@ void generate_round_keys(uint32_t key[80], uint32_t round_keys[32][64]){
 uint8_t round;
 round = 1;
 for(;round < 33;) { 
-uint32_t temp_6_rnge[(79 - 16) + 1];
+uint32_t temp_6_rnge[((79 - 16) + 1) + 1];
 extract_bs_range(temp_6_rnge, key, 16, 79);
 uint8_t temp_7_init = 0;
 uint32_t temp_8_rnge_size = 0;
@@ -210,7 +210,7 @@ key[76] = temp_11__bin[76];
 key[77] = temp_11__bin[77];
 key[78] = temp_11__bin[78];
 key[79] = temp_11__bin[79];
-uint32_t temp_12_rnge[(79 - 76) + 1];
+uint32_t temp_12_rnge[((79 - 76) + 1) + 1];
 extract_bs_range(temp_12_rnge, key, 76, 79);
 present(temp_12_rnge);
 uint8_t temp_13_init = 0;
@@ -221,7 +221,7 @@ for(temp_13_init = 0; temp_13_init < temp_14_rnge_size; temp_13_init++, temp_15_
 key[temp_15_rng_start] = temp_12_rnge[temp_13_init];
 }
 uint32_t temp_16__bin[(19 - 15) + 1] = {0};
-uint32_t temp_17_rnge[(19 - 15) + 1];
+uint32_t temp_17_rnge[((19 - 15) + 1) + 1];
 extract_bs_range(temp_17_rnge, key, 15, 19);
 uint8_t  temp_18_extracted = 0;
 uint8_t temp_19_int_rng_start  = 0;
@@ -254,7 +254,7 @@ uint32_t temp_29__bin = 0;
 uint32_t temp_30__bin = 0;
 temp_30__bin = i * 4;
 temp_29__bin = temp_30__bin + 3;
-uint32_t temp_27_rnge[(temp_29__bin - temp_28__bin) + 1];
+uint32_t temp_27_rnge[((temp_29__bin - temp_28__bin) + 1) + 1];
 extract_bs_range(temp_27_rnge, state, temp_28__bin, temp_29__bin);
 present(temp_27_rnge);
 uint8_t temp_31_init = 0;

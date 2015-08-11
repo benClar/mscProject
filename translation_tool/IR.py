@@ -121,7 +121,7 @@ class Function_decl(object):
         ret = "("
         for p in self.parameters:
             if p.node_type != DATA_TYPE.SBOX_DECL:
-                ret += p.translate(sym_count)
+                ret += p.translate(sym_count, True)
                 ret = ret[:-2]
                 ret += ", "
         ret = ret[:-2]
@@ -405,7 +405,7 @@ class Index_select(object):
         result['emit'] += range_start['emit']
         range_finish = self.indices[-1][0].finish.translate(sym_count)
         result['emit'] += range_finish['emit']
-        result['res_size'] = range_finish['result'] + " - " + range_start['result']
+        result['res_size'] = "(" + range_finish['result'] + " - " + range_start['result'] + ") + 1"
         result['emit'] += Target_factory.type_decl_lookup[self.type] + " " + result['result'] + "[" + "(" + result['res_size'] + ") + 1" + "]" + ";\n"
         selection_dim = self.translate_selection_dim(sym_count)
         result['emit'] += selection_dim['emit']
@@ -481,11 +481,13 @@ class Set(object):
     def translate(self, sym_count, end=True):
         result = {'emit': "", 'result': ""}
         if self.target.node_type == DATA_TYPE.INDEX_SELECT:
-            value_result = self.value.translate(sym_count)
-            result['emit'] += value_result['emit']
+            # value_result = self.value.translate(sym_count)
             if DATA_TYPE.needs_cast(self.target.type, self.value.type):
                 value_result = self.implicit_cast(sym_count)
-                result['emit'] += value_result['emit']
+                # result['emit'] += value_result['emit']
+            else:
+                value_result = self.value.translate(sym_count)
+            result['emit'] += value_result['emit']
             assignment_result = self.translate_index_selection_set(sym_count, value_result)
             result['emit'] += assignment_result['emit']
         elif self.target.node_type == DATA_TYPE.ID:
@@ -639,13 +641,9 @@ class Seq_decl(object):
     def constraints(self):
         return self._constraints
 
-    def translate(self, sym_count):
+    def translate(self, sym_count, func_param = False):
         result = {'emit': "", 'result': ""}
-        if self.node_type == DATA_TYPE.SEQ_INT_DECL:
-            pass
-        elif self.node_type == DATA_TYPE.SEQ_BIT_DECL:
-            pass
-        elif self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
+        if self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
             result['emit'] += Target_factory.type_decl_lookup[self.ID.type] + " " + self.ID.translate()['result'] + self.translate_index() + ";\n"
         elif self.node_type == DATA_TYPE.SBOX_DECL:
             result['emit'] += self.translate_sbox_decl(sym_count)
@@ -931,10 +929,13 @@ class Int_decl(object):
     def value(self):
         return self._value
 
-    def translate(self, sym_count):
+    def translate(self, sym_count, func_param=False):
         result = {'emit': "", 'result': ""}
         if self.node_type == DATA_TYPE.BS_INT_DECL:
-            result['emit'] += self.translate_type() + self.ID.translate()["result"] + "[" + self.constraints.translate()['result'] + "]" + ";\n"
+            if func_param == False:
+                result['emit'] += self.translate_type() + self.ID.translate()["result"] + "[" + self.constraints.translate()['result'] + "]" + " = {0};\n"
+            else:
+                result['emit'] += self.translate_type() + self.ID.translate()["result"] + "[" + self.constraints.translate()['result'] + "]" + ";\n"
         elif self.node_type == DATA_TYPE.INT_DECL:
             result['emit'] += self.translate_type() + self.ID.translate()["result"] + ";\n"
         if self.value is not None:
@@ -1360,9 +1361,19 @@ class Binary_operation(object):
                 elif self.right.type != self.type:
                     operand_2['result'] = cast['result']
         # assert self.right.type == DATA_TYPE.INT_VAL, "Righthand side of shift needs to be integer"
+        operation_size = self.get_bs_res_size(operand_1, operand_2)
         result['emit'] += function + temp_target['result'] + ", " + operand_1['result'] + ", " + operand_2['result']\
-            + ", " + self.constraints.translate()['result'] + ", " + "\"" + self.operator + "\"" + ");\n"
+            + ", " + operation_size + ", " + "\"" + self.operator + "\"" + ");\n"
         return result
+
+    def get_bs_res_size(self, oper_1, oper_2):
+        if self.node_type == DATA_TYPE.SHIFT_OP:
+            if 'res_size' in oper_1:
+                return oper_1['res_size']
+            else:
+                return self.constraints.translate()['result']
+        elif self.node_type == DATA_TYPE.BITWISE_OP:
+            return self.constraints.translate()['result'] 
 
     def int_int_operation(self, sym_count):
         if self.node_type == DATA_TYPE.COMP_OP:

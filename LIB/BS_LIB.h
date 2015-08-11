@@ -20,6 +20,7 @@ void bitslice(uint32_t *target, long source, int var_size);
 void bitslice_bend(uint32_t *target, long source, int var_size);
 void int_to_bitsliced(uint32_t *target, uint32_t source, int var_size);
 double get_time();
+void hprint(uint32_t *target, int size);
 /*Tests*/
 
 void shift_testing();

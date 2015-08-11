@@ -137,6 +137,18 @@ void bitslice_shift(uint32_t *target, uint32_t *source, int shift, int var_size,
 	}
 }
 
+void hprint(uint32_t *target, int size){
+	char hex_lookup[16] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+	int output;
+	for(int nibble = 0; nibble < size/4; nibble++, output = 0)	{
+		for(int bit = 0; bit < 4; bit++)	{
+			output ^= (target[(nibble * 4 ) + bit] << bit);
+		}
+		printf("%c",hex_lookup[output]);
+	}
+	printf("\n");
+}
+
 void extract_bs_range(uint32_t *target, uint32_t *source, int start, int finish)	{
 	int i;
 	for(i = 0; start <= finish; i++, start++)	{

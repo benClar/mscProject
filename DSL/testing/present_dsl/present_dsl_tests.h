@@ -2,8 +2,6 @@
 #include "sput.h"
 #include "../../../LIB/BS_LIB.h"
 #include <time.h>
-#include <mach/mach.h>
-#include <mach/mach_time.h>
 
 
 void present_test_1();

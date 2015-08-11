@@ -532,7 +532,11 @@ class Semantic_analyser(object):
         return cast
 
     def return_type_to_IR(self, ID):
-        ret_type = self.sym_table.f_table[ID]["return"]['type']
+        ret_type = None
+        if ID in self.sym_table.f_table:
+            ret_type = self.sym_table.f_table[ID]["return"]['type']
+        else:
+            raise SemanticException("Attempted to call non-existent function " + ID)
         width = None
         if self.sym_table.f_table[ID]["return"]['constraints'] is not None:
             width = self.expr_type_is(self.sym_table.f_table[ID]["return"]['constraints'])
@@ -561,7 +565,6 @@ class Semantic_analyser(object):
 
 
     def analyse_func_call(self, node):
-
         return_ = self.return_type_to_IR(node.ID)
         if return_ != DATA_TYPE.VOID:
             f_call = Call(node.ID, return_.ID.type, return_.ID.size, return_.ID.constraints, return_)
@@ -570,7 +573,7 @@ class Semantic_analyser(object):
         for i, p in enumerate(node.parameters):
             f_call.add_parameter(self.expr_type_is(p))
             if self.value_matches_expected(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i]['type']) is False:
-                raise SemanticException(str(f_call.parameters[i].type) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i]['type']))
+                raise SemanticException(str(f_call.parameters[i].type) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i]['type']) + " in function call to " + node.ID)
                 return False
         return f_call
 

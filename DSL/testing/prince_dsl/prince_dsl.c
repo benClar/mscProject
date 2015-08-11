@@ -5,13 +5,13 @@
 
 #include "prince_dsl.h"
 uint32_t prince_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~D & B & ~A) | (~C & ~B & A) | (~D & ~C & ~B) | (~D & C & B) | (D & ~B & A) | (C & B & ~A)) & 0x1);
+return (((C & B & ~A) | (~D & C & B) | (D & ~B & A) | (~D & B & ~A) | (~D & ~C & ~B) | (~C & ~B & A)) & 0x1);
 }
 uint32_t prince_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~B & ~A) | (~D & ~C) | (~C & ~B)) & 0x1);
+return (((~B & ~A) | (~C & ~B) | (~D & ~C)) & 0x1);
 }
 uint32_t prince_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((D & ~B) | (~B & A) | (D & C)) & 0x1);
+return (((D & ~B) | (D & C) | (~B & A)) & 0x1);
 }
 uint32_t prince_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
 return (((D & B & ~A) | (C & ~A) | (~D & ~B)) & 0x1);
@@ -28,16 +28,16 @@ input[2] = temp_0_sbox_out[2];
 input[3] = temp_0_sbox_out[3];
 }
 uint32_t prince_inv_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((C & ~B & ~A) | (C & B & A) | (~D & ~C & ~A) | (~D & ~B)) & 0x1);
+return (((C & B & A) | (~D & ~B) | (C & ~B & ~A) | (~D & ~C & ~A)) & 0x1);
 }
 uint32_t prince_inv_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~D & ~C) | (~C & ~B) | (~D & ~B & ~A) | (D & ~B & A)) & 0x1);
+return (((~D & ~C) | (~C & ~B) | (D & ~B & A) | (~D & ~B & ~A)) & 0x1);
 }
 uint32_t prince_inv_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~B & A) | (D & C & ~A) | (C & ~B) | (D & B & ~A)) & 0x1);
+return (((D & B & ~A) | (~B & A) | (C & ~B)) & 0x1);
 }
 uint32_t prince_inv_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~D & C) | (C & ~B & A) | (C & B & ~A) | (~C & ~B & ~A)) & 0x1);
+return (((~C & ~B & ~A) | (C & B & ~A) | (~D & C) | (C & ~B & A)) & 0x1);
 }
 void prince_inv(uint32_t input[4]){
 uint32_t temp_1_sbox_out[4];
@@ -51,7 +51,7 @@ input[2] = temp_1_sbox_out[2];
 input[3] = temp_1_sbox_out[3];
 }
 uint32_t  (*enc(uint32_t RC[11][64], uint32_t state[64], uint32_t key_0[64], uint32_t key_1[64])){ 
-uint32_t key_prime[64];
+uint32_t key_prime[64] = {0};
 uint32_t temp_2__bin[64] = {0};
 uint32_t temp_3__bin[64] = {0};
 bitslice_shift(temp_3__bin, key_0, 1, 64, ">>>");
@@ -189,7 +189,7 @@ state[61] = temp_5__bin[61];
 state[62] = temp_5__bin[62];
 state[63] = temp_5__bin[63];
 uint32_t temp_6__bin[64] = {0};
-uint32_t temp_7_rnge[(64 - 0) + 1];
+uint32_t temp_7_rnge[((64 - 0) + 1) + 1];
 extract_bs_range(temp_7_rnge, RC[0], 0, 64);
 bitslice_bitwise(temp_6__bin, state, temp_7_rnge, 64, "^");
 state[0] = temp_6__bin[0];
@@ -819,11 +819,11 @@ temp_167__bin = temp_168__bin ^ temp_171_extracted[0];
 output[0] = temp_167__bin;
 }
 void mPrime(uint32_t state[64]){ 
-uint32_t output[16];
-uint32_t temp_173_rnge[(15 - 0) + 1];
+uint32_t output[16] = {0};
+uint32_t temp_173_rnge[((15 - 0) + 1) + 1];
 extract_bs_range(temp_173_rnge, state, 0, 15);
 m0(temp_173_rnge, output);
-uint32_t temp_174_rnge[(15 - 0) + 1];
+uint32_t temp_174_rnge[((15 - 0) + 1) + 1];
 extract_bs_range(temp_174_rnge, output, 0, 15);
 uint8_t temp_175_init = 0;
 uint32_t temp_176_rnge_size = 0;
@@ -832,10 +832,10 @@ uint8_t temp_177_rng_start = 0;
 for(temp_175_init = 0; temp_175_init < temp_176_rnge_size; temp_175_init++, temp_177_rng_start++){
 state[temp_177_rng_start] = temp_174_rnge[temp_175_init];
 }
-uint32_t temp_179_rnge[(31 - 16) + 1];
+uint32_t temp_179_rnge[((31 - 16) + 1) + 1];
 extract_bs_range(temp_179_rnge, state, 16, 31);
 m1(temp_179_rnge, output);
-uint32_t temp_180_rnge[(15 - 0) + 1];
+uint32_t temp_180_rnge[((15 - 0) + 1) + 1];
 extract_bs_range(temp_180_rnge, output, 0, 15);
 uint8_t temp_181_init = 0;
 uint32_t temp_182_rnge_size = 0;
@@ -844,10 +844,10 @@ uint8_t temp_183_rng_start = 16;
 for(temp_181_init = 0; temp_181_init < temp_182_rnge_size; temp_181_init++, temp_183_rng_start++){
 state[temp_183_rng_start] = temp_180_rnge[temp_181_init];
 }
-uint32_t temp_185_rnge[(47 - 32) + 1];
+uint32_t temp_185_rnge[((47 - 32) + 1) + 1];
 extract_bs_range(temp_185_rnge, state, 32, 47);
 m1(temp_185_rnge, output);
-uint32_t temp_186_rnge[(15 - 0) + 1];
+uint32_t temp_186_rnge[((15 - 0) + 1) + 1];
 extract_bs_range(temp_186_rnge, output, 0, 15);
 uint8_t temp_187_init = 0;
 uint32_t temp_188_rnge_size = 0;
@@ -856,10 +856,10 @@ uint8_t temp_189_rng_start = 32;
 for(temp_187_init = 0; temp_187_init < temp_188_rnge_size; temp_187_init++, temp_189_rng_start++){
 state[temp_189_rng_start] = temp_186_rnge[temp_187_init];
 }
-uint32_t temp_191_rnge[(63 - 48) + 1];
+uint32_t temp_191_rnge[((63 - 48) + 1) + 1];
 extract_bs_range(temp_191_rnge, state, 48, 63);
 m0(temp_191_rnge, output);
-uint32_t temp_192_rnge[(15 - 0) + 1];
+uint32_t temp_192_rnge[((15 - 0) + 1) + 1];
 extract_bs_range(temp_192_rnge, output, 0, 15);
 uint8_t temp_193_init = 0;
 uint32_t temp_194_rnge_size = 0;
@@ -879,7 +879,7 @@ uint32_t temp_199__bin = 0;
 uint32_t temp_200__bin = 0;
 temp_200__bin = i * 4;
 temp_199__bin = temp_200__bin + 3;
-uint32_t temp_197_rnge[(temp_199__bin - temp_198__bin) + 1];
+uint32_t temp_197_rnge[((temp_199__bin - temp_198__bin) + 1) + 1];
 extract_bs_range(temp_197_rnge, state, temp_198__bin, temp_199__bin);
 prince(temp_197_rnge);
 uint8_t temp_201_init = 0;
@@ -912,7 +912,7 @@ uint32_t temp_211__bin = 0;
 uint32_t temp_212__bin = 0;
 temp_212__bin = i * 4;
 temp_211__bin = temp_212__bin + 3;
-uint32_t temp_209_rnge[(temp_211__bin - temp_210__bin) + 1];
+uint32_t temp_209_rnge[((temp_211__bin - temp_210__bin) + 1) + 1];
 extract_bs_range(temp_209_rnge, state, temp_210__bin, temp_211__bin);
 prince_inv(temp_209_rnge);
 uint8_t temp_213_init = 0;
@@ -938,7 +938,7 @@ i = temp_208__bin;
 void shift_rows(uint32_t state[64], uint32_t output[64], uint8_t inverse){ 
 uint8_t target;
 target = 0;
-uint32_t temp_220_rnge[(63 - 59) + 1];
+uint32_t temp_220_rnge[((63 - 59) + 1) + 1];
 extract_bs_range(temp_220_rnge, state, 59, 63);
 uint8_t temp_221_init = 0;
 uint32_t temp_222_rnge_size = 0;
@@ -974,7 +974,7 @@ uint32_t temp_233__bin = 0;
 uint32_t temp_234__bin = 0;
 temp_234__bin = nibble * 4;
 temp_233__bin = 63 - temp_234__bin;
-uint32_t temp_229_rnge[(temp_233__bin - temp_230__bin) + 1];
+uint32_t temp_229_rnge[((temp_233__bin - temp_230__bin) + 1) + 1];
 extract_bs_range(temp_229_rnge, state, temp_230__bin, temp_233__bin);
 uint8_t temp_235_init = 0;
 uint32_t temp_236_rnge_size = 0;
@@ -1005,14 +1005,14 @@ nibble = temp_224__bin;
 } 
 }
 void first_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]){ 
-uint32_t sr_output[64];
+uint32_t sr_output[64] = {0};
 uint8_t r;
 r = 1;
 for(;r < 6;) { 
 sBox_layer(state);
 mPrime(state);
 shift_rows(state, sr_output, 0);
-uint32_t temp_247_rnge[(63 - 0) + 1];
+uint32_t temp_247_rnge[((63 - 0) + 1) + 1];
 extract_bs_range(temp_247_rnge, sr_output, 0, 63);
 uint8_t temp_248_init = 0;
 uint32_t temp_249_rnge_size = 0;
@@ -1160,7 +1160,7 @@ r = temp_246__bin;
 } 
 }
 void last_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]){ 
-uint32_t sr_output[64];
+uint32_t sr_output[64] = {0};
 uint8_t r;
 r = 6;
 for(;r < 11;) { 
@@ -1298,7 +1298,7 @@ state[61] = temp_255__bin[61];
 state[62] = temp_255__bin[62];
 state[63] = temp_255__bin[63];
 shift_rows(state, sr_output, 1);
-uint32_t temp_258_rnge[(63 - 0) + 1];
+uint32_t temp_258_rnge[((63 - 0) + 1) + 1];
 extract_bs_range(temp_258_rnge, sr_output, 0, 63);
 uint8_t temp_259_init = 0;
 uint32_t temp_260_rnge_size = 0;

@@ -9,8 +9,9 @@
 #include "../LIB/sput.h"
 
 int main(){
-    // run();
-    run_led_tests();
+    // gm_bs_test();
+    run();
+    // run_led_tests();
 }
 
 // void tests()  {
@@ -32,14 +33,23 @@ void run()  {
         step(state,r);
     }
     addRoundKey(state,key);
+    printf("fin: ");
     hex_print(state,16,64);
 }
 
 void step(uint8_t *curr_state, int r) {
     addConstants(curr_state,r);
+    printf("cnst: ");
+    hex_print(curr_state,16,64);
     subCells(curr_state);
+    printf("sbox: ");
+    hex_print(curr_state,16,64);
     shiftRow(curr_state);
+    printf("sr: ");
+    hex_print(curr_state,16,64);
     mixColumnsSerial(curr_state);
+    printf("mcs: ");
+    hex_print(curr_state,16,64);
 }
 
 
@@ -60,7 +70,6 @@ void mixColumnsSerial(uint8_t *curr_state)   {
     uint8_t *curr_state_nibble = calloc(4,sizeof(uint8_t));
     uint8_t *curr_mds_nibble = malloc(4*sizeof(uint8_t));
     uint8_t *res = calloc(4,sizeof(uint8_t));
-    
     for(col = 0; col < 4; col++)   {
         curr_state_col = matrix_column(curr_state,4,16,col,64); //! Select nibble column of state
         for(col_row = 0; col_row < 4; col_row++)    {
@@ -110,8 +119,8 @@ void gm_bs_2(uint8_t g[8], uint8_t a[4], uint8_t b[4]){
     uint8_t hbs[1] = {0};
     uint8_t gf_poly[8] = {0,0,0,1,0,0,1,1};
     uint8_t one[8] = {0,0,0,0,0,0,0,1};
-    uint8_t a_in[8] = {0};
-    uint8_t b_in[8] = {0};
+    uint8_t a_in[4] = {0};
+    uint8_t b_in[4] = {0};
     for(int bit = 0; bit < 4; bit++)    {
         a_in[4 + bit] = a[bit];
     }
@@ -119,10 +128,6 @@ void gm_bs_2(uint8_t g[8], uint8_t a[4], uint8_t b[4]){
         b_in[4 + bit] = b[bit];
     }
     for(int deg = 0; deg < 4; deg++)    {
-        printf("A\n");
-        print_array(a_in,8);
-        printf("B\n");
-        print_array(b_in, 8);
         uint8_t f[1] = {0};
         uint8_t m[8] = {0};
         uint8_t t[8] = {0};
@@ -131,19 +136,16 @@ void gm_bs_2(uint8_t g[8], uint8_t a[4], uint8_t b[4]){
         for(int bit = 0; bit <8; bit++) {
             t[bit] = b_in[bit] & one[bit];
         }
-        printf("T\n");
-        print_array(t,8);
         for(int bit = 0; bit < 8; bit++) {
             f[0] = f[0] | t[bit];
         }
-        printf("FLAG : %d \n", f[0]);
         for(int bit = 0; bit < 8; bit++)    {
             m[bit] = f[0] & a_in[bit];
         }
         for(int bit = 0; bit <8; bit++) {
             g[bit] ^= (m[bit] & a_in[bit]);
         }
-        hbs[0] = a_in[7 - 3];
+        hbs[0] = a_in[3];
         shift_left_2(temp_a, a_in, 8, 1);
         for(int bit = 0; bit < 8; bit++)  {
             a_in[bit] = temp_a[bit];
@@ -197,7 +199,6 @@ void addConstants(uint8_t *state, int r)   {
     int row, ele,col;
     for(row = 0,ele = 0; row < 4; row++)    {
         memcpy(&(cnst[array_position(row,0,16)]),bitslice(row,4),4);
-
         if(row == 0 || row == 2)    {
             memcpy(&(cnst[array_position(row,5,16)]), &(RC[r][(RC_LENGTH - 5) - 1]), 3*sizeof(uint8_t) );
         } else {
@@ -354,15 +355,15 @@ void run_led_tests()    {
 // }
 
 void gm_bs_test()   {
-    uint8_t a[4] = {0,1,1,0};
-    uint8_t b[4] = {0,0,1,1};
+    uint8_t a[4] = {1,0,0,0};
+    uint8_t b[4] = {1,1,0,0};
     uint8_t g[8]= {0};
     uint8_t *res = gm_bs(a,b);
     gm_bs_2(g,a,b);
     printf("RES\n");
     print_array(g,8);
     // print_array(res,4);
-    printf("RES: %d \n",gm_std(6,3));
+    printf("RES: %d \n",gm_std(8,12));
     // printf("%d\n",gm_std_mask(8,10));
     // sput_fail_unless(res[0] == 1,"gm_mult test");
     // sput_fail_unless(res[1] == 0,"gm_mult test");

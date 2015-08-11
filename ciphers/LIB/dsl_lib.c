@@ -28,11 +28,11 @@ void hex_print(uint8_t *state, int row_width, int area)	{
 				lookup = (lookup << 1) ^ state[array_position(row,(nibble * 4) + bit, row_width)];
 
 			}
-			printf("%c ",hex_lookup[lookup]);
+			printf("%c",hex_lookup[lookup]);
 			lookup = 0;
 		}
-		printf("\n");
 	}
+	printf("\n");
 
 }
 
