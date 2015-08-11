@@ -48,10 +48,16 @@ void present_test_2()	{
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t key[80] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	int bit;
+	// int slice;
 	enc(key, state);
+	// for(slice = 0; slice < 32; slice++)	{
 	for(bit = 0; bit < 64; bit++)	{
+		// printf("%d ",(state[bit] >> slice) & 0x1);
 		sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
+		// sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
 	}
+	// 	printf("\n");
+	// }
 }
 
 void present_test_3()	{

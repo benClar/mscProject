@@ -160,7 +160,12 @@ void extract_bs_range(uint32_t *target, uint32_t *source, int start, int finish)
 void bitslice(uint32_t *target, long source, int var_size)	{
 	int bit;
 	for(bit = 0; bit < var_size; bit++)	{
-		target[bit] = ((source >> bit) & 1);
+		if ((source >> bit) & 1)	{
+			target[bit] = 0x1;
+			// target[bit] = 0xffffffff;
+		} else	{
+			target[bit] = 0;
+		}
 	}
 }
 

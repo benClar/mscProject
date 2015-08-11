@@ -59,6 +59,7 @@ void prince_test_2()	{
 	uint32_t key_1[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t RC[12][64];
 	int bit;
+	// int slice;
 	bitslice(RC[0],0x0000000000000000, 64);
 	bitslice(RC[1],0x13198a2e03707344, 64);
 	bitslice(RC[2],0xa4093822299f31d0, 64);
@@ -72,9 +73,17 @@ void prince_test_2()	{
 	bitslice(RC[10],0xd3b5a399ca0c2399, 64);
 	bitslice(RC[11],0xc0ac29b7c97c50dd, 64);
 	enc(RC, state, key_0, key_1);
+	// for(bit = 0; bit < 64; bit++)	{
+	// 	sput_fail_unless(state[bit] == exp_res[bit],"Prince Test 2");
+	// }
+	// for(slice = 0; slice < 32; slice++)	{
 	for(bit = 0; bit < 64; bit++)	{
-		sput_fail_unless(state[bit] == exp_res[bit],"Prince Test 2");
+		// printf("%d ",(state[bit] >> slice) & 0x1);
+		// sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
+		sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
 	}
+		// printf("\n");
+	// }
 }
 
 void prince_test_3(){
