@@ -5,16 +5,16 @@
 
 #include "led_dsl.h"
 uint32_t led_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~D & B & A) | (D & B & ~A) | (~D & C & ~B & ~A) | (D & C & ~B & A) | (D & ~C & ~A) | (~D & ~C & A)) & 0x1);
+return ((D & B & ~A) | (D & ~C & ~A) | (~D & B & A) | (~D & C & ~B & ~A) | (D & C & ~B & A) | (~D & ~C & A));
 }
 uint32_t led_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((D & ~C & ~B) | (~D & ~C & B) | (D & C & A) | (~C & B & ~A) | (~D & B & ~A) | (D & ~B & A)) & 0x1);
+return ((D & ~B & A) | (D & ~C & ~A) | (~C & B & ~A) | (~D & B & ~A) | (D & C & A) | (~D & ~C & B));
 }
 uint32_t led_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~C & ~B & A) | (~C & B & ~A) | (~D & C & B & A) | (D & ~B & A) | (D & C & ~B) | (~D & ~C & ~B)) & 0x1);
+return ((D & ~B & A) | (~C & ~B & A) | (~C & B & ~A) | (~D & C & B & A) | (~D & ~C & ~A) | (D & C & ~B));
 }
 uint32_t led_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return (((~D & B & A) | (~D & C & B) | (D & ~C & A) | (~D & C & ~A) | (~D & ~B & ~A) | (D & ~C & B) | (~C & B & A)) & 0x1);
+return ((~D & ~B & ~A) | (~D & B & A) | (D & ~C & B) | (~D & C & ~A) | (D & ~C & A) | (~C & B & A) | (~D & C & B));
 }
 void led(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -373,7 +373,7 @@ uint8_t  temp_125_extracted = 0;
 uint8_t temp_126_int_rng_start  = 0;
 uint8_t  temp_128_target_bit = 0;
 for(;temp_126_int_rng_start < 3;temp_126_int_rng_start++, temp_128_target_bit++){
-temp_125_extracted |= (((row >> temp_126_int_rng_start) & 0x1) << temp_128_target_bit);
+temp_125_extracted |= ((row >> temp_126_int_rng_start)  << temp_128_target_bit);
 }
 uint32_t temp_130__bin = 0;
 temp_130__bin = row * 16;

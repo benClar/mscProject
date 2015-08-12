@@ -21,15 +21,16 @@ int main() {
 
 
 void present_test_1()	{
-	uint32_t exp_res[64] = {1,0,0,1,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,1,0,0,1,1,0,1,0,1,1,1,1,0,0,0,0,0,0,1,1,0,1,1,0,0,0,1,0,0,0,1,1,0,1,0,0,1,1,1,0,0,1,1,1};
+	uint32_t exp_res[64] = {0x1,0,0,0x1,0,0,0x1,0,0,0,0,0,0x1,0,0x1,0,0,0,0x1,0,0x1,0,0,0x1,0x1,0,0x1,0,0x1,0x1,0x1,0x1,0,0,0,0,0,0,0x1,0x1,0,0x1,0x1,0,0,0,0x1,0,0,0,0x1,0x1,0,0x1,0,0,0x1,0x1,0x1,0,0,0x1,0x1,0x1};
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	uint32_t key[80] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	uint32_t key[80] = {0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
 	int bit;
 	// clock_t start, end;
 	// double cpu_time_used;
 	// start = clock();
 	// start = mach_absolute_time();
 	// uint64_t test =  mach_absolute_time();
+	int slice;
 	enc(key, state);
 	// end = mach_absolute_time();
 
@@ -38,46 +39,56 @@ void present_test_1()	{
 	// cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 	// printf("cpu time used : %f \n", cpu_time_used);
 
-	for(bit = 0; bit < 64; bit++)	{
-		sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
+	for(slice = 0; slice < 32; slice++)	{
+		for(bit = 0; bit < 64; bit++)	{
+			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
+			// sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
+		}
 	}
 }
 
 void present_test_2()	{
-	uint32_t exp_res[64] = {1,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,0,0,0,1,0,0,1,1,0,1,1,1,1,0,0,0,0,1,1,1,0,0,1,0,0,0,0,0,1,1,1,0,0,1,1,1,1,0,1,0,1,0,1,0,1,0};
+	uint32_t exp_res[64] = {0x1,0,0x1,0,0,0,0x1,0,0,0,0x1,0,0,0,0,0x1,0,0x1,0,0,0,0x1,0,0,0x1,0x1,0,0x1,0x1,0x1,0x1,0,0,0,0,0x1,0x1,0x1,0,0,0x1,0,0,0,0,0,0x1,0x1,0x1,0,0,0x1,0x1,0x1,0x1,0,0x1,0,0x1,0,0x1,0,0x1,0};
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t key[80] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	int bit;
-	// int slice;
+	int slice;
 	enc(key, state);
-	// for(slice = 0; slice < 32; slice++)	{
-	for(bit = 0; bit < 64; bit++)	{
-		// printf("%d ",(state[bit] >> slice) & 0x1);
-		sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
-		// sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
+	for(slice = 0; slice < 32; slice++)	{
+		for(bit = 0; bit < 64; bit++)	{
+			// sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
+			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 2");
+		}
+		printf("\n");
 	}
-	// 	printf("\n");
-	// }
 }
 
 void present_test_3()	{
-	uint32_t exp_res[64] = {1,1,0,1,1,1,1,0,1,0,0,0,0,0,1,0,0,0,0,1,0,1,1,0,1,1,1,1,0,1,0,0,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,0,1,0,0,1,0,0,0,1,0,0,0,0,1,0,1};
-	uint32_t state[64] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	uint32_t exp_res[64] = {0x1,0x1,0,0x1,0x1,0x1,0x1,0,0x1,0,0,0,0,0,0x1,0,0,0,0,0x1,0,0x1,0x1,0,0x1,0x1,0x1,0x1,0,0x1,0,0,0x1,0x1,0x1,0,0,0,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0,0x1,0,0,0x1,0,0,0,0x1,0,0,0,0,0x1,0,0x1};
+	uint32_t state[64] = {0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
 	uint32_t key[80] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	int bit;
+	int slice;
 	enc(key, state);
-	for(bit = 0; bit < 64; bit++)	{
-		sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
+	for(slice = 0; slice < 32; slice++)	{
+		for(bit = 0; bit < 64; bit++)	{
+			// sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
+				sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 3");
+		}
 	}
 }
 
 void present_test_4()	{
-	uint32_t exp_res[64] = {0,1,0,0,1,0,1,1,0,0,0,0,1,0,0,0,0,1,0,0,1,1,0,0,1,0,0,0,0,1,0,0,1,1,0,0,1,0,1,1,0,0,1,1,1,0,1,1,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0};
-	uint32_t state[64] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-	uint32_t key[80] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	uint32_t exp_res[64] = {0,0x1,0,0,0x1,0,0x1,0x1,0,0,0,0,0x1,0,0,0,0,0x1,0,0,0x1,0x1,0,0,0x1,0,0,0,0,0x1,0,0,0x1,0x1,0,0,0x1,0,0x1,0x1,0,0,0x1,0x1,0x1,0,0x1,0x1,0x1,0x1,0,0,0x1,0x1,0,0,0x1,0x1,0,0,0x1,0x1,0,0};
+	uint32_t state[64] = {0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
+	uint32_t key[80] = {0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
 	int bit;
+	int slice;
 	enc(key, state);
-	for(bit = 0; bit < 64; bit++)	{
-		sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
+	for(slice = 0; slice < 32; slice++)	{
+		for(bit = 0; bit < 64; bit++)	{
+			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 4");
+			// sput_fail_unless(state[bit] == exp_res[bit],"present Test 4");
+		}
 	}
 }

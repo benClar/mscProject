@@ -112,8 +112,8 @@ void int_to_bitsliced(uint32_t *target, uint32_t source, int var_size)	{
 	int val;
 	for(bit = 0; bit < var_size; bit++)	{
 		if ((source >> bit) & 0x1)	{
-			// val = 0xffffffff;
-			val = 0x1;
+			val = 0xffffffff;
+			// val = 0x1;
 		} else {
 			val = 0x0;
 		}
@@ -161,8 +161,8 @@ void bitslice(uint32_t *target, long source, int var_size)	{
 	int bit;
 	for(bit = 0; bit < var_size; bit++)	{
 		if ((source >> bit) & 1)	{
-			target[bit] = 0x1;
-			// target[bit] = 0xffffffff;
+			// target[bit] = 0x1;
+			target[bit] = 0xffffffff;
 		} else	{
 			target[bit] = 0;
 		}

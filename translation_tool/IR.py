@@ -354,7 +354,7 @@ class Index_select(object):
             target_bit = Target_factory.name(sym_count, "target_bit")
             result['emit'] += Target_factory.type_decl_lookup[self.target.constraints.translate()['result']] + " " + target_bit + " = 0;\n"
             result['emit'] += "for(;" + start_range_target + " < " + end_val['result'] + ";" + start_range_target + "++, " + target_bit + "++){\n"
-            result['emit'] += result['result'] + " |= " + "(((" + target + " >> " + start_range_target + ") & 0x1)" + " << " + target_bit + ");\n"
+            result['emit'] += result['result'] + " |= " + "((" + target + " >> " + start_range_target + ") " + " << " + target_bit + ");\n"
             result['emit'] += "}\n"
         else:
             raise ParseException("Unsupported selection operator on integer")
@@ -701,7 +701,7 @@ class Seq_decl(object):
             for term in boolean_result:
                 function += self.translate_term(term) + " | "
             function = function[:-3]
-            result += "((" + function + ") & 0x1);\n}\n"
+            result += "(" + function + ");\n}\n"
         return result
 
     def translate_term(self, term):
@@ -717,6 +717,7 @@ class Seq_decl(object):
                 raise ParseException("Internal Error: Unknown char in term")
         result = result[:-3]
         return "(" + result + ")"
+
     def get_ones(self, bit):
         ones = []
         for i, val in enumerate(self.value.value):
@@ -747,7 +748,7 @@ class Seq_decl(object):
     def bitslice_int(self, target, value, size):
         ret = ""
         for bit in range(size):
-            ret += target + "[" + str(bit) + "]" + " = " + "((" + value + " >> " + str(bit) + ")" + "&" + "0x1)" + ";\n"
+            ret += target + "[" + str(bit) + "]" + " = " + "(" + value + " >> " + str(bit) + ")" + ";\n"
         return ret
 
     def size_to_index(self, size):
