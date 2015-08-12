@@ -26,18 +26,23 @@ void present_test_1()	{
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t key[80] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 	int bit;
-	clock_t start, end;
-	// double cpu_time_used;
-	// start = clock();
-	start = mach_absolute_time();
-	// uint64_t test =  mach_absolute_time();
-	enc(key, state);
-	end = mach_absolute_time();
+	int slice;
 
-	printf("%lu\n", end - start);
-	// for(bit = 0; bit < 64; bit++)	{
-	// 	sput_fail_unless(state[bit] == exp_res[bit],"present Test 1");
-	// }
+	clock_t start, end, result = 0;
+
+	for(int run = 0; run < 100000; run++)	{
+		start = mach_absolute_time();
+		enc(key, state);
+		end = mach_absolute_time();
+		result += (end - start);
+		for(bit = 0; bit < 64; bit++)	{
+			state[bit] = 0;
+		}
+		for(bit = 0; bit < 80; bit++)	{
+			key[bit] = 0xffffffff;
+		}
+	}
+	printf("%lu\n", result / 100000);
 
 	// end = clock();
 	// cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;

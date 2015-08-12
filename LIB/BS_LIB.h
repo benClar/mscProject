@@ -21,6 +21,7 @@ void bitslice_bend(uint32_t *target, long source, int var_size);
 void int_to_bitsliced(uint32_t *target, uint32_t source, int var_size);
 double get_time();
 void hprint(uint32_t *target, int size);
+void hex_print(uint32_t *state, int row_width, int area);
 /*Tests*/
 
 void shift_testing();

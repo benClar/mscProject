@@ -172,8 +172,30 @@ void bitslice(uint32_t *target, long source, int var_size)	{
 void bitslice_bend(uint32_t *target, long source, int var_size)	{
 	int bit;
 	for(bit = 0; bit < var_size; bit++)	{
-		target[(var_size - bit) - 1] = ((source >> bit) & 1);
+		if ((source >> bit) & 1)	{
+			target[(var_size - bit) - 1] = 0x1;
+			// target[(var_size - bit) - 1] = 0xffffffff;
+		} else {
+			target[var_size - bit - 1] = 0;
+		}
 	}
+}
+
+void hex_print(uint32_t *state, int row_width, int area)	{
+
+	char hex_lookup[16] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+	int row, nibble, lookup = 0,bit;
+	for(row = 0; row < area/row_width; row++)	{
+		for(nibble = 0; nibble < row_width / 4; nibble++)	{
+			for(bit = 0; bit < 4; bit++)	{
+				lookup = (lookup << 1) ^ state[(row_width * row) + (nibble * 4) + bit];
+			}
+			printf("%c",hex_lookup[lookup]);
+			lookup = 0;
+		}
+	}
+	printf("\n");
+
 }
 
 /*Tests*/

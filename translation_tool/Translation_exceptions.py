@@ -27,9 +27,6 @@ class Semantic_analysis_errors():
                     DATA_TYPE.SBOX_DECL: lambda node, error_message: Semantic_analysis_errors.word_width_seq_decl_error(node, error_message),
                     DATA_TYPE.EXPR: lambda node, error_message: Semantic_analysis_errors.expr_error(node, error_message)}
 
-
-
-
     def int_decl_error(node, error_message):
         print(err_format.error.format("Error") + " in declaration of Int variable " + err_format.var.format(node.ID) + ":")
         print(err_format.msg.format(error_message))
