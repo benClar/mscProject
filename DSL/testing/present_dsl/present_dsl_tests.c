@@ -29,19 +29,19 @@ void present_test_1()	{
 
 	// clock_t start, end, result = 0;
 
-	// // for(int run = 0; run < 100000; run++)	{
-	// // 	start = mach_absolute_time();
+	// for(int run = 0; run < 100000; run++)	{
+	// 	start = mach_absolute_time();
 		enc(key, state);
-	// // 	end = mach_absolute_time();
-	// // 	result += (end - start);
-	// // 	for(bit = 0; bit < 64; bit++)	{
-	// // 		state[bit] = 0;
-	// // 	}
-	// // 	for(bit = 0; bit < 80; bit++)	{
-	// // 		key[bit] = 0xffffffff;
-	// // 	}
-	// // }
-	// // printf("%lu\n", result / 100000);
+	// 	end = mach_absolute_time();
+	// 	result += (end - start);
+	// 	for(bit = 0; bit < 64; bit++)	{
+	// 		state[bit] = 0;
+	// 	}
+	// 	for(bit = 0; bit < 80; bit++)	{
+	// 		key[bit] = 0xffffffff;
+	// 	}
+	// }
+	// printf("%lu\n", result / 100000);
 
 	for(slice = 0; slice < 32; slice++)	{
 		for(bit = 0; bit < 64; bit++)	{

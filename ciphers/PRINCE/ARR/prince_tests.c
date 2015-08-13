@@ -14,10 +14,10 @@ int main() {
 	sput_start_testing();
 	sput_enter_suite("Prince Test 1");
 	sput_run_test(prince_test_1);
-	sput_enter_suite("Prince Test 2");
-	sput_run_test(prince_test_2);
-	sput_enter_suite("Prince Test 3");
-	sput_run_test(prince_test_3);
+	// sput_enter_suite("Prince Test 2");
+	// sput_run_test(prince_test_2);
+	// sput_enter_suite("Prince Test 3");
+	// sput_run_test(prince_test_3);
 	sput_finish_testing();
 	return sput_get_return_value();
 }
@@ -43,20 +43,20 @@ void prince_test_1()	{
 	bitslice_bend(RC[11],0xc0ac29b7c97c50dd, 64);
 
 	clock_t start, end, result = 0;
-	// double cpu_time_used;
-	// start = clock();
-	// for(int run = 0; run < 100000; run++)	{
-	// 	start = mach_absolute_time();
+	double cpu_time_used;
+	start = clock();
+	for(int run = 0; run < 100000; run++)	{
+		start = mach_absolute_time();
 		enc(RC, state, key_0, key_1);
-	// 	end = mach_absolute_time();
-	// 	result += end - start;
-	// 	for(bit = 0; bit < 64; bit++)	{
-	// 		state[bit] = 0xffffffff;
-	// 		key_0[bit] = 0;
-	// 		key_1[bit] = 0;
-	// 	}
-	// }
-	// printf("%lu\n", result / 100000);
+		end = mach_absolute_time();
+		result += end - start;
+		for(bit = 0; bit < 64; bit++)	{
+			state[bit] = 0xffffffff;
+			key_0[bit] = 0;
+			key_1[bit] = 0;
+		}
+	}
+	printf("%lu\n", result / 100000);
 	// end = clock();
 	// cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 	// printf("cpu time used : %f \n", cpu_time_used);

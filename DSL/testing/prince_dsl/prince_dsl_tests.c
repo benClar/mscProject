@@ -42,7 +42,7 @@ void prince_test_1()	{
 	// for(int run = 0; run < 100000; run++)	{
 	// 	start = mach_absolute_time();
 		enc(RC, state, key_0, key_1);
-	// 	end = mach_absolute_time();
+		// end = mach_absolute_time();
 	// 	result += (end - start);
 	// 	for(bit = 0; bit < 64; bit++)	{
 	// 		state[bit] = 0xffffffff;

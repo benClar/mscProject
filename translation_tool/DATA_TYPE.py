@@ -161,8 +161,10 @@ class DATA_TYPE(Enum):
             return DATA_TYPE.BIT_VAL
         elif type_input == DATA_TYPE.BS_SEQ_INT_VAL:
             return DATA_TYPE.BS_INT_VAL
-        elif type_input == DATA_TYPE.INT_VAL or type_input == DATA_TYPE.BS_INT_VAL:
+        elif type_input == DATA_TYPE.INT_VAL:
             return DATA_TYPE.BIT_VAL
+        elif type_input == DATA_TYPE.BS_INT_VAL:
+            return DATA_TYPE.BS_BIT_VAL
         elif type_input == DATA_TYPE.SBOX_DECL:
             return DATA_TYPE.SEQ_BS_BIT_VAL
         elif type_input == DATA_TYPE.SEQ_BS_BIT_VAL:
@@ -193,7 +195,8 @@ class DATA_TYPE(Enum):
                                DATA_TYPE.BS_INT_VAL: [DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
                                DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.BS_SEQ_INT_VAL],
                                DATA_TYPE.SEQ_BS_BIT_VAL: [DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
-                               DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL]}
+                               DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
+                               DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BIT_VAL]}
         if value not in directly_assignable[target]:
             return True
         return False

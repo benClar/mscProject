@@ -438,7 +438,7 @@ class Semantic_analyser(object):
         target_id = self.sym_table.id(node.ID)
         if self.sym_table.dimension(node.ID) > len(ir_indices):
             return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices)
-        elif self.sym_table.dimension(node.ID) == len(ir_indices):
+        elif self.sym_table.dimension(node.ID) == len(ir_indices):            
             if self.is_range(ir_indices[-1]):
                 return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, target_id['type'])
             else:
@@ -456,9 +456,13 @@ class Semantic_analyser(object):
                         selection_type = DATA_TYPE.SEQ_BIT_VAL
                     return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, selection_type)
                 else:
-                    return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)    # Selecting a bit value of an integer element in an integer array
+                    if target_id['type'] == DATA_TYPE.BS_SEQ_INT_VAL:
+                        return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BS_BIT_VAL)
+                    elif target_id['type'] == DATA_TYPE.SEQ_INT_VAL:
+                        return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)    # Selecting a bit value of an integer element in an BS integer array
             else:
                 raise SemanticException(str(target_id['type']) + "[]" * len(ir_indices) + " cannot be selected from " + str(target_id['type']) + (self.sym_table.dimension(node.ID) * "[]"))
+
 
     def clean_up_expr(self, IR_expressions, result_type):
         """Reorders collected expression nodes"""

@@ -4,6 +4,8 @@ class Data_reader(object):
         return open(filename).read()
 
     def write(location, name, output):
+        if output == False:
+            return False
         include_c = \
         "#include <stdio.h>\n\
 #include <string.h>\n\
@@ -18,3 +20,4 @@ class Data_reader(object):
         with open("../DSL/testing/" + location + "/" + name + ".h", "w") as text_file:
             print(include_h, file=text_file)
             print(output['header'], file=text_file)
+        return True

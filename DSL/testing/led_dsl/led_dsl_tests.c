@@ -73,8 +73,19 @@ void led_test_1()	{
 	bitslice(RC[29],0x2E,6);
 	bitslice(RC[30],0x1C,6);
 	bitslice(RC[31],0x38,6);
+	// clock_t start, end, result = 0;
 
-	enc(state, key, MDS, RC);
+	// for(int run = 0; run < 1000; run++)	{
+	// 	start = mach_absolute_time();
+		enc(state, key, MDS, RC);
+	// 	end = mach_absolute_time();
+	// 	result += (end - start);
+	// 	for(bit = 0; bit < 64; bit++)	{
+	// 		state[bit] = 0;
+	// 		key[bit] = 0;
+	// 	}
+	// }
+	// printf("%lu\n", result / 1000);
 
 	for(slice = 0; slice < 32; slice++)	{
 		for(bit = 0; bit < 64; bit++)	{
