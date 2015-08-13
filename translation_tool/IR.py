@@ -359,6 +359,7 @@ class Index_select(object):
                 result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[" + temp_starting_ele + "]" + " = " + value['result'] + "[" + temp_starting_ele + "];\n"
                 result['emit'] += "}\n"
             else:
+                #Avoid loop for 1 bit bs int vals
                 selection_dims = self.translate_selection_dim(sym_count)
                 result['emit'] += selection_dims['emit']
                 result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[0] = " + value['result'] + "[0];\n"       
@@ -1103,45 +1104,6 @@ class Int_decl(object):
             #     result['emit'] += assignment_result['emit']
         return result['emit']
 
-    # def assign_int_val(self, value_result):
-    #     result = {'emit': "", 'result': ""}
-    #     if self.value.type == DATA_TYPE.INT_VAL:
-    #         result['emit'] += self.ID.translate()['result'] + " = " + value_result['result'] + ";\n"  
-    #     return result
-
-    # def translate_value(self):
-    #     ret = ""
-    #     if self.value is None:
-    #         return ""
-    #     else:
-    #         if self.node_type == DATA_TYPE.BS_INT_DECL:
-    #             if self.value.type == DATA_TYPE.INT_VAL:
-    #                 return "bitslice_assign(" + self.ID.translate() + ", " + self.value.translate() + ", " + self.constraints.value + ")" 
-    #             elif self.value.type == DATA_TYPE.BS_INT_VAL:
-    #                 for bit in range(int(self.constraints.translate())):
-    #                     ret += self.ID.translate() + "[" + str(bit) + "] = " + self.translate_value_to_bs(bit) + ";\n"
-    #                 ret = ret[:-2]
-    #                 return ret
-    #         else:
-    #             return " = " + self.value.translate()
-
-    # def translate_value_to_bs(self, bit):
-    #     assert DATA_TYPE.is_int_val(self.value.type), "Value to translate to bs is integer value in Int DECL"
-    #     if self.value.type == DATA_TYPE.INT_VAL:
-    #         return "(" + self.value.translate() + ")" + ">>" + str(bit) + "& 0x1"
-    #     elif self.value.type == DATA_TYPE.BS_INT_VAL:
-    #         return self.value.translate() + "[" + str(bit) + "]"
-
-    # def translate_as_stmt(self, sym_count):
-    #     ret = ""
-    #     if self.node_type == DATA_TYPE.BS_INT_DECL:
-    #         ret += self.translate_type() + self.ID.translate() + "[" + self.constraints.translate() + "]" + ";\n"
-    #         if self.value is not None:
-    #             ret += self.translate_value() + ";\n"
-    #     elif self.node_type == DATA_TYPE.INT_DECL:
-    #         ret = self.translate_type() + self.ID.translate() + self.translate_value() + ";\n"
-    #     return ret
-
     def translate_type(self):
         if self.constraints.value in Int_decl.type_decl_lookup or self.node_type == DATA_TYPE.BS_INT_DECL:
             if self.node_type == DATA_TYPE.INT_DECL:
@@ -1498,6 +1460,8 @@ class Binary_operation(object):
         if self.node_type == DATA_TYPE.BITWISE_OP:
             return self.bs_operation(sym_count, "bitslice_bitwise(")
             # self.bitslice_bitwise(sym_count, target)
+        if self.node_type == DATA_TYPE.ARITH_OP:
+            return self.bs_operation(sym_count, "bitslice_arithmetic(")
         else:
             raise ParseException("unrecognised bs int operation type" + str(self.node_type))
 

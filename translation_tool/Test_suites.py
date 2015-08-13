@@ -961,8 +961,8 @@ class test_translation(unittest.TestCase):
     #         assert_equals(subprocess.call(['../DSL/testing/general_dsl/./run_tests.sh']), 0)
         # print(par.semantic_analyser.IR.translate()['main'])
 
-    # def test_LFSR_translation(self):
-        # par = Parser()
+    def test_LFSR_translation(self):
+        par = Parser()
         # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(1) generate_bit(@Int(8) state) {\
         #                                                                     @Int(1) output;\
         #                                                                     @Int(1) input;\
@@ -979,272 +979,272 @@ class test_translation(unittest.TestCase):
         #                                                                     }\
         #                                                                 }\
         #                                                                 ")), True)
-        # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(1) generate_bit(@Int(8) state) {\
-        #                                                                     @Int(1) output;\
-        #                                                                     return output;\
-        #                                                                 }\
-        #                                                                 void lfsr(@Int(8) state){\
-        #                                                                     @Int(1)[32] rndm_bits;\
-        #                                                                     rndm_bits[4] = generate_bit(state);\
-        #                                                                 }\
-        #                                                                 ")), True)
-        # print(par.semantic_analyser.IR.translate()['main'])
-
-
-    def test_PRINCE_translation(self):
-            par = Parser()
-            assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4];\
-                                                                            Sbox(4)[16] prince_inv = [0xb, 0x7, 0x3, 0x2, 0xf, 0xd, 0x8, 0x9, 0xa, 0x6, 0x4, 0x0, 0x5, 0xe, 0xc, 0x1];\
-                                                                            void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
-                                                                                @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
-                                                                                state = state ^ key_0;\
-                                                                                state = state ^ RC[0][0:64];\
-                                                                                first_rounds(state,key_1,RC,prince);\
-                                                                                sBox_layer(state, prince);\
-                                                                                mPrime(state);\
-                                                                                sBox_layer_inv(state, prince);\
-                                                                                last_rounds(state,key_1,RC,prince);\
-                                                                                state = ((RC[11] ^ key_1) ^ state);\
-                                                                                state = state ^ key_prime;\
-                                                                            }\
-                                                                            void m0(@Int(16) state, @Int(16) output)   {\
-                                                                                output[15] = state[11] ^ state[7] ^ state[3];\
-                                                                                output[14] = state[14] ^ state[6] ^ state[2];\
-                                                                                output[13] = state[13] ^ state[9] ^ state[1];\
-                                                                                output[12] = state[12] ^ state[8] ^ state[4];\
-                                                                                output[11] = state[15] ^ state[11] ^ state[7];\
-                                                                                output[10] = state[10] ^ state[6] ^ state[2];\
-                                                                                output[9] = state[13] ^ state[5] ^ state[1];\
-                                                                                output[8] = state[12] ^ state[8] ^ state[0];\
-                                                                                output[7] = state[15] ^ state[11] ^ state[3];\
-                                                                                output[6] = state[14] ^ state[10] ^ state[6];\
-                                                                                output[5] = state[9] ^ state[5] ^ state[1];\
-                                                                                output[4] = state[12] ^ state[4] ^ state[0];\
-                                                                                output[3] = state[15] ^ state[7] ^ state[3];\
-                                                                                output[2] = state[14] ^ state[10] ^ state[2];\
-                                                                                output[1] = state[13] ^ state[9] ^ state[5];\
-                                                                                output[0] = state[8] ^ state[4] ^ state[0];\
-                                                                            }\
-                                                                            void m1(@Int(16) state, @Int(16) output)   {\
-                                                                                output[15] = state[15] ^ state[11] ^ state[7];\
-                                                                                output[14] = state[10] ^ state[6] ^ state[2];\
-                                                                                output[13] = state[13] ^ state[5] ^ state[1];\
-                                                                                output[12] = state[12] ^ state[8] ^ state[0];\
-                                                                                output[11] = state[15] ^ state[11] ^ state[3];\
-                                                                                output[10] = state[14] ^ state[10] ^ state[6];\
-                                                                                output[9] = state[9] ^ state[5] ^ state[1];\
-                                                                                output[8] = state[12] ^ state[4] ^ state[0];\
-                                                                                output[7] = state[15] ^ state[7] ^ state[3];\
-                                                                                output[6] = state[14] ^ state[10] ^ state[2];\
-                                                                                output[5] = state[13] ^ state[9] ^ state[5];\
-                                                                                output[4] = state[8] ^ state[4] ^ state[0];\
-                                                                                output[3] = state[11] ^ state[7] ^ state[3];\
-                                                                                output[2] = state[14] ^ state[6] ^ state[2];\
-                                                                                output[1] = state[13] ^ state[9] ^ state[1];\
-                                                                                output[0] = state[12] ^ state[8] ^ state[4];\
-                                                                            }\
-                                                                            void mPrime(@Int(64) state)    {\
-                                                                                @Int(16) output;\
-                                                                                m0(state[0:15], output);\
-                                                                                state[0:15] = output[0:15];\
-                                                                                m1(state[16:31], output);\
-                                                                                state[16:31] =  output[0:15];\
-                                                                                m1(state[32:47], output);\
-                                                                                state[32:47] = output[0:15];\
-                                                                                m0(state[48:63], output);\
-                                                                                state[48:63] = output[0:15];\
-                                                                            }\
-                                                                            void sBox_layer(@Int(64) state, Sbox(4)[16] prince)  {\
-                                                                                for(Int(8) i = 0; i < 16; i = i + 1){\
-                                                                                    state[(i * 4) : (i * 4) + 3] = prince[state[(i * 4) : (i * 4) + 3]];\
-                                                                                }\
-                                                                            }\
-                                                                            void sBox_layer_inv(@Int(64) state, Sbox(4)[16] prince_inv)  {\
-                                                                                for(Int(8) i = 0; i < 16; i = i + 1){\
-                                                                                    state[(i * 4) : (i * 4) + 3] = prince_inv[state[(i * 4) : (i * 4) + 3]];\
-                                                                                }\
-                                                                            }\
-                                                                            void shift_rows(@Int(64) state, @Int(64) output, Int(8) inverse){\
-                                                                                Int(8) target = 0;\
-                                                                                output[59 : 63] = state[59 : 63];\
-                                                                                for(Int(8) nibble = 1; nibble < 16; nibble = nibble + 1){\
-                                                                                    if(inverse == 1){\
-                                                                                        target = (target + 5) % 16;\
-                                                                                    }\
-                                                                                    if(inverse == 0){\
-                                                                                        target = (target + 13) % 16;\
-                                                                                    }\
-                                                                                    output[(63 - (target * 4)) - 3 : 63 - (target * 4)] = state[(63 - (nibble * 4)) - 3 : 63 - (nibble * 4)];\
-                                                                                }\
-                                                                            }\
-                                                                            void first_rounds(@Int(64) state, @Int(64) key, @Int(64)[11] RC, Sbox(4)[16] prince){\
-                                                                                @Int(64) sr_output;\
-                                                                                for(Int(8) r = 1; r < 6; r = r + 1){\
-                                                                                    sBox_layer(state, prince);\
-                                                                                    mPrime(state);\
-                                                                                    shift_rows(state, sr_output, 0);\
-                                                                                    state[0:63] = sr_output[0:63];\
-                                                                                    state = ((RC[r] ^ key) ^ state);\
-                                                                                }\
-                                                                            }\
-                                                                            void last_rounds(@Int(64) state, @Int(64) key, @Int(64)[11] RC, Sbox(4)[16] prince){\
-                                                                                @Int(64) sr_output;\
-                                                                                for(Int(8) r = 6; r < 11; r = r + 1){\
-                                                                                    state = ((RC[r] ^ key) ^ state);\
-                                                                                    shift_rows(state, sr_output, 1);\
-                                                                                    state[0:63] = sr_output[0:63];\
-                                                                                    mPrime(state);\
-                                                                                    sBox_layer_inv(state, prince);\
-                                                                                }\
-                                                                            }\
-                                                                            ")), True)
-            Data_reader.write("prince_dsl", "prince_dsl", par.semantic_analyser.IR.translate())
-            assert_equals(subprocess.call(['../DSL/testing/prince_dsl/./run_tests.sh']), 0)
-
-    def test_PRESENT_translation(self):
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] present = [0xc, 0x5, 0x6, 0xB, 0x9, 0x0, 0xa, 0xd, 0x3, 0xe, 0xf, 0x8, 0x4, 0x7, 0x1, 0x2];\
-                                                                        void pLayer(@Int(64) state) {\
-                                                                            Int(8) target_bit;\
-                                                                            @Int(64) temp = state;\
-                                                                            for(Int(8) bit = 0; bit < 64; bit = bit + 1)    {\
-                                                                                target_bit = (16*bit) % 63;\
-                                                                                if(bit == 63)   {\
-                                                                                    target_bit = 63;\
-                                                                                }\
-                                                                                state[target_bit] = temp[bit];\
-                                                                            }\
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(1) generate_bit(@Int(8) state) {\
+                                                                            @Int(1) output;\
+                                                                            return output;\
                                                                         }\
-                                                                        void generate_round_keys(@Int(80) key, Sbox(4)[16] present, @Int(64)[32] round_keys) {\
-                                                                                for(Int(8) round = 1; round < 33; round = round + 1)    {\
-                                                                                        round_keys[round - 1][0: 63] = key[16:79];\
-                                                                                        key = key <<< 61;\
-                                                                                        key[76 : 79] = present[key[76:79]];\
-                                                                                        key[15 : 19] = key[15 : 19] ^ round[0 : 5];\
-                                                                                    }\
-                                                                        }\
-                                                                        void sBox_layer(@Int(64) state, Sbox(4)[16] present)  {\
-                                                                            for(Int(8) i = 0; i < 16; i = i + 1){\
-                                                                                state[(i * 4) : (i * 4) + 3] = present[state[(i * 4) : (i * 4) + 3]];\
-                                                                            }\
-                                                                        }\
-                                                                        void enc(@Int(80) key, @Int(64) state){\
-                                                                            @Int(64)[32] round_keys;\
-                                                                            generate_round_keys(key, present, round_keys);\
-                                                                            for(Int(8) round = 0; round < 31; round = round + 1) {\
-                                                                                state = state ^ round_keys[round];\
-                                                                                sBox_layer(state,present);\
-                                                                                pLayer(state);\
-                                                                            }\
-                                                                            state = state ^ round_keys[31];\
-                                                                      }\
-                                                                        ")), True)
-        Data_reader.write("present_dsl", "present_dsl", par.semantic_analyser.IR.translate())
-        assert_equals(subprocess.call(['../DSL/testing/present_dsl/./run_tests.sh']), 0)
-
-    def test_LED_translation(self):
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] led = [0xc, 0x5, 0x6, 0xB, 0x9, 0x0, 0xa, 0xd, 0x3, 0xe, 0xf, 0x8, 0x4, 0x7, 0x1, 0x2];\
-                                                                        void gmMult(@Int(4) output, @Int(4) a, @Int(4) b) {\
-                                                                            @Int(4) a_out = a;\
-                                                                            @Int(4) b_out = b;\
-                                                                            @Int(4) GF_R = 0x13;\
-                                                                            @Int(4) t;\
-                                                                            @Int(1) f;\
-                                                                            @Int(1) high = 0;\
-                                                                            @Int(4) mask;\
-                                                                            Int(8) bit = 0;\
-                                                                            output = 0;\
-                                                                            for(Int(8) degree = 0; degree < 4; degree = degree + 1) {\
-                                                                                f = 0;\
-                                                                                t = b_out & 0x1;\
-                                                                                for(bit = 0; bit < 4; bit = bit + 1)    {\
-                                                                                    f[0] = f[0] | t[bit];\
-                                                                                }\
-                                                                                for(bit = 0; bit < 4; bit = bit + 1) {\
-                                                                                    mask[bit] = f[0] & a_out[bit];\
-                                                                                }\
-                                                                                output = output ^ (mask & a_out);\
-                                                                                high[0] = a_out[3];\
-                                                                                a_out = a_out << 1;\
-                                                                                for(bit = 0; bit < 4; bit = bit + 1){\
-                                                                                    a_out[bit] = a_out[bit] ^ (high[0] & GF_R[bit]);\
-                                                                                }\
-                                                                                b_out = b_out >> 1;\
-                                                                            }\
-                                                                        }\
-                                                                        void MixColumnSerial(@Int(64) state, @Int(4)[16] MDS) {\
-                                                                            @Int(4)[4] column;\
-                                                                            @Int(4) a, b, c, d;\
-                                                                            for(Int(8) col = 0; col < 4; col = col + 1)  {\
-                                                                                column[0][0] = state[col * 4];\
-                                                                                column[0][1] = state[col * 4 + 1];\
-                                                                                column[0][2] = state[col * 4 + 2];\
-                                                                                column[0][3] = state[col * 4 + 3];\
-                                                                                column[0][0] = state[col * 4];\
-                                                                                column[1][0] = state[((col + 4) * 4)];\
-                                                                                column[1][1] = state[((col + 4) * 4) + 1];\
-                                                                                column[1][2] = state[((col + 4) * 4) + 2];\
-                                                                                column[1][3] = state[((col + 4) * 4) + 3];\
-                                                                                column[2][0] = state[((col + 8) * 4)];\
-                                                                                column[2][1] = state[((col + 8) * 4) + 1];\
-                                                                                column[2][2] = state[((col + 8) * 4) + 2];\
-                                                                                column[2][3] = state[((col + 8) * 4) + 3];\
-                                                                                column[3][0] = state[((col + 12) * 4)];\
-                                                                                column[3][1] = state[((col + 12) * 4) + 1];\
-                                                                                column[3][2] = state[((col + 12) * 4) + 2];\
-                                                                                column[3][3] = state[((col + 12) * 4) + 3];\
-                                                                                for(Int(8) col_nibble = 0; col_nibble < 4; col_nibble = col_nibble + 1) {\
-                                                                                    gmMult(a, MDS[(col_nibble * 4)], column[0]);\
-                                                                                    gmMult(b, MDS[(col_nibble * 4) + 1], column[1]);\
-                                                                                    gmMult(c, MDS[(col_nibble * 4) + 2], column[2]);\
-                                                                                    gmMult(d, MDS[(col_nibble * 4) + 3], column[3]);\
-                                                                                    state[(col * 4) + (col_nibble * 16) : ((col * 4) + (col_nibble * 16)) + 3] = a ^ b ^ c ^ d;\
-                                                                                }\
-                                                                            }\
-                                                                        }\
-                                                                        void shift_row(@Int(64) state)   {\
-                                                                            state[16 : 31] = state[16 : 31] >>> 4;\
-                                                                            state[32 : 47] = state[32 : 47] >>> 8;\
-                                                                            state[48 : 63] = state[48 : 63] >>> 12;\
-                                                                        }\
-                                                                        void addConstants(@Int(64) state, @Int(6) constant)  {\
-                                                                            @Int(64) roundConstant;\
-                                                                            for(Int(8) row = 0; row < 4; row = row + 1)  {\
-                                                                                roundConstant[row * 16 : (row * 16) + 3] = row[0:3];\
-                                                                                if(row == 0 || row == 2)    {\
-                                                                                    roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[3:5];\
-                                                                                }\
-                                                                                if(row == 1 || row == 3) {\
-                                                                                    roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[0:2];\
-                                                                                }\
-                                                                                roundConstant[(row * 16) + 8 : (row * 16) + 15 ] = 0;\
-                                                                            }\
-                                                                                state = state ^ roundConstant;\
-                                                                        }\
-                                                                        void subCells(@Int(64) state, Sbox(4)[16] led)  {\
-                                                                            for(Int(8) i = 0; i < 16; i = i + 1){\
-                                                                                state[(i * 4) : (i * 4) + 3] = led[state[(i * 4) : (i * 4) + 3]];\
-                                                                            }\
-                                                                        }\
-                                                                        void step(@Int(64) state, @Int(6) r, @Int(4)[16] MDS){\
-                                                                            addConstants(state, r);\
-                                                                            subCells(state,led);\
-                                                                            shift_row(state);\
-                                                                            MixColumnSerial(state, MDS);\
-                                                                        }\
-                                                                        void enc(@Int(64) state, @Int(64) key, @Int(4)[16] MDS, @Int(6)[32] RC){\
-                                                                            for(Int(8) r = 0; r < 32; r = r + 1) {\
-                                                                                if((r % 4) == 0){\
-                                                                                    state = state ^ key;\
-                                                                                }\
-                                                                                step(state, RC[r], MDS);\
-                                                                            }\
-                                                                            state = state ^ key;\
+                                                                        void lfsr(@Int(8) state){\
+                                                                            @Int(1)[32] rndm_bits;\
+                                                                            rndm_bits[4] = generate_bit(state) & 5;\
                                                                         }\
                                                                         ")), True)
-        Data_reader.write("led_dsl", "led_dsl", par.semantic_analyser.IR.translate())
-        assert_equals(subprocess.call(['../DSL/testing/led_dsl/./run_tests.sh']), 0)
+        print(par.semantic_analyser.IR.translate()['main'])
+
+
+    # def test_PRINCE_translation(self):
+    #         par = Parser()
+    #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4];\
+    #                                                                         Sbox(4)[16] prince_inv = [0xb, 0x7, 0x3, 0x2, 0xf, 0xd, 0x8, 0x9, 0xa, 0x6, 0x4, 0x0, 0x5, 0xe, 0xc, 0x1];\
+    #                                                                         void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
+    #                                                                             @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
+    #                                                                             state = state ^ key_0;\
+    #                                                                             state = state ^ RC[0][0:64];\
+    #                                                                             first_rounds(state,key_1,RC,prince);\
+    #                                                                             sBox_layer(state, prince);\
+    #                                                                             mPrime(state);\
+    #                                                                             sBox_layer_inv(state, prince);\
+    #                                                                             last_rounds(state,key_1,RC,prince);\
+    #                                                                             state = ((RC[11] ^ key_1) ^ state);\
+    #                                                                             state = state ^ key_prime;\
+    #                                                                         }\
+    #                                                                         void m0(@Int(16) state, @Int(16) output)   {\
+    #                                                                             output[15] = state[11] ^ state[7] ^ state[3];\
+    #                                                                             output[14] = state[14] ^ state[6] ^ state[2];\
+    #                                                                             output[13] = state[13] ^ state[9] ^ state[1];\
+    #                                                                             output[12] = state[12] ^ state[8] ^ state[4];\
+    #                                                                             output[11] = state[15] ^ state[11] ^ state[7];\
+    #                                                                             output[10] = state[10] ^ state[6] ^ state[2];\
+    #                                                                             output[9] = state[13] ^ state[5] ^ state[1];\
+    #                                                                             output[8] = state[12] ^ state[8] ^ state[0];\
+    #                                                                             output[7] = state[15] ^ state[11] ^ state[3];\
+    #                                                                             output[6] = state[14] ^ state[10] ^ state[6];\
+    #                                                                             output[5] = state[9] ^ state[5] ^ state[1];\
+    #                                                                             output[4] = state[12] ^ state[4] ^ state[0];\
+    #                                                                             output[3] = state[15] ^ state[7] ^ state[3];\
+    #                                                                             output[2] = state[14] ^ state[10] ^ state[2];\
+    #                                                                             output[1] = state[13] ^ state[9] ^ state[5];\
+    #                                                                             output[0] = state[8] ^ state[4] ^ state[0];\
+    #                                                                         }\
+    #                                                                         void m1(@Int(16) state, @Int(16) output)   {\
+    #                                                                             output[15] = state[15] ^ state[11] ^ state[7];\
+    #                                                                             output[14] = state[10] ^ state[6] ^ state[2];\
+    #                                                                             output[13] = state[13] ^ state[5] ^ state[1];\
+    #                                                                             output[12] = state[12] ^ state[8] ^ state[0];\
+    #                                                                             output[11] = state[15] ^ state[11] ^ state[3];\
+    #                                                                             output[10] = state[14] ^ state[10] ^ state[6];\
+    #                                                                             output[9] = state[9] ^ state[5] ^ state[1];\
+    #                                                                             output[8] = state[12] ^ state[4] ^ state[0];\
+    #                                                                             output[7] = state[15] ^ state[7] ^ state[3];\
+    #                                                                             output[6] = state[14] ^ state[10] ^ state[2];\
+    #                                                                             output[5] = state[13] ^ state[9] ^ state[5];\
+    #                                                                             output[4] = state[8] ^ state[4] ^ state[0];\
+    #                                                                             output[3] = state[11] ^ state[7] ^ state[3];\
+    #                                                                             output[2] = state[14] ^ state[6] ^ state[2];\
+    #                                                                             output[1] = state[13] ^ state[9] ^ state[1];\
+    #                                                                             output[0] = state[12] ^ state[8] ^ state[4];\
+    #                                                                         }\
+    #                                                                         void mPrime(@Int(64) state)    {\
+    #                                                                             @Int(16) output;\
+    #                                                                             m0(state[0:15], output);\
+    #                                                                             state[0:15] = output[0:15];\
+    #                                                                             m1(state[16:31], output);\
+    #                                                                             state[16:31] =  output[0:15];\
+    #                                                                             m1(state[32:47], output);\
+    #                                                                             state[32:47] = output[0:15];\
+    #                                                                             m0(state[48:63], output);\
+    #                                                                             state[48:63] = output[0:15];\
+    #                                                                         }\
+    #                                                                         void sBox_layer(@Int(64) state, Sbox(4)[16] prince)  {\
+    #                                                                             for(Int(8) i = 0; i < 16; i = i + 1){\
+    #                                                                                 state[(i * 4) : (i * 4) + 3] = prince[state[(i * 4) : (i * 4) + 3]];\
+    #                                                                             }\
+    #                                                                         }\
+    #                                                                         void sBox_layer_inv(@Int(64) state, Sbox(4)[16] prince_inv)  {\
+    #                                                                             for(Int(8) i = 0; i < 16; i = i + 1){\
+    #                                                                                 state[(i * 4) : (i * 4) + 3] = prince_inv[state[(i * 4) : (i * 4) + 3]];\
+    #                                                                             }\
+    #                                                                         }\
+    #                                                                         void shift_rows(@Int(64) state, @Int(64) output, Int(8) inverse){\
+    #                                                                             Int(8) target = 0;\
+    #                                                                             output[59 : 63] = state[59 : 63];\
+    #                                                                             for(Int(8) nibble = 1; nibble < 16; nibble = nibble + 1){\
+    #                                                                                 if(inverse == 1){\
+    #                                                                                     target = (target + 5) % 16;\
+    #                                                                                 }\
+    #                                                                                 if(inverse == 0){\
+    #                                                                                     target = (target + 13) % 16;\
+    #                                                                                 }\
+    #                                                                                 output[(63 - (target * 4)) - 3 : 63 - (target * 4)] = state[(63 - (nibble * 4)) - 3 : 63 - (nibble * 4)];\
+    #                                                                             }\
+    #                                                                         }\
+    #                                                                         void first_rounds(@Int(64) state, @Int(64) key, @Int(64)[11] RC, Sbox(4)[16] prince){\
+    #                                                                             @Int(64) sr_output;\
+    #                                                                             for(Int(8) r = 1; r < 6; r = r + 1){\
+    #                                                                                 sBox_layer(state, prince);\
+    #                                                                                 mPrime(state);\
+    #                                                                                 shift_rows(state, sr_output, 0);\
+    #                                                                                 state[0:63] = sr_output[0:63];\
+    #                                                                                 state = ((RC[r] ^ key) ^ state);\
+    #                                                                             }\
+    #                                                                         }\
+    #                                                                         void last_rounds(@Int(64) state, @Int(64) key, @Int(64)[11] RC, Sbox(4)[16] prince){\
+    #                                                                             @Int(64) sr_output;\
+    #                                                                             for(Int(8) r = 6; r < 11; r = r + 1){\
+    #                                                                                 state = ((RC[r] ^ key) ^ state);\
+    #                                                                                 shift_rows(state, sr_output, 1);\
+    #                                                                                 state[0:63] = sr_output[0:63];\
+    #                                                                                 mPrime(state);\
+    #                                                                                 sBox_layer_inv(state, prince);\
+    #                                                                             }\
+    #                                                                         }\
+    #                                                                         ")), True)
+    #         Data_reader.write("prince_dsl", "prince_dsl", par.semantic_analyser.IR.translate())
+    #         assert_equals(subprocess.call(['../DSL/testing/prince_dsl/./run_tests.sh']), 0)
+
+    # def test_PRESENT_translation(self):
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] present = [0xc, 0x5, 0x6, 0xB, 0x9, 0x0, 0xa, 0xd, 0x3, 0xe, 0xf, 0x8, 0x4, 0x7, 0x1, 0x2];\
+    #                                                                     void pLayer(@Int(64) state) {\
+    #                                                                         Int(8) target_bit;\
+    #                                                                         @Int(64) temp = state;\
+    #                                                                         for(Int(8) bit = 0; bit < 64; bit = bit + 1)    {\
+    #                                                                             target_bit = (16*bit) % 63;\
+    #                                                                             if(bit == 63)   {\
+    #                                                                                 target_bit = 63;\
+    #                                                                             }\
+    #                                                                             state[target_bit] = temp[bit];\
+    #                                                                         }\
+    #                                                                     }\
+    #                                                                     void generate_round_keys(@Int(80) key, Sbox(4)[16] present, @Int(64)[32] round_keys) {\
+    #                                                                             for(Int(8) round = 1; round < 33; round = round + 1)    {\
+    #                                                                                     round_keys[round - 1][0: 63] = key[16:79];\
+    #                                                                                     key = key <<< 61;\
+    #                                                                                     key[76 : 79] = present[key[76:79]];\
+    #                                                                                     key[15 : 19] = key[15 : 19] ^ round[0 : 5];\
+    #                                                                                 }\
+    #                                                                     }\
+    #                                                                     void sBox_layer(@Int(64) state, Sbox(4)[16] present)  {\
+    #                                                                         for(Int(8) i = 0; i < 16; i = i + 1){\
+    #                                                                             state[(i * 4) : (i * 4) + 3] = present[state[(i * 4) : (i * 4) + 3]];\
+    #                                                                         }\
+    #                                                                     }\
+    #                                                                     void enc(@Int(80) key, @Int(64) state){\
+    #                                                                         @Int(64)[32] round_keys;\
+    #                                                                         generate_round_keys(key, present, round_keys);\
+    #                                                                         for(Int(8) round = 0; round < 31; round = round + 1) {\
+    #                                                                             state = state ^ round_keys[round];\
+    #                                                                             sBox_layer(state,present);\
+    #                                                                             pLayer(state);\
+    #                                                                         }\
+    #                                                                         state = state ^ round_keys[31];\
+    #                                                                   }\
+    #                                                                     ")), True)
+    #     Data_reader.write("present_dsl", "present_dsl", par.semantic_analyser.IR.translate())
+    #     assert_equals(subprocess.call(['../DSL/testing/present_dsl/./run_tests.sh']), 0)
+
+    # def test_LED_translation(self):
+    #     par = Parser()
+    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] led = [0xc, 0x5, 0x6, 0xB, 0x9, 0x0, 0xa, 0xd, 0x3, 0xe, 0xf, 0x8, 0x4, 0x7, 0x1, 0x2];\
+    #                                                                     void gmMult(@Int(4) output, @Int(4) a, @Int(4) b) {\
+    #                                                                         @Int(4) a_out = a;\
+    #                                                                         @Int(4) b_out = b;\
+    #                                                                         @Int(4) GF_R = 0x13;\
+    #                                                                         @Int(4) t;\
+    #                                                                         @Int(1) f;\
+    #                                                                         @Int(1) high = 0;\
+    #                                                                         @Int(4) mask;\
+    #                                                                         Int(8) bit = 0;\
+    #                                                                         output = 0;\
+    #                                                                         for(Int(8) degree = 0; degree < 4; degree = degree + 1) {\
+    #                                                                             f = 0;\
+    #                                                                             t = b_out & 0x1;\
+    #                                                                             for(bit = 0; bit < 4; bit = bit + 1)    {\
+    #                                                                                 f[0] = f[0] | t[bit];\
+    #                                                                             }\
+    #                                                                             for(bit = 0; bit < 4; bit = bit + 1) {\
+    #                                                                                 mask[bit] = f[0] & a_out[bit];\
+    #                                                                             }\
+    #                                                                             output = output ^ (mask & a_out);\
+    #                                                                             high[0] = a_out[3];\
+    #                                                                             a_out = a_out << 1;\
+    #                                                                             for(bit = 0; bit < 4; bit = bit + 1){\
+    #                                                                                 a_out[bit] = a_out[bit] ^ (high[0] & GF_R[bit]);\
+    #                                                                             }\
+    #                                                                             b_out = b_out >> 1;\
+    #                                                                         }\
+    #                                                                     }\
+    #                                                                     void MixColumnSerial(@Int(64) state, @Int(4)[16] MDS) {\
+    #                                                                         @Int(4)[4] column;\
+    #                                                                         @Int(4) a, b, c, d;\
+    #                                                                         for(Int(8) col = 0; col < 4; col = col + 1)  {\
+    #                                                                             column[0][0] = state[col * 4];\
+    #                                                                             column[0][1] = state[col * 4 + 1];\
+    #                                                                             column[0][2] = state[col * 4 + 2];\
+    #                                                                             column[0][3] = state[col * 4 + 3];\
+    #                                                                             column[0][0] = state[col * 4];\
+    #                                                                             column[1][0] = state[((col + 4) * 4)];\
+    #                                                                             column[1][1] = state[((col + 4) * 4) + 1];\
+    #                                                                             column[1][2] = state[((col + 4) * 4) + 2];\
+    #                                                                             column[1][3] = state[((col + 4) * 4) + 3];\
+    #                                                                             column[2][0] = state[((col + 8) * 4)];\
+    #                                                                             column[2][1] = state[((col + 8) * 4) + 1];\
+    #                                                                             column[2][2] = state[((col + 8) * 4) + 2];\
+    #                                                                             column[2][3] = state[((col + 8) * 4) + 3];\
+    #                                                                             column[3][0] = state[((col + 12) * 4)];\
+    #                                                                             column[3][1] = state[((col + 12) * 4) + 1];\
+    #                                                                             column[3][2] = state[((col + 12) * 4) + 2];\
+    #                                                                             column[3][3] = state[((col + 12) * 4) + 3];\
+    #                                                                             for(Int(8) col_nibble = 0; col_nibble < 4; col_nibble = col_nibble + 1) {\
+    #                                                                                 gmMult(a, MDS[(col_nibble * 4)], column[0]);\
+    #                                                                                 gmMult(b, MDS[(col_nibble * 4) + 1], column[1]);\
+    #                                                                                 gmMult(c, MDS[(col_nibble * 4) + 2], column[2]);\
+    #                                                                                 gmMult(d, MDS[(col_nibble * 4) + 3], column[3]);\
+    #                                                                                 state[(col * 4) + (col_nibble * 16) : ((col * 4) + (col_nibble * 16)) + 3] = a ^ b ^ c ^ d;\
+    #                                                                             }\
+    #                                                                         }\
+    #                                                                     }\
+    #                                                                     void shift_row(@Int(64) state)   {\
+    #                                                                         state[16 : 31] = state[16 : 31] >>> 4;\
+    #                                                                         state[32 : 47] = state[32 : 47] >>> 8;\
+    #                                                                         state[48 : 63] = state[48 : 63] >>> 12;\
+    #                                                                     }\
+    #                                                                     void addConstants(@Int(64) state, @Int(6) constant)  {\
+    #                                                                         @Int(64) roundConstant;\
+    #                                                                         for(Int(8) row = 0; row < 4; row = row + 1)  {\
+    #                                                                             roundConstant[row * 16 : (row * 16) + 3] = row[0:3];\
+    #                                                                             if(row == 0 || row == 2)    {\
+    #                                                                                 roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[3:5];\
+    #                                                                             }\
+    #                                                                             if(row == 1 || row == 3) {\
+    #                                                                                 roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[0:2];\
+    #                                                                             }\
+    #                                                                             roundConstant[(row * 16) + 8 : (row * 16) + 15 ] = 0;\
+    #                                                                         }\
+    #                                                                             state = state ^ roundConstant;\
+    #                                                                     }\
+    #                                                                     void subCells(@Int(64) state, Sbox(4)[16] led)  {\
+    #                                                                         for(Int(8) i = 0; i < 16; i = i + 1){\
+    #                                                                             state[(i * 4) : (i * 4) + 3] = led[state[(i * 4) : (i * 4) + 3]];\
+    #                                                                         }\
+    #                                                                     }\
+    #                                                                     void step(@Int(64) state, @Int(6) r, @Int(4)[16] MDS){\
+    #                                                                         addConstants(state, r);\
+    #                                                                         subCells(state,led);\
+    #                                                                         shift_row(state);\
+    #                                                                         MixColumnSerial(state, MDS);\
+    #                                                                     }\
+    #                                                                     void enc(@Int(64) state, @Int(64) key, @Int(4)[16] MDS, @Int(6)[32] RC){\
+    #                                                                         for(Int(8) r = 0; r < 32; r = r + 1) {\
+    #                                                                             if((r % 4) == 0){\
+    #                                                                                 state = state ^ key;\
+    #                                                                             }\
+    #                                                                             step(state, RC[r], MDS);\
+    #                                                                         }\
+    #                                                                         state = state ^ key;\
+    #                                                                     }\
+    #                                                                     ")), True)
+    #     Data_reader.write("led_dsl", "led_dsl", par.semantic_analyser.IR.translate())
+    #     assert_equals(subprocess.call(['../DSL/testing/led_dsl/./run_tests.sh']), 0)
 
 
 class File_comparison(object):
