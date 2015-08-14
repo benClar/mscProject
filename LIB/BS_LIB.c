@@ -67,7 +67,7 @@ void OR(uint32_t *target, uint32_t *op_1, uint32_t *op_2, int var_size)	{
 	}
 }
 
-void rotate_left(uint32_t *target, uint32_t *source, int var_size, int shift)    {
+void rotate_left(uint32_t *target, uint32_t *source, int shift, int var_size)    {
 	bs_copy(target, source, var_size);
     reverse(target, 0, var_size - 1);
 	reverse(target, var_size - shift, var_size - 1);
@@ -75,18 +75,18 @@ void rotate_left(uint32_t *target, uint32_t *source, int var_size, int shift)   
     
 }
 
-void rotate_right(uint32_t *target, uint32_t *source, int var_size, int shift)    {
+void rotate_right(uint32_t *target, uint32_t *source, int shift, int var_size)    {
 	bs_copy(target, source, var_size);
     reverse(target, 0, var_size - 1);
     reverse(target, 0, shift - 1);
     reverse(target, shift, var_size - 1);
 }
 
-void shift_right(uint32_t *target, uint32_t *source, int var_size, int shift)	{
+void shift_right(uint32_t *target, uint32_t *source, int shift, int var_size)	{
 	memcpy(target + shift, source,(var_size - shift) * sizeof(uint32_t));
 }
 
-void shift_left(uint32_t *target, uint32_t *source, int var_size, int shift)	{
+void shift_left(uint32_t *target, uint32_t *source, int shift, int var_size)	{
 	memcpy(target, source + shift,(var_size - shift) * sizeof(uint32_t));
 }
 

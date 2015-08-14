@@ -4,10 +4,10 @@
 
 #define log_err(M, ...) fprintf(stderr, "[ERROR] (%s:%d:) " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
-void rotate_left(uint32_t *target, uint32_t *source, int var_size, int shift);
-void rotate_right(uint32_t *target, uint32_t *source, int var_size, int shift);
-void shift_right(uint32_t *target, uint32_t *source, int var_size, int shift);
-void shift_left(uint32_t *target, uint32_t *source, int var_size, int shift);
+void rotate_right(uint32_t *target, uint32_t *source, int shift, int var_size);
+void rotate_left(uint32_t *target, uint32_t *source, int shift, int var_size);
+void shift_right(uint32_t *target, uint32_t *source, int shift, int var_size);
+void shift_left(uint32_t *target, uint32_t *source, int shift, int var_size);
 void reverse(uint32_t *target, int start, int end);
 void bitslice_shift(uint32_t *target, uint32_t *source, int shift, int var_size, char *op);
 void bs_copy(uint32_t *target, uint32_t *source, int size);

@@ -5,16 +5,16 @@
 
 #include "led_dsl.h"
 uint32_t led_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C & ~B & A) | (~D & C & ~B & ~A) | (~D & ~C & A) | (~D & B & A) | (D & ~C & ~A) | (D & B & ~A));
+return ((D & ~C & ~A) | (~D & B & A) | (D & B & ~A) | (D & C & ~B & A) | (~D & C & ~B & ~A) | (~D & ~C & A));
 }
 uint32_t led_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~B & A) | (D & ~C & ~B) | (~C & B & ~A) | (D & C & A) | (~D & ~C & B) | (~D & B & ~A));
+return ((~D & B & ~A) | (D & ~B & A) | (D & ~C & ~A) | (D & C & A) | (~D & ~C & B));
 }
 uint32_t led_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~B & A) | (~C & B & ~A) | (~D & ~C & ~A) | (~D & C & B & A) | (D & C & ~B) | (~C & ~B & A));
+return ((~D & ~C & ~B) | (D & ~B & A) | (D & C & ~B) | (~C & ~B & A) | (~C & B & ~A) | (~D & C & B & A));
 }
 uint32_t led_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & C & B) | (~D & ~B & ~A) | (~C & B & A) | (D & ~C & B) | (~D & C & ~A) | (D & ~C & A));
+return ((D & ~C & B) | (~C & B & A) | (~D & C & B) | (D & ~C & A) | (~D & ~B & ~A) | (~D & C & ~A));
 }
 void led(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -78,7 +78,7 @@ output[2] = output[2] ^ (mask[2] & a_out[2]);
 output[3] = output[3] ^ (mask[3] & a_out[3]);
 high[0] = a_out[3];
 uint32_t temp_4__bin[8] = {0};
-bitslice_shift(temp_4__bin, a_out, 1, 8, "<<");
+shift_right(temp_4__bin, a_out, 1, 8);
 a_out[0] = temp_4__bin[0];
 a_out[1] = temp_4__bin[1];
 a_out[2] = temp_4__bin[2];
@@ -89,7 +89,7 @@ a_out[bit] = (a_out[bit] ^ (high[0] & GF_R[bit]));
 bit = (bit + 1);
 } 
 uint32_t temp_6__bin[8] = {0};
-bitslice_shift(temp_6__bin, b_out, 1, 8, ">>");
+shift_left(temp_6__bin, b_out, 1, 8);
 b_out[0] = temp_6__bin[0];
 b_out[1] = temp_6__bin[1];
 b_out[2] = temp_6__bin[2];
@@ -133,9 +133,9 @@ gmMult(d, MDS[((col_nibble * 4) + 3)], column[3]);
 uint32_t temp_64__bin[4] = {0};
 uint32_t temp_65__bin[4] = {0};
 uint32_t temp_66__bin[4] = {0};
-bitslice_bitwise(temp_66__bin, a, b, 4, "^");
-bitslice_bitwise(temp_65__bin, temp_66__bin, c, 4, "^");
-bitslice_bitwise(temp_64__bin, temp_65__bin, d, 4, "^");
+XOR(temp_66__bin, a, b, 4);
+XOR(temp_65__bin, temp_66__bin, c, 4);
+XOR(temp_64__bin, temp_65__bin, d, 4);
 uint8_t temp_67_init = 0;
 uint32_t temp_68_rnge_size = 0;
 temp_68_rnge_size = ((((col * 4) + (col_nibble * 16)) + 3)-((col * 4) + (col_nibble * 16))) + 1;
@@ -152,7 +152,7 @@ void shift_row(uint32_t state[64]){
 uint32_t temp_80__bin[(31 - 16) + 1] = {0};
 uint32_t temp_81_rnge[(31 - 16) + 1];
 extract_bs_range(temp_81_rnge, state, 16, 31);
-bitslice_shift(temp_80__bin, temp_81_rnge, 4, (31 - 16) + 1, ">>>");
+rotate_left(temp_80__bin, temp_81_rnge, 4, (31 - 16) + 1);
 state[16] = temp_80__bin[0];
 state[17] = temp_80__bin[1];
 state[18] = temp_80__bin[2];
@@ -172,7 +172,7 @@ state[31] = temp_80__bin[15];
 uint32_t temp_82__bin[(47 - 32) + 1] = {0};
 uint32_t temp_83_rnge[(47 - 32) + 1];
 extract_bs_range(temp_83_rnge, state, 32, 47);
-bitslice_shift(temp_82__bin, temp_83_rnge, 8, (47 - 32) + 1, ">>>");
+rotate_left(temp_82__bin, temp_83_rnge, 8, (47 - 32) + 1);
 state[32] = temp_82__bin[0];
 state[33] = temp_82__bin[1];
 state[34] = temp_82__bin[2];
@@ -192,7 +192,7 @@ state[47] = temp_82__bin[15];
 uint32_t temp_84__bin[(63 - 48) + 1] = {0};
 uint32_t temp_85_rnge[(63 - 48) + 1];
 extract_bs_range(temp_85_rnge, state, 48, 63);
-bitslice_shift(temp_84__bin, temp_85_rnge, 12, (63 - 48) + 1, ">>>");
+rotate_left(temp_84__bin, temp_85_rnge, 12, (63 - 48) + 1);
 state[48] = temp_84__bin[0];
 state[49] = temp_84__bin[1];
 state[50] = temp_84__bin[2];

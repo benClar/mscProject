@@ -9,12 +9,12 @@ int main() {
 	sput_start_testing();
 	sput_enter_suite("Present Test 1");
 	sput_run_test(present_test_1);
-	// sput_enter_suite("Present Test 2");
-	// sput_run_test(present_test_2);
-	// sput_enter_suite("Present Test 3");
-	// sput_run_test(present_test_3);	
-	// sput_enter_suite("Present Test 4");
-	// sput_run_test(present_test_4);
+	sput_enter_suite("Present Test 2");
+	sput_run_test(present_test_2);
+	sput_enter_suite("Present Test 3");
+	sput_run_test(present_test_3);	
+	sput_enter_suite("Present Test 4");
+	sput_run_test(present_test_4);
 	sput_finish_testing();
 	return sput_get_return_value();
 }

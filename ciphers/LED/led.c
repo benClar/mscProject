@@ -230,14 +230,14 @@ void gm_bs_2(uint32_t g[8], uint32_t a[4], uint32_t b[4]){
             g[bit] ^= (m[bit] & a_in[bit]);
         }
         hbs[0] = a_in[7 - 3];
-        shift_left(temp_a, a_in, 8, 1);
+        shift_left(temp_a, a_in, 1, 8);
         for(int bit = 0; bit < 8; bit++)  {
             a_in[bit] = temp_a[bit];
         }
         for(int bit = 0; bit < 8; bit++)    {
             a_in[bit] ^= (hbs[0] & gf_poly[bit]);
         }       
-        shift_right(temp_b,b_in, 8, 1);
+        shift_right(temp_b,b_in, 1, 8);
         for(int bit = 0; bit < 8; bit++)  {
             b_in[bit] = temp_b[bit];
         }
@@ -359,7 +359,7 @@ void shiftRow(uint32_t curr_state[64])   {
         row[13] = curr_state[(curr_row * 16) + 13];
         row[14] = curr_state[(curr_row * 16) + 14];
         row[15] = curr_state[(curr_row * 16) + 15];
-        rotate_left(output,row, 16, curr_row * 4);
+        rotate_left(output,row, curr_row * 4, 16);
         curr_state[(curr_row * 16) + 0] = output[0];
         curr_state[(curr_row * 16) + 1] = output[1];
         curr_state[(curr_row * 16) + 2] = output[2];

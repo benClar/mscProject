@@ -5,16 +5,16 @@
 
 #include "present_dsl.h"
 uint32_t present_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C & ~B & A) | (~D & C & ~B & ~A) | (~D & ~C & A) | (~D & B & A) | (D & ~C & ~A) | (D & B & ~A));
+return ((D & ~C & ~A) | (~D & B & A) | (D & B & ~A) | (D & C & ~B & A) | (~D & C & ~B & ~A) | (~D & ~C & A));
 }
 uint32_t present_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~B & A) | (D & ~C & ~B) | (~C & B & ~A) | (D & C & A) | (~D & ~C & B) | (~D & B & ~A));
+return ((~D & B & ~A) | (D & ~B & A) | (D & ~C & ~A) | (D & C & A) | (~D & ~C & B));
 }
 uint32_t present_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~B & A) | (~C & B & ~A) | (~D & ~C & ~A) | (~D & C & B & A) | (D & C & ~B) | (~C & ~B & A));
+return ((~D & ~C & ~B) | (D & ~B & A) | (D & C & ~B) | (~C & ~B & A) | (~C & B & ~A) | (~D & C & B & A));
 }
 uint32_t present_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & C & B) | (~D & ~B & ~A) | (~C & B & A) | (D & ~C & B) | (~D & C & ~A) | (D & ~C & A));
+return ((D & ~C & B) | (~C & B & A) | (~D & C & B) | (D & ~C & A) | (~D & ~B & ~A) | (~D & C & ~A));
 }
 void present(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -176,7 +176,7 @@ round_keys[(round - 1)][61] = temp_5_rnge[61];
 round_keys[(round - 1)][62] = temp_5_rnge[62];
 round_keys[(round - 1)][63] = temp_5_rnge[63];
 uint32_t temp_7__bin[80] = {0};
-bitslice_shift(temp_7__bin, key, 61, 80, "<<<");
+rotate_right(temp_7__bin, key, 61, 80);
 key[0] = temp_7__bin[0];
 key[1] = temp_7__bin[1];
 key[2] = temp_7__bin[2];
@@ -275,7 +275,7 @@ temp_11_extracted |= ((round >> temp_12_int_rng_start)  << temp_14_target_bit);
 }
 uint32_t temp_15_casted_bs[(19 - 15) + 1];
 int_to_bitsliced(temp_15_casted_bs, temp_11_extracted, (19 - 15) + 1);
-bitslice_bitwise(temp_9__bin, temp_10_rnge, temp_15_casted_bs, 80, "^");
+XOR(temp_9__bin, temp_10_rnge, temp_15_casted_bs, 80);
 key[15] = temp_9__bin[0];
 key[16] = temp_9__bin[1];
 key[17] = temp_9__bin[2];
@@ -308,7 +308,7 @@ uint8_t round;
 round = 0;
 for(;round < 31;) { 
 uint32_t temp_29__bin[64] = {0};
-bitslice_bitwise(temp_29__bin, state, round_keys[round], 64, "^");
+XOR(temp_29__bin, state, round_keys[round], 64);
 state[0] = temp_29__bin[0];
 state[1] = temp_29__bin[1];
 state[2] = temp_29__bin[2];
@@ -378,7 +378,7 @@ pLayer(state);
 round = (round + 1);
 } 
 uint32_t temp_30__bin[64] = {0};
-bitslice_bitwise(temp_30__bin, state, round_keys[31], 64, "^");
+XOR(temp_30__bin, state, round_keys[31], 64);
 state[0] = temp_30__bin[0];
 state[1] = temp_30__bin[1];
 state[2] = temp_30__bin[2];

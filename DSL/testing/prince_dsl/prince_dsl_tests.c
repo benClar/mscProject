@@ -42,7 +42,7 @@ void prince_test_1()	{
 	// for(int run = 0; run < 100000; run++)	{
 	// 	start = mach_absolute_time();
 		enc(RC, state, key_0, key_1);
-		// end = mach_absolute_time();
+	// 	end = mach_absolute_time();
 	// 	result += (end - start);
 	// 	for(bit = 0; bit < 64; bit++)	{
 	// 		state[bit] = 0xffffffff;
@@ -79,16 +79,11 @@ void prince_test_2()	{
 	bitslice(RC[10],0xd3b5a399ca0c2399, 64);
 	bitslice(RC[11],0xc0ac29b7c97c50dd, 64);
 	enc(RC, state, key_0, key_1);
-	// for(bit = 0; bit < 64; bit++)	{
-	// 	sput_fail_unless(state[bit] == exp_res[bit],"Prince Test 2");
-	// }
 	for(slice = 0; slice < 32; slice++)	{
 		for(bit = 0; bit < 64; bit++)	{
 			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"Prince Test 2");
 		}
 	}
-		// printf("\n");
-	// }
 }
 
 void prince_test_3(){
@@ -115,7 +110,6 @@ void prince_test_3(){
 	for(slice = 0; slice < 32; slice++)	{
 		for(bit = 0; bit < 64; bit++)	{
 			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"Prince Test 3");
-			// sput_fail_unless(state[bit] == exp_res[bit],"Prince Test 3");
 		}
 	}
 }

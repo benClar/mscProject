@@ -91,7 +91,7 @@ int generateRoundKey(uint32_t key[80], uint32_t subKey[64], int round) {
 	subKey[62] = key[62];
 	subKey[63] = key[63];
 
-    bitslice_shift(key_temp, key, 61, 80, ">>>");
+    rotate_left(key_temp, key, 61, 80);
 	key[0] = key_temp[0];
 	key[1] = key_temp[1];
 	key[2] = key_temp[2];

@@ -12,8 +12,6 @@ class Symbol_Table(object):
         self.add_scope()
         self._f_table = {}
         self.var_count = 0
-    # def add_scope(self, scope):
-    #     self.table[scope] = {}
 
     def print_s_table(self):
         for i in self.symbols.stack:
@@ -36,9 +34,6 @@ class Symbol_Table(object):
     def add_bit_id(self, ID):
         self.add_id(ID, DATA_TYPE.BIT_VAL)
 
-    # def add_int_id(self, scope, ID):
-    #     self.add_id(scope, ID, DATA_TYPE.INT_VAL)
-
     def add_int_id(self, ID):
         self.add_id(ID, DATA_TYPE.INT_VAL)
 
@@ -59,29 +54,8 @@ class Symbol_Table(object):
         if ID not in self.symbols.peek():
             self.symbols.peek()[ID] = {}
             self.symbols.peek()[ID]['type'] = id_type
-            # if size is not None and DATA_TYPE.is_seq_type(id_type):
-            #     self.symbols.peek()[ID]['dimension'] = size
-            # elif DATA_TYPE.is_seq_type(id_type) is False:
-            #     pass
-            # else:
-            #     traceback.print_stack(file=sys.stdout)
-            #     raise ParseException("Internal Error: " + str(id_type) + " " + ID + " Created with no dimension")
-
         else:
             raise SemanticException("Redeclaration of symbol")
-
-
-
-    # def add_seq_id(self, scope, ID, id_type, id_value=None):
-    #     self.add_id(scope, ID, "Seq", id_value)
-    #     self.table[scope][ID[0]]["seq_type"] = id_type["type"]
-    #     seq = []
-    #     for i in id_type["seq_size"]:
-    #         seq.append(i)
-
-
-    #     print(seq)
-    #     self.table[scope][ID[0]]["dimension"] = seq
 
     def dimension(self, ID):
         return len(self.id(ID)['size'])
@@ -115,17 +89,6 @@ class Symbol_Table(object):
             if ID in scope:
                 return scope[ID]["type"]
         raise SemanticException("Symbol " + ID + " Does not exist")
-
-    # def id_details(self, scope, ID):
-    #     return self.table[scope][ID]
-
-    # def id_in(self, scope, ID):
-    #     """Returns true if ID exists in symbol table"""
-    #     if ID in self.table[scope]:
-    #         return True
-    #     else:
-    #         return False
-
 
 class TestSymbolTable(unittest.TestCase):
 

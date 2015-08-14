@@ -15,8 +15,8 @@ uint32_t (*enc(uint32_t RC[12][64], uint32_t state[64],uint32_t key_0[64],uint32
 	uint32_t key_0_not[64];
 	uint32_t key_circ[64];
 	uint32_t key_shift[64] = {0}; 
-	bitslice_shift(key_circ, key_0,1,64,"<<<");
-	bitslice_shift(key_shift,key_0,63,64,"<<");
+	rotate_right(key_circ, key_0, 1, 64);
+	shift_right(key_shift, key_0, 63, 64);
 	key_0_not[0] = key_circ[0] ^ key_shift[0];
 	key_0_not[1] = key_circ[1] ^ key_shift[1];
 	key_0_not[2] = key_circ[2] ^ key_shift[2];

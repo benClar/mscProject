@@ -44,7 +44,6 @@ void prince_test_1()	{
 
 	clock_t start, end, result = 0;
 	double cpu_time_used;
-	start = clock();
 	for(int run = 0; run < 100000; run++)	{
 		start = mach_absolute_time();
 		enc(RC, state, key_0, key_1);
@@ -57,9 +56,6 @@ void prince_test_1()	{
 		}
 	}
 	printf("%lu\n", result / 100000);
-	// end = clock();
-	// cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-	// printf("cpu time used : %f \n", cpu_time_used);
 	// for(bit = 0; bit < 64; bit++)	{
 	// 	sput_fail_unless(state[bit] == exp_res[63 - bit],"Prince Test 1");
 	// }

@@ -5,16 +5,16 @@
 
 #include "prince_dsl.h"
 uint32_t prince_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & C & B) | (D & ~B & A) | (~D & ~C & ~A) | (C & B & ~A) | (~C & ~B & A) | (~D & B & ~A));
+return ((~D & B & ~A) | (~D & ~C & ~B) | (D & ~B & A) | (~D & C & B) | (~C & ~B & A) | (C & B & ~A));
 }
 uint32_t prince_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~C) | (~C & ~B) | (~B & ~A));
+return ((~C & ~B) | (~D & ~C) | (~B & ~A));
 }
 uint32_t prince_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C) | (~B & A) | (D & ~B));
+return ((~B & A) | (D & ~B) | (D & C));
 }
 uint32_t prince_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & B & ~A) | (~D & ~B) | (C & ~A));
+return ((~D & ~B) | (D & B & ~A) | (C & ~A));
 }
 void prince(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -28,16 +28,16 @@ input[2] = temp_0_sbox_out[2];
 input[3] = temp_0_sbox_out[3];
 }
 uint32_t prince_inv_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~B) | (C & ~B & ~A) | (C & B & A) | (~D & ~C & ~A));
+return ((~D & ~B) | (C & ~B & ~A) | (~D & ~C & ~A) | (C & B & A));
 }
 uint32_t prince_inv_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~C) | (~C & ~B) | (D & ~B & A) | (~D & ~B & ~A));
+return ((D & ~B & A) | (~C & ~B) | (~D & ~B & ~A) | (~D & ~C));
 }
 uint32_t prince_inv_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & ~B) | (~B & A) | (D & B & ~A));
+return ((D & C & ~A) | (D & B & ~A) | (~B & A) | (C & ~B));
 }
 uint32_t prince_inv_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~B & ~A) | (~C & ~B & ~A) | (C & B & ~A) | (~D & C) | (C & ~B & A));
+return ((~D & ~B & ~A) | (C & B & ~A) | (C & ~B & A) | (~D & C) | (~C & ~B & ~A));
 }
 void prince_inv(uint32_t input[4]){
 uint32_t temp_1_sbox_out[4];
@@ -54,10 +54,10 @@ void enc(uint32_t RC[11][64], uint32_t state[64], uint32_t key_0[64], uint32_t k
 uint32_t key_prime[64] = {0};
 uint32_t temp_2__bin[64] = {0};
 uint32_t temp_3__bin[64] = {0};
-bitslice_shift(temp_3__bin, key_0, 1, 64, ">>>");
+rotate_left(temp_3__bin, key_0, 1, 64);
 uint32_t temp_4__bin[64] = {0};
-bitslice_shift(temp_4__bin, key_0, 63, 64, ">>");
-bitslice_bitwise(temp_2__bin, temp_3__bin, temp_4__bin, 64, "^");
+shift_left(temp_4__bin, key_0, 63, 64);
+XOR(temp_2__bin, temp_3__bin, temp_4__bin, 64);
 key_prime[0] = temp_2__bin[0];
 key_prime[1] = temp_2__bin[1];
 key_prime[2] = temp_2__bin[2];
@@ -189,7 +189,7 @@ state[63] = state[63] ^ key_0[63];
 uint32_t temp_5__bin[64] = {0};
 uint32_t temp_6_rnge[(64 - 0) + 1];
 extract_bs_range(temp_6_rnge, RC[0], 0, 64);
-bitslice_bitwise(temp_5__bin, state, temp_6_rnge, 64, "^");
+XOR(temp_5__bin, state, temp_6_rnge, 64);
 state[0] = temp_5__bin[0];
 state[1] = temp_5__bin[1];
 state[2] = temp_5__bin[2];
@@ -261,8 +261,8 @@ sBox_layer_inv(state);
 last_rounds(state, key_1, RC);
 uint32_t temp_7__bin[64] = {0};
 uint32_t temp_8__bin[64] = {0};
-bitslice_bitwise(temp_8__bin, RC[11], key_1, 64, "^");
-bitslice_bitwise(temp_7__bin, temp_8__bin, state, 64, "^");
+XOR(temp_8__bin, RC[11], key_1, 64);
+XOR(temp_7__bin, temp_8__bin, state, 64);
 state[0] = temp_7__bin[0];
 state[1] = temp_7__bin[1];
 state[2] = temp_7__bin[2];
@@ -656,8 +656,8 @@ state[62] = temp_65_rnge[62];
 state[63] = temp_65_rnge[63];
 uint32_t temp_66__bin[64] = {0};
 uint32_t temp_67__bin[64] = {0};
-bitslice_bitwise(temp_67__bin, RC[r], key, 64, "^");
-bitslice_bitwise(temp_66__bin, temp_67__bin, state, 64, "^");
+XOR(temp_67__bin, RC[r], key, 64);
+XOR(temp_66__bin, temp_67__bin, state, 64);
 state[0] = temp_66__bin[0];
 state[1] = temp_66__bin[1];
 state[2] = temp_66__bin[2];
@@ -732,8 +732,8 @@ r = 6;
 for(;r < 11;) { 
 uint32_t temp_69__bin[64] = {0};
 uint32_t temp_70__bin[64] = {0};
-bitslice_bitwise(temp_70__bin, RC[r], key, 64, "^");
-bitslice_bitwise(temp_69__bin, temp_70__bin, state, 64, "^");
+XOR(temp_70__bin, RC[r], key, 64);
+XOR(temp_69__bin, temp_70__bin, state, 64);
 state[0] = temp_69__bin[0];
 state[1] = temp_69__bin[1];
 state[2] = temp_69__bin[2];
