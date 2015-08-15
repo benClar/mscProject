@@ -710,13 +710,13 @@ class test_IR_generation(unittest.TestCase):
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4)[4] a = [1,2,3,4]; a[1] = a[5] ^ a[5] ^ a[5];")), True)  # NOQA
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) lfsr(@Int(8) state) {\
-                                                                            Int(8) output;\
-                                                                            Int(8) input;\
+                                                                            @Int(1) output;\
+                                                                            @Int(1) input;\
                                                                             for(Int(5) i = 0; i < 32; i = i + 1) {\
-                                                                                output = state[0];\
-                                                                                input =  state[0] ^ state[4] ^ state[5] ^ state[6];\
+                                                                                output[0] = state[0];\
+                                                                                input[0] =  state[0] ^ state[4] ^ state[5] ^ state[6];\
                                                                                 state = state << 1;\
-                                                                                state[7] = input;\
+                                                                                state[7] = input[0];\
                                                                              }\
                                                                              return state;\
                                                                         }")), True)  # NOQA
@@ -976,7 +976,43 @@ class test_translation(unittest.TestCase):
                                                                             a[0:4] = [True, False, True, True];\
                                                                             return a;\
                                                                         }\
+                                                                        Int(8) int_index_set_8()    {\
+                                                                            Int(8) a = 0;\
+                                                                            a = [True, False, True, True];\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_9()    {\
+                                                                            Int(8) a = 0;\
+                                                                            a = [True, False, True, True] + 10;\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_10()    {\
+                                                                            Int(8) a = 0;\
+                                                                            a = ([True, False, True, True] <<< 1) + 10;\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_11()    {\
+                                                                            Int(8) a = 7;\
+                                                                            a[0,1,2,3] = a[3,2,1,0];\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_12()    {\
+                                                                            Int(8) a = 15;\
+                                                                            a[0] = False;\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_13()    {\
+                                                                            Int(8) a = 14;\
+                                                                            a[0] = True;\
+                                                                            return a;\
+                                                                        }\
                                                                         ")), True)
+        # print(par.semantic_analyser.IR.translate()['main'])
+                                                                        # @Int(8)[5][5] int_index_set_14()    {\
+                                                                        #     @Int(8)[5][5] a;\
+                                                                        #     a[0][0][0] = True;\
+                                                                        #     return a;\
+                                                                        # }\
         if Data_reader.write("general_dsl", "general_dsl", par.semantic_analyser.IR.translate()) is True:
             assert_equals(subprocess.call(['../DSL/testing/general_dsl/./run_tests.sh']), 0)
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("")), True)

@@ -128,7 +128,7 @@ class Semantic_analyser(object):
                           DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.BS_BIT_VAL, DATA_TYPE.SEQ_BIT_VAL],
                           DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.SEQ_BIT_VAL],
                           DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
-                          DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.INT_VAL],
+                          DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.BIT_VAL],
                           DATA_TYPE.SEQ_BS_BIT_VAL: [DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.INT_VAL]}
         if value_type in allowed_values[target_type]:
             return True
@@ -491,7 +491,7 @@ class Semantic_analyser(object):
         elif operation.type == DATA_TYPE.BS_SEQ_INT_VAL:
             pass
         elif operation.type == DATA_TYPE.SEQ_BIT_VAL:
-            pass
+            operation.constraints = Int_literal(self.get_seq_bit_op_width(operation.left, operation.right))
         elif operation.type == DATA_TYPE.BS_BIT_VAL:
             pass
         elif operation.type == DATA_TYPE.SEQ_BS_BIT_VAL:
@@ -507,6 +507,26 @@ class Semantic_analyser(object):
                raise InternalException("sequence of bitsliced values with unknown size " + str(seq_val.node_type))
         else:
             raise InternalException("Unknown size of binary operation " + str(operation.type))
+
+    def get_seq_bit_op_width(self, op_1, op_2):
+        op_1_size = None
+        op_2_size = None
+        if op_1.node_type == DATA_TYPE.SEQ_VAL:
+            op_1_size = len(op_1.value)
+        if op_2.node_type == DATA_TYPE.SEQ_VAL:
+            op_2_size = len(op_2.value)
+        return self.largest_size(op_1_size, op_2_size)
+
+    def largest_size(self, op_1, op_2):
+        if op_1 is None:
+            return op_2
+        if op_2 is None:
+            return op_1
+        if op_1 > op_2:
+            return op_1
+        return op_2
+
+
 
     def get_operator_of_type(self, op_1, op_2, exp_type):
         if op_1.type == exp_type:
@@ -669,10 +689,14 @@ class Semantic_analyser(object):
             return True
 
     def arith_expr_valid(self, expression):
-        if DATA_TYPE.is_int_val(expression['OPERAND_0']) and DATA_TYPE.is_int_val(expression['OPERAND_2']):
+        valid_operands_types = {DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL],
+                                DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL],
+                                DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL],
+                                DATA_TYPE.BIT_VAL: [],
+                                DATA_TYPE.SEQ_INT_VAL:[]}
+        if expression['OPERAND_0'] in valid_operands_types[expression['OPERAND_2']]:
             return True
-        elif expression['OPERAND_0'] == DATA_TYPE.SEQ_BIT_VAL and expression['OPERAND_2'] == DATA_TYPE.SEQ_BIT_VAL:
-            return True
+        return False
 
     def reduce_sub_expr(self, expression):
         if expression['OP'] is DATA_TYPE.ARITH_OP:

@@ -5,16 +5,16 @@
 
 #include "present_dsl.h"
 uint32_t present_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~C & ~A) | (~D & B & A) | (D & B & ~A) | (D & C & ~B & A) | (~D & C & ~B & ~A) | (~D & ~C & A));
+return ((~D & B & A) | (~D & C & ~B & ~A) | (~D & ~C & A) | (D & C & ~B & A) | (D & ~C & ~A) | (D & B & ~A));
 }
 uint32_t present_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & B & ~A) | (D & ~B & A) | (D & ~C & ~A) | (D & C & A) | (~D & ~C & B));
+return ((~D & B & ~A) | (D & C & A) | (~D & ~C & B) | (~C & B & ~A) | (D & ~B & A) | (D & ~C & ~B));
 }
 uint32_t present_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~C & ~B) | (D & ~B & A) | (D & C & ~B) | (~C & ~B & A) | (~C & B & ~A) | (~D & C & B & A));
+return ((~C & ~B & A) | (D & C & ~B) | (~C & B & ~A) | (~D & C & B & A) | (D & ~B & A) | (~D & ~C & ~B));
 }
 uint32_t present_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~C & B) | (~C & B & A) | (~D & C & B) | (D & ~C & A) | (~D & ~B & ~A) | (~D & C & ~A));
+return ((~D & B & A) | (~D & ~B & ~A) | (~D & C & B) | (D & ~C & A) | (D & ~C & B) | (~D & C & ~A));
 }
 void present(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -302,7 +302,7 @@ i = (i + 1);
 } 
 }
 void enc(uint32_t key[80], uint32_t state[64]){ 
-uint32_t round_keys[32][64];
+uint32_t round_keys[32][64] = {{ 0 }};
 generate_round_keys(key, round_keys);
 uint8_t round;
 round = 0;

@@ -9,7 +9,11 @@ void general_test_4();
 void general_test_5();
 void general_test_6();
 void general_test_7();
-
-
+void general_test_8();
+void general_test_9();
+void general_test_10();
+void general_test_11();
+void general_test_12();
+void general_test_13();
 
 

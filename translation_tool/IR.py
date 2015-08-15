@@ -131,6 +131,7 @@ class Function_decl(object):
         if bs_bit_return is not None:
             ret += bs_bit_return + ", "
         for p in self.parameters:
+            # print(p.node_type)
             if p.node_type != DATA_TYPE.SBOX_DECL:
                 ret += p.translate(sym_count, True)
                 ret = ret[:-2]
@@ -248,6 +249,26 @@ class Cast(object):
     def constraints(self):
         return self._cast_op.constraints
 
+    def bit_seq_to_int_val(target, sym_count):
+        result = {'emit': "", 'result': ""}
+        # if target.node_type
+        if DATA_TYPE.is_op_type(target.node_type):
+            pass
+        elif target.node_type == DATA_TYPE.SEQ_VAL:
+            Cast.bit_seq_val_to_int_val(result, target, sym_count)
+        return result
+
+    def bit_seq_val_to_int_val(result, target, sym_count):
+        result['result'] += Target_factory.name(sym_count, "casted_bit_seq")
+        result['emit'] += Target_factory.type_decl_lookup[Target_factory.round_up_constraints(len(target.value))] + result['result'] + " = 0;\n"
+        for pos, bit in enumerate(reversed(target.value)):
+            if bit.translate()['result'] == "0x1":
+                result['emit'] += result['result'] + " |= 0x1 << " + str(pos) + ";\n"
+            elif bit.translate()['result'] == "0x0":
+                pass
+            else:
+                raise InternalException("Unknown Value in Bit Sequence " + str(bit.translate()['result']))
+
     def int_to_bs_cast(sym_count, target, size=None):
         result = {'emit': "", 'result': ""}
         result['result'] = Target_factory.name(sym_count, "casted_bs")
@@ -262,7 +283,7 @@ class Cast(object):
             result['emit'] = "uint32_t " + result['result'] + "[" + size + "]" + ";\n"
         else:
             result['result'] = target
-        for bit in range(0,int(size)):
+        for bit in range(0, int(size)):
             if (int(value) >> bit) & 0x1 == 0:
                 result['emit'] += result['result'] + "[" + str(bit) + "]" + "= 0;\n"
             elif (int(value) >> bit) & 0x1 == 1:
@@ -270,6 +291,17 @@ class Cast(object):
             else: 
                 raise InternalException("Unknown bit val " + str(int(value) >> bit))
         return result
+
+    def bit_to_bs_bit(value, sym_count):
+        result = {'emit': '', 'result': ''}
+        if value.translate()['result'] == "0x1":
+            result['result'] = "0xffffffff"
+        elif value.translate()['result'] == "0x0":
+            result['result'] = "0x0"
+        else:
+            raise ParseException("Internal error: Unknown bit value")
+        return result
+
 
 class Index_select(object):
 
@@ -673,8 +705,24 @@ class Set(object):
             return self.implicit_cast_to_bs_int(sym_count)
         elif self.target.type == DATA_TYPE.SEQ_BS_BIT_VAL:
             return self.implicit_cast_to_bs_bits(sym_count)
+        elif self.target.type == DATA_TYPE.INT_VAL:
+            return self.implicit_cast_to_int_val(sym_count)
+        elif self.target.type == DATA_TYPE.BS_BIT_VAL:
+            return self.implicit_cast_to_bs_bit(sym_count)
         else:
             raise ParseException(str(self.value.type) + " being assigned to a " + str(self.target.type) + " : Cast needed")
+
+    def implicit_cast_to_int_val(self, sym_count):
+        if self.value.type == DATA_TYPE.SEQ_BIT_VAL:
+            return Cast.bit_seq_to_int_val(self.value, sym_count)
+        else:
+            raise InternalException("Unsupported cast to int val")
+
+    def implicit_cast_to_bs_bit(self, sym_count):
+        if self.target.type == DATA_TYPE.BS_BIT_VAL:
+            return Cast.bit_to_bs_bit(self.value, sym_count)
+        else:
+           raise ParseException("Unsupported cast to bs bit of " + str(self.target.type)) 
 
     def implicit_cast_to_bs_bits(self, sym_count):
         """Cast to bit-sliced range"""
@@ -821,17 +869,31 @@ class Seq_decl(object):
     def constraints(self):
         return self._constraints
 
-    def translate(self, sym_count, func_param = False):
+    def translate(self, sym_count, func_param=False):
         result = {'emit': "", 'result': ""}
         if self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
-            result['emit'] += Target_factory.type_decl_lookup[self.ID.type] + " " + self.ID.translate()['result'] + self.translate_index() + ";\n"
+            if func_param is True:
+                result['emit'] += Target_factory.type_decl_lookup[self.ID.type] + " " + self.ID.translate()['result'] + self.translate_index() + ";\n"
+            else:
+                result['emit'] += Target_factory.type_decl_lookup[self.ID.type] + " " + self.ID.translate()['result'] + self.translate_index() + " = " + self.init_value() + ";\n"
         elif self.node_type == DATA_TYPE.SBOX_DECL:
             result['emit'] += self.translate_sbox_decl(sym_count)
+        elif self.node_type == DATA_TYPE.SEQ_INT_DECL:
+            if func_param is True:
+                result['emit'] += Target_factory.type_decl_lookup[self.constraints.translate()['result']] + " " + self.ID.translate()['result'] + self.translate_index() + ";\n"
+            else:
+                result['emit'] += Target_factory.type_decl_lookup[self.constraints.translate()['result']] + " " + self.ID.translate()['result'] + self.translate_index() + " = " + self.init_value() + ";\n"
         else:
             raise ParseException("Translation of Unknown Sequence Type attempted: " + str(self.node_type))
         if self.body is not None and self.node_type != DATA_TYPE.SBOX_DECL:
             result['emit'] += self.body.translate(sym_count)
         return result['emit']
+
+    def init_value(self):
+        if self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
+            return (len(self.size) + 1) * "{" + " 0 " + (len(self.size) + 1) * "}"
+        else:
+            return len(self.size) * "{" + " 0 " + len(self.size) * "}"
 
     def translate_index(self):
         index = ""
@@ -937,6 +999,15 @@ class Seq_decl(object):
             index += "[" + str(i) + "]"
         return index
 
+    # def translate_type(self):
+    #     if self.constraints.value in Int_decl.type_decl_lookup or self.node_type == DATA_TYPE.SEQ_BS_INT_DECL:
+    #         if self.node_type == DATA_TYPE.SEQ_INT_DECL:
+    #             return Int_decl.type_decl_lookup[self.constraints.value] + 
+    #         elif self.node_type == DATA_TYPE.BS_INT_DECL:
+    #             return "uint32_t "
+    #     else:
+    #         raise ParseException("Custom Size: Not yet implemented")
+
 class Seq_val(object):
 
     def __init__(self, s_type=None, value=None):
@@ -962,6 +1033,9 @@ class Seq_val(object):
     def add_element(self, element):
         self._value.append(element)
 
+    def translate_target_size(self, sym_count):
+        return self.constraints.translate()
+
     def translate(self, sym_count):
         result = {'emit': "", 'result': "", 'res_size' : None}
         if self.all_int_literal():
@@ -972,13 +1046,14 @@ class Seq_val(object):
             raise ParseException("Unknown sequence value translation")
 
     def translate_bit_val_seq(self, sym_count):
-        result = {'emit': "", 'result': "", 'res_size': None}
-        result['result'] += Target_factory.name(sym_count, "seq_bit_val")
-        result['emit'] += "uint8_t " + result['result'] + " = 0;\n"
-        result['res_size'] = len(self.value)
-        for i, element in enumerate(self.value):
-            result['emit'] += result['result'] + " |= (" + element.translate()['result'] + " << (" + str(len(self.value) - 1) + " - " + str(i) + "));\n"
-        return result
+        return Cast.bit_seq_to_int_val(self, sym_count)
+        # result = {'emit': "", 'result': "", 'res_size': None}
+        # result['result'] += Target_factory.name(sym_count, "seq_bit_val")
+        # result['emit'] += "uint8_t " + result['result'] + " = 0;\n"
+        # result['res_size'] = len(self.value)
+        # for i, element in enumerate(self.value):
+        #     result['emit'] += result['result'] + " |= (" + element.translate()['result'] + " << (" + str(len(self.value) - 1) + " - " + str(i) + "));\n"
+        # return result
 
 
     def translate_int_literal_seq(self, sym_count, result):
@@ -1353,7 +1428,6 @@ class Target_factory(object):
         result['emit'] += Target_factory.type_decl_lookup[DATA_TYPE.BS_INT_VAL] + " " + result['result'] + "[" + result['res_size'] + "]" + ";\n"
         return result
 
-
 class For_loop(object):
 
     def __init__(self):
@@ -1510,6 +1584,8 @@ class Binary_operation(object):
         if self.left.node_type == DATA_TYPE.INDEX_SELECT:
             bit_size = self.left.translate_target_size(sym_count)
             result['emit'] += bit_size['emit']
+        elif self.left.type == DATA_TYPE.SEQ_BIT_VAL:
+            bit_size = self.left.translate_target_size(sym_count)
         else:
             raise InternalException("Unsupported bit seq extraction on " + str(self.left.node_type))
         if self.operator == "<<":
@@ -1524,7 +1600,15 @@ class Binary_operation(object):
                 + " >> " + "(" + bit_size['result'] + " - " + operand_2['result'] + "));\n"
         else:
             raise InternalException("Unrecognised shift operator " + self.operator)
+        self.mask_shift(result, bit_size['result'], sym_count)
         return result
+
+    def mask_shift(self, result, bit_size, sym_count):
+        init = Target_factory.name(sym_count, "mask_loop_init")
+        result['emit'] += "uint32_t " + init + " = " + bit_size + ";\n"
+        result['emit'] += "for(; " + init + " < 32; " + init + "++) {\n"
+        result['emit'] += result['result'] + " &= ~(0x1 << " + init + ");\n"
+        result['emit'] += "}\n"
 
     def bs_int_operation(self, sym_count, target=None):
         if self.node_type == DATA_TYPE.SHIFT_OP:
@@ -1657,6 +1741,8 @@ class Binary_operation(object):
             return DATA_TYPE.bitwise_op_needs_cast(op_1, op_2)
         elif self.node_type == DATA_TYPE.SHIFT_OP:
             pass
+        elif self.node_type == DATA_TYPE.ARITH_OP:
+            return DATA_TYPE.arith_op_needs_cast(op_1, op_2)
         else:
             raise ParseException("op type may need cast")
 
@@ -1684,24 +1770,23 @@ class Binary_operation(object):
         operand_2 = self.right.translate(sym_count)
         result['emit'] += operand_1['emit']
         result['emit'] += operand_2['emit']
-        if self.right.type != self.left.type:
-            if self.needs_cast(self.left.type, self.right.type):
-                if 'res_size' in operand_1:
-                    result['res_size_1'] = operand_1['res_size']
+        if self.right.type != self.left.type and self.needs_cast(self.left.type, self.right.type):
+            if 'res_size' in operand_1:
+                result['res_size_1'] = operand_1['res_size']
 
-                if 'res_size' in operand_2:
-                    result['res_size_2'] = operand_2['res_size']
+            if 'res_size' in operand_2:
+                result['res_size_2'] = operand_2['res_size']
 
-                result['emit'] += temp_target['emit']
+            result['emit'] += temp_target['emit']
 
-                if result['res_size_1'] is not None or result['res_size_2'] is not None:
-                    # Index select operation
-                    for i in range(int(self.get_size(result))):
-                        result['emit'] += temp_target['result'] + " = " + operand_1['result'] + self.translate_index(i, result['res_size_1']) + " " + self.operator +\
-                        " " + operand_2['result'] + self.translate_index(i, result['res_size_2']) + ";\n"
-                else:
-                    result['emit'] += temp_target['result'] + " = " + operand_1['result'] + " " + self.operator + " " + operand_2['result'] + ";\n"
-                result['result'] = temp_target['result']
+            if result['res_size_1'] is not None or result['res_size_2'] is not None:
+                # Index select operation
+                for i in range(int(self.get_size(result))):
+                    result['emit'] += temp_target['result'] + " = " + operand_1['result'] + self.translate_index(i, result['res_size_1']) + " " + self.operator +\
+                    " " + operand_2['result'] + self.translate_index(i, result['res_size_2']) + ";\n"
+            else:
+                result['emit'] += temp_target['result'] + " = " + operand_1['result'] + " " + self.operator + " " + operand_2['result'] + ";\n"
+            result['result'] = temp_target['result']
         else:
             result['result'] = "(" + operand_1['result'] + " " + self.operator + " " + operand_2['result'] + ")"
         return result
