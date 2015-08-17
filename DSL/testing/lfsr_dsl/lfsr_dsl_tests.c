@@ -40,7 +40,7 @@ void lfsr_test_1()	{
 	// printf("%lu\n", result / 100000);
 	for(int slice = 0; slice < 32; slice++)	{
 		for(int bit = 0; bit < 32; bit++)	{
-			sput_fail_unless(((output[bit][0] >> slice) & 0x1) == exp_res[bit],"prince Test 1");
+			sput_fail_unless(((output[bit][0] >> slice) & 0x1) == exp_res[bit],"lfsr Test 1");
 		}
 	}
 }

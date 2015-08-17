@@ -317,6 +317,8 @@
 
 
 uint32_t (*enc(uint32_t RC[12][64], uint32_t state[64],uint32_t key_0[64],uint32_t key_1[64]));
+void first_rounds(uint32_t state[64], uint32_t RC[12][64], uint32_t key_1[64]);
+void last_rounds(uint32_t state[64], uint32_t RC[12][64], uint32_t key_1[64]);
 void m0(uint32_t ret[16], uint32_t data[16]);
 void m1(uint32_t ret[16], uint32_t data[16]);
 void mprime(uint32_t state[64]);
