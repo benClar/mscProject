@@ -780,34 +780,34 @@ void shift_rows(uint32_t input[64], int inverse)	{
 	input[63] = output[63];
 }
 
-uint8_t inv_sbox_1(uint32_t input[4])	{
-	 return (((~input[A] & input[B]) | (~input[B] & ~input[C] & ~input[D]) | (input[B] & ~input[C] & input[D]) | (input[B] & input[C] & ~input[D])) & 1);
+uint32_t inv_sbox_1(uint32_t input[4])	{
+	 return ((~input[A] & input[B]) | (~input[B] & ~input[C] & ~input[D]) | (input[B] & ~input[C] & input[D]) | (input[B] & input[C] & ~input[D]));
 }
 
-uint8_t inv_sbox_2(uint32_t input[4])	{
-	return (((~input[C] & input[D]) | (input[B] & ~input[C]) | (input[A] & input[C] & ~input[D])) & 1);
+uint32_t inv_sbox_2(uint32_t input[4])	{
+	return ((~input[C] & input[D]) | (input[B] & ~input[C]) | (input[A] & input[C] & ~input[D]));
 }
 
-uint8_t inv_sbox_3(uint32_t input[4])	{
-	 return (((~input[A] & ~input[B]) | (~input[B] & ~input[C]) | (~input[A] & ~input[C] & ~input[D]) | (input[A] & ~input[C] & input[D])) & 1);
+uint32_t inv_sbox_3(uint32_t input[4])	{
+	 return ((~input[A] & ~input[B]) | (~input[B] & ~input[C]) | (~input[A] & ~input[C] & ~input[D]) | (input[A] & ~input[C] & input[D]));
 }
 
-uint8_t inv_sbox_4(uint32_t input[4])	{
-	return (((~input[A] & ~input[C]) | (input[B] & input[C] & input[D]) | (input[B] & ~input[C] & ~input[D]) | (~input[A] & ~input[B] & ~input[D])) & 1);
+uint32_t inv_sbox_4(uint32_t input[4])	{
+	return ((~input[A] & ~input[C]) | (input[B] & input[C] & input[D]) | (input[B] & ~input[C] & ~input[D]) | (~input[A] & ~input[B] & ~input[D]));
 }
 
-uint8_t sbox_1(uint32_t input[4])	{
-	return (((~input[A] & ~input[C]) | (input[B] & ~input[D]) | (input[A] & input[C] & ~input[D])) & 1);
+uint32_t sbox_1(uint32_t input[4])	{
+	return ((~input[A] & ~input[C]) | (input[B] & ~input[D]) | (input[A] & input[C] & ~input[D]));
 }
 
-uint8_t sbox_2(uint32_t input[4])	{
-	return (((input[A] & input[B]) | (~input[C] & input[D]) | (input[A] & ~input[C])) & 1);
+uint32_t sbox_2(uint32_t input[4])	{
+	return ((input[A] & input[B]) | (~input[C] & input[D]) | (input[A] & ~input[C]));
 }
 
-uint8_t sbox_3(uint32_t input[4])	{
-	return (((~input[A] & ~input[B]) | (~input[C] & ~input[D]) | (~input[B] & ~input[C])) & 1);
+uint32_t sbox_3(uint32_t input[4])	{
+	return ((~input[A] & ~input[B]) | (~input[C] & ~input[D]) | (~input[B] & ~input[C]));
 }
 
-uint8_t sbox_4(uint32_t input[4])	{
-	return (((input[A] & ~input[C] & input[D]) | (~input[A] & ~input[B] & ~input[C]) | (input[B] & input[C] & ~input[D]) | (~input[A] & input[B] & input[C]) | (~input[A] & ~input[B] & ~input[D]))  & 1);
+uint32_t sbox_4(uint32_t input[4])	{
+	return ((input[A] & ~input[C] & input[D]) | (~input[A] & ~input[B] & ~input[C]) | (input[B] & input[C] & ~input[D]) | (~input[A] & input[B] & input[C]) | (~input[A] & ~input[B] & ~input[D]));
 }

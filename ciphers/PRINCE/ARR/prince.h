@@ -323,14 +323,14 @@ void mprime(uint32_t state[64]);
 void sBox(uint32_t input[64], int invert);
 void sBox_nibble(uint32_t current[4],int invert);
 void shift_rows(uint32_t input[64], int inverse);
-uint8_t inv_sbox_1(uint32_t input[4]);
-uint8_t inv_sbox_2(uint32_t input[4]);
-uint8_t inv_sbox_3(uint32_t input[4]);
-uint8_t inv_sbox_4(uint32_t input[4]);
-uint8_t sbox_1(uint32_t input[4]);
-uint8_t sbox_2(uint32_t input[4]);
-uint8_t sbox_3(uint32_t input[4]);
-uint8_t sbox_4(uint32_t input[4]);
+uint32_t inv_sbox_1(uint32_t input[4]);
+uint32_t inv_sbox_2(uint32_t input[4]);
+uint32_t inv_sbox_3(uint32_t input[4]);
+uint32_t inv_sbox_4(uint32_t input[4]);
+uint32_t sbox_1(uint32_t input[4]);
+uint32_t sbox_2(uint32_t input[4]);
+uint32_t sbox_3(uint32_t input[4]);
+uint32_t sbox_4(uint32_t input[4]);
 #endif
 
 

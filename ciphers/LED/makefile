@@ -10,7 +10,7 @@ all: $(TARGET)
 $(TARGET) $(SOURCES):  $(INCS)
 	$(CC) $(SOURCES) -o pOut  $(CFLAGS) $(LIBS)
 
-eval: 
-$(EVAL_TARGET): $(EVAL_INCS)
+eval: $(EVAL_TARGET)
+$(EVAL_TARGET) $(SOURCES):	$(EVAL_INCS)
 	$(CC) $(EVAL_SOURCES) -o evalOut  $(CFLAGS) $(LIBS)
 

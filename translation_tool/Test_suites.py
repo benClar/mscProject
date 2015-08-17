@@ -1061,7 +1061,7 @@ class test_translation(unittest.TestCase):
                                                                                 sBox_layer(state, prince);\
                                                                                 mPrime(state);\
                                                                                 sBox_layer_inv(state, prince);\
-                                                                                last_rounds(state,key_1,RC,prince);\
+                                                                                last_rounds(state,key_1,RC,prince_inv);\
                                                                                 state = ((RC[11] ^ key_1) ^ state);\
                                                                                 state = state ^ key_prime;\
                                                                             }\
@@ -1145,14 +1145,14 @@ class test_translation(unittest.TestCase):
                                                                                     state = ((RC[r] ^ key) ^ state);\
                                                                                 }\
                                                                             }\
-                                                                            void last_rounds(@Int(64) state, @Int(64) key, @Int(64)[11] RC, Sbox(4)[16] prince){\
+                                                                            void last_rounds(@Int(64) state, @Int(64) key, @Int(64)[11] RC, Sbox(4)[16] prince_inv){\
                                                                                 @Int(64) sr_output;\
                                                                                 for(Int(8) r = 6; r < 11; r = r + 1){\
                                                                                     state = ((RC[r] ^ key) ^ state);\
                                                                                     shift_rows(state, sr_output, 1);\
                                                                                     state[0:63] = sr_output[0:63];\
                                                                                     mPrime(state);\
-                                                                                    sBox_layer_inv(state, prince);\
+                                                                                    sBox_layer_inv(state, prince_inv);\
                                                                                 }\
                                                                             }\
                                                                             ")), True)

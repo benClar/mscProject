@@ -37,20 +37,8 @@ void prince_test_1()	{
 	bitslice(RC[9],0x64a51195e0e3610d, 64);
 	bitslice(RC[10],0xd3b5a399ca0c2399, 64);
 	bitslice(RC[11],0xc0ac29b7c97c50dd, 64);
-	// clock_t start, end, result = 0;
 
-	// for(int run = 0; run < 100000; run++)	{
-	// 	start = mach_absolute_time();
-		enc(RC, state, key_0, key_1);
-	// 	end = mach_absolute_time();
-	// 	result += (end - start);
-	// 	for(bit = 0; bit < 64; bit++)	{
-	// 		state[bit] = 0xffffffff;
-	// 		key_0[bit] = 0;
-	// 		key_1[bit] = 0;
-	// 	}
-	// }
-	// printf("%lu\n", result / 100000);
+	enc(RC, state, key_0, key_1);
 	for(slice = 0; slice < 32; slice++)	{
 		for(bit = 0; bit < 64; bit++)	{
 			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"prince Test 1");
