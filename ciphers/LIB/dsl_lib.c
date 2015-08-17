@@ -17,6 +17,7 @@ void extract_bs_range(uint8_t *target, uint8_t *source, int start, int finish)	{
 	}
 }
 
+
 /*Assumes nibble size of 4*/
 void hex_print(uint8_t *state, int row_width, int area)	{
 

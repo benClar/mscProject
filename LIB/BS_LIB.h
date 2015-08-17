@@ -22,6 +22,8 @@ void int_to_bitsliced(uint32_t *target, uint32_t source, int var_size);
 double get_time();
 void hprint(uint32_t *target, int size);
 void hex_print(uint32_t *state, int row_width, int area);
+void bitslice_add(uint32_t *output, uint32_t *A, uint32_t *B, int width);
+void bitslice_subtract(uint32_t *output, uint32_t *A, uint32_t *B, int width);
 /*Tests*/
 
 void shift_testing();

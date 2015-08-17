@@ -14,6 +14,30 @@ void print(uint32_t *arr, int size)	{
 	printf("\n");
 }
 
+void bitslice_add(uint32_t *output, uint32_t *A, uint32_t *B, int width)	{
+	int bit;
+	uint32_t carry = 0;
+	for(bit = 0; bit < width; bit++)	{
+		output[bit] = ((A[bit] ^ B[bit]) ^ carry);
+		carry = ((A[bit] ^ B[bit]) & carry) | (A[bit] & B[bit]);
+	}
+	output[bit] = carry;
+}
+
+void bitslice_subtract(uint32_t *output, uint32_t *A, uint32_t *B, int width)	{
+	int bit;
+	uint32_t b_not[width];
+	uint32_t temp_res[width];
+	uint32_t one_bs[width];
+	for(bit = 0; bit < width; bit++) {
+		one_bs[bit] = 0;
+		b_not[bit] = ~B[bit];
+	}
+	one_bs[0] = 0xffffffff;
+	bitslice_add(temp_res,A,b_not,width);
+	bitslice_add(output,temp_res,one_bs,width);
+}
+
 double get_time()	{
 	double timeConvert;
 		mach_timebase_info_data_t timeBase;

@@ -34,10 +34,13 @@ int main() {
 	sput_run_test(general_test_12);
 	sput_enter_suite("Int operations tests");
 	sput_run_test(general_test_13);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_14);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_15);
 	sput_finish_testing();
 	return sput_get_return_value();
 }
-
 
 void general_test_1()	{
 	sput_fail_unless(int_index_set_1() == 2,"General Test 1");
@@ -89,4 +92,28 @@ void general_test_12()	{
 
 void general_test_13()	{
 	sput_fail_unless(int_index_set_13()  == 15,"General Test 13");
+}
+
+void general_test_14()	{
+	uint32_t expected[8] = {0,1,0,1,0,1,1};
+	uint32_t res[8] = {0};
+	bs_arith_add(res);
+	for(int slice = 0; slice < 32; slice++)	{
+		for(int bit = 0; bit < 8; bit++)	{
+			sput_fail_unless(((res[bit] >> slice) & 0x1) == expected[bit],"General Test 13");		
+		}
+		printf("\n");
+	}
+}
+
+void general_test_15()	{
+	uint32_t expected[8] = {1,1,0,0,0,1,0,0};
+	uint32_t res[8] = {0};
+	bs_arith_sub(res);
+	for(int slice = 0; slice < 32; slice++)	{
+		for(int bit = 0; bit < 8; bit++)	{
+			sput_fail_unless(((res[bit] >> slice) & 0x1) == expected[bit],"General Test 13");		
+		}
+		printf("\n");
+	}
 }

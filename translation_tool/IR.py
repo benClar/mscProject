@@ -145,6 +145,8 @@ class Function_decl(object):
                 ret += ", "
         if len(self.parameters) > 0:
             ret = ret[:-2]
+        elif bs_bit_return is not None:
+            ret = ret[:-2]
         ret += ")"
         return ret
 
@@ -828,7 +830,7 @@ class Return(object):
         return self._type
 
     def translate(self, sym_count):
-        target = self.target.translate()
+        target = self.target.translate(sym_count)
         ret = target['emit']
         if self.return_target is not None:
             for bit in range(0, int(self.target.constraints.translate()['result'])):
@@ -1526,7 +1528,9 @@ class Binary_operation(object):
                     "<<": "shift_right(",
                     "^": "XOR(",
                     "&": "AND(",
-                    "|": "OR("}
+                    "|": "OR(",
+                    "+": "bitslice_add(",
+                    "-": "bitslice_subtract("}
 
     def __init__(self, op_type, operator):
         self._node_type = op_type
@@ -1623,8 +1627,8 @@ class Binary_operation(object):
         if self.node_type == DATA_TYPE.BITWISE_OP:
             return self.bs_operation(sym_count, self.bs_op_lookup[self.operator])
             # self.bitslice_bitwise(sym_count, target)
-        # if self.node_type == DATA_TYPE.ARITH_OP:
-        #     return self.bs_operation(sym_count, "bitslice_arithmetic(")
+        if self.node_type == DATA_TYPE.ARITH_OP:
+            return self.bs_operation(sym_count, self.bs_op_lookup[self.operator])
         else:
             raise ParseException("unrecognised bs int operation type" + str(self.node_type))
 
@@ -1694,7 +1698,9 @@ class Binary_operation(object):
             else:
                 return self.constraints.translate()['result']
         elif self.node_type == DATA_TYPE.BITWISE_OP:
-            return self.constraints.translate()['result'] 
+            return self.constraints.translate()['result']
+        elif self.node_type == DATA_TYPE.ARITH_OP:
+            return self.constraints.translate()['result']
 
     def int_int_operation(self, sym_count, target = None):
         if self.node_type == DATA_TYPE.COMP_OP:

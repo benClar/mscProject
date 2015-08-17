@@ -15,5 +15,6 @@ void general_test_10();
 void general_test_11();
 void general_test_12();
 void general_test_13();
-
+void general_test_14();
+void general_test_15();
 

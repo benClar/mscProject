@@ -952,81 +952,94 @@ class test_translation(unittest.TestCase):
 #         print(par.semantic_analyser.IR.translate()['main'])
 
 
-    # def test_general_operations(self):
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) int_index_set_1()    {\
-    #                                                                         Int(8) a = 10;\
-    #                                                                         a[3] = a[1];\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_2()    {\
-    #                                                                         Int(8) a = 0;\
-    #                                                                         a[0,1,3] = [True, False, True];\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_3()    {\
-    #                                                                         Int(8) a = 5;\
-    #                                                                         a[0,1,2,3] = a[0,1,2,3] << 1;\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_4()    {\
-    #                                                                         Int(8) a = 5;\
-    #                                                                         a[0,1,2,3] = a[0,1,2,3] <<< 3;\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_5()    {\
-    #                                                                         Int(8) a = 19;\
-    #                                                                         a[0,1,2,3,4] = a[0,1,2,3,4] >>> 3;\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_6()    {\
-    #                                                                         Int(8) a = 19;\
-    #                                                                         a[0,1,2,3,4] = a[0:4] >>> 3;\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_7()    {\
-    #                                                                         Int(8) a = 0;\
-    #                                                                         a[0:4] = [True, False, True, True];\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_8()    {\
-    #                                                                         Int(8) a = 0;\
-    #                                                                         a = [True, False, True, True];\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_9()    {\
-    #                                                                         Int(8) a = 0;\
-    #                                                                         a = [True, False, True, True] + 10;\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_10()    {\
-    #                                                                         Int(8) a = 0;\
-    #                                                                         a = ([True, False, True, True] <<< 1) + 10;\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_11()    {\
-    #                                                                         Int(8) a = 7;\
-    #                                                                         a[0,1,2,3] = a[3,2,1,0];\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_12()    {\
-    #                                                                         Int(8) a = 15;\
-    #                                                                         a[0] = False;\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     Int(8) int_index_set_13()    {\
-    #                                                                         Int(8) a = 14;\
-    #                                                                         a[0] = True;\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     @Int(8)[5][5][10] int_index_set_14(@Int(8)[5][5][10] a)    {\
-    #                                                                         a[0][0][0][0] = True;\
-    #                                                                         return a;\
-    #                                                                     }\
-    #                                                                     ")), True)
-    #     if Data_reader.write("general_dsl", "general_dsl", par.semantic_analyser.IR.translate()) is True:
-    #         assert_equals(subprocess.call(['../DSL/testing/general_dsl/./run_tests.sh']), 0)
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("")), True)
+    def test_general_operations(self):
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) int_index_set_1()    {\
+                                                                            Int(8) a = 10;\
+                                                                            a[3] = a[1];\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_2()    {\
+                                                                            Int(8) a = 0;\
+                                                                            a[0,1,3] = [True, False, True];\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_3()    {\
+                                                                            Int(8) a = 5;\
+                                                                            a[0,1,2,3] = a[0,1,2,3] << 1;\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_4()    {\
+                                                                            Int(8) a = 5;\
+                                                                            a[0,1,2,3] = a[0,1,2,3] <<< 3;\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_5()    {\
+                                                                            Int(8) a = 19;\
+                                                                            a[0,1,2,3,4] = a[0,1,2,3,4] >>> 3;\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_6()    {\
+                                                                            Int(8) a = 19;\
+                                                                            a[0,1,2,3,4] = a[0:4] >>> 3;\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_7()    {\
+                                                                            Int(8) a = 0;\
+                                                                            a[0:4] = [True, False, True, True];\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_8()    {\
+                                                                            Int(8) a = 0;\
+                                                                            a = [True, False, True, True];\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_9()    {\
+                                                                            Int(8) a = 0;\
+                                                                            a = [True, False, True, True] + 10;\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_10()    {\
+                                                                            Int(8) a = 0;\
+                                                                            a = ([True, False, True, True] <<< 1) + 10;\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_11()    {\
+                                                                            Int(8) a = 7;\
+                                                                            a[0,1,2,3] = a[3,2,1,0];\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_12()    {\
+                                                                            Int(8) a = 15;\
+                                                                            a[0] = False;\
+                                                                            return a;\
+                                                                        }\
+                                                                        Int(8) int_index_set_13()    {\
+                                                                            Int(8) a = 14;\
+                                                                            a[0] = True;\
+                                                                            return a;\
+                                                                        }\
+                                                                        @Int(8)[5][5][10] int_index_set_14(@Int(8)[5][5][10] a)    {\
+                                                                            a[0][0][0][0] = True;\
+                                                                            return a;\
+                                                                        }\
+                                                                        @Int(8) bs_arith_add()    {\
+                                                                            @Int(8) a = 57;\
+                                                                            @Int(8) b = 49;\
+                                                                            return a + b;\
+                                                                        }\
+                                                                        @Int(8) bs_arith_sub()    {\
+                                                                            @Int(8) a = 74;\
+                                                                            @Int(8) b = 39;\
+                                                                            return a - b;\
+                                                                        }\
+                                                                        ")), True)
+        # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("
+        #                                                                 ")), True)
+        # print(par.semantic_analyser.IR.translate()['main'])
+        if Data_reader.write("general_dsl", "general_dsl", par.semantic_analyser.IR.translate()) is True:
+            assert_equals(subprocess.call(['../DSL/testing/general_dsl/./run_tests.sh']), 0)
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("")), True)
 
     # def test_LFSR_translation(self):
     #     par = Parser()
@@ -1049,113 +1062,113 @@ class test_translation(unittest.TestCase):
     #     assert_equals(subprocess.call(['../DSL/testing/lfsr_dsl/./run_tests.sh']), 0)
 
 
-    def test_PRINCE_translation(self):
-            par = Parser()
-            assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4];\
-                                                                            Sbox(4)[16] prince_inv = [0xb, 0x7, 0x3, 0x2, 0xf, 0xd, 0x8, 0x9, 0xa, 0x6, 0x4, 0x0, 0x5, 0xe, 0xc, 0x1];\
-                                                                            void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
-                                                                                @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
-                                                                                state = state ^ key_0;\
-                                                                                state = state ^ RC[0][0:64];\
-                                                                                first_rounds(state,key_1,RC,prince);\
-                                                                                sBox_layer(state, prince);\
-                                                                                mPrime(state);\
-                                                                                sBox_layer_inv(state, prince);\
-                                                                                last_rounds(state,key_1,RC,prince_inv);\
-                                                                                state = ((RC[11] ^ key_1) ^ state);\
-                                                                                state = state ^ key_prime;\
-                                                                            }\
-                                                                            void m0(@Int(16) state, @Int(16) output)   {\
-                                                                                output[15] = state[11] ^ state[7] ^ state[3];\
-                                                                                output[14] = state[14] ^ state[6] ^ state[2];\
-                                                                                output[13] = state[13] ^ state[9] ^ state[1];\
-                                                                                output[12] = state[12] ^ state[8] ^ state[4];\
-                                                                                output[11] = state[15] ^ state[11] ^ state[7];\
-                                                                                output[10] = state[10] ^ state[6] ^ state[2];\
-                                                                                output[9] = state[13] ^ state[5] ^ state[1];\
-                                                                                output[8] = state[12] ^ state[8] ^ state[0];\
-                                                                                output[7] = state[15] ^ state[11] ^ state[3];\
-                                                                                output[6] = state[14] ^ state[10] ^ state[6];\
-                                                                                output[5] = state[9] ^ state[5] ^ state[1];\
-                                                                                output[4] = state[12] ^ state[4] ^ state[0];\
-                                                                                output[3] = state[15] ^ state[7] ^ state[3];\
-                                                                                output[2] = state[14] ^ state[10] ^ state[2];\
-                                                                                output[1] = state[13] ^ state[9] ^ state[5];\
-                                                                                output[0] = state[8] ^ state[4] ^ state[0];\
-                                                                            }\
-                                                                            void m1(@Int(16) state, @Int(16) output)   {\
-                                                                                output[15] = state[15] ^ state[11] ^ state[7];\
-                                                                                output[14] = state[10] ^ state[6] ^ state[2];\
-                                                                                output[13] = state[13] ^ state[5] ^ state[1];\
-                                                                                output[12] = state[12] ^ state[8] ^ state[0];\
-                                                                                output[11] = state[15] ^ state[11] ^ state[3];\
-                                                                                output[10] = state[14] ^ state[10] ^ state[6];\
-                                                                                output[9] = state[9] ^ state[5] ^ state[1];\
-                                                                                output[8] = state[12] ^ state[4] ^ state[0];\
-                                                                                output[7] = state[15] ^ state[7] ^ state[3];\
-                                                                                output[6] = state[14] ^ state[10] ^ state[2];\
-                                                                                output[5] = state[13] ^ state[9] ^ state[5];\
-                                                                                output[4] = state[8] ^ state[4] ^ state[0];\
-                                                                                output[3] = state[11] ^ state[7] ^ state[3];\
-                                                                                output[2] = state[14] ^ state[6] ^ state[2];\
-                                                                                output[1] = state[13] ^ state[9] ^ state[1];\
-                                                                                output[0] = state[12] ^ state[8] ^ state[4];\
-                                                                            }\
-                                                                            void mPrime(@Int(64) state)    {\
-                                                                                @Int(16) output;\
-                                                                                m0(state[0:15], output);\
-                                                                                state[0:15] = output[0:15];\
-                                                                                m1(state[16:31], output);\
-                                                                                state[16:31] =  output[0:15];\
-                                                                                m1(state[32:47], output);\
-                                                                                state[32:47] = output[0:15];\
-                                                                                m0(state[48:63], output);\
-                                                                                state[48:63] = output[0:15];\
-                                                                            }\
-                                                                            void sBox_layer(@Int(64) state, Sbox(4)[16] prince)  {\
-                                                                                for(Int(8) i = 0; i < 16; i = i + 1){\
-                                                                                    state[(i * 4) : (i * 4) + 3] = prince[state[(i * 4) : (i * 4) + 3]];\
-                                                                                }\
-                                                                            }\
-                                                                            void sBox_layer_inv(@Int(64) state, Sbox(4)[16] prince_inv)  {\
-                                                                                for(Int(8) i = 0; i < 16; i = i + 1){\
-                                                                                    state[(i * 4) : (i * 4) + 3] = prince_inv[state[(i * 4) : (i * 4) + 3]];\
-                                                                                }\
-                                                                            }\
-                                                                            @Int(64) shift_rows(@Int(64) state, Int(8) inverse){\
-                                                                                Int(8) target = 0;\
-                                                                                @Int(64) output;\
-                                                                                output[59 : 63] = state[59 : 63];\
-                                                                                for(Int(8) nibble = 1; nibble < 16; nibble = nibble + 1){\
-                                                                                    if(inverse == 1){\
-                                                                                        target = (target + 5) % 16;\
-                                                                                    }\
-                                                                                    if(inverse == 0){\
-                                                                                        target = (target + 13) % 16;\
-                                                                                    }\
-                                                                                    output[(63 - (target * 4)) - 3 : 63 - (target * 4)] = state[(63 - (nibble * 4)) - 3 : 63 - (nibble * 4)];\
-                                                                                }\
-                                                                                return output;\
-                                                                            }\
-                                                                            void first_rounds(@Int(64) state, @Int(64) key, @Int(64)[11] RC, Sbox(4)[16] prince){\
-                                                                                for(Int(8) r = 1; r < 6; r = r + 1){\
-                                                                                    sBox_layer(state, prince);\
-                                                                                    mPrime(state);\
-                                                                                    state = shift_rows(state, 0);\
-                                                                                    state = ((RC[r] ^ key) ^ state);\
-                                                                                }\
-                                                                            }\
-                                                                            void last_rounds(@Int(64) state, @Int(64) key, @Int(64)[11] RC, Sbox(4)[16] prince_inv){\
-                                                                                for(Int(8) r = 6; r < 11; r = r + 1){\
-                                                                                    state = ((RC[r] ^ key) ^ state);\
-                                                                                    state = shift_rows(state, 1);\
-                                                                                    mPrime(state);\
-                                                                                    sBox_layer_inv(state, prince_inv);\
-                                                                                }\
-                                                                            }\
-                                                                            ")), True)
-            Data_reader.write("prince_dsl", "prince_dsl", par.semantic_analyser.IR.translate())
-            assert_equals(subprocess.call(['../DSL/testing/prince_dsl/./run_tests.sh']), 0)
+    # def test_PRINCE_translation(self):
+    #         par = Parser()
+    #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] prince = [0xb, 0xf, 0x3, 0x2, 0xa, 0xc, 0x9, 0x1, 0x6, 0x7, 0x8, 0x0, 0xe, 0x5, 0xd, 0x4];\
+    #                                                                         Sbox(4)[16] prince_inv = [0xb, 0x7, 0x3, 0x2, 0xf, 0xd, 0x8, 0x9, 0xa, 0x6, 0x4, 0x0, 0x5, 0xe, 0xc, 0x1];\
+    #                                                                         void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
+    #                                                                             @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
+    #                                                                             state = state ^ key_0;\
+    #                                                                             state = state ^ RC[0][0:64];\
+    #                                                                             first_rounds(state,key_1,RC,prince);\
+    #                                                                             sBox_layer(state, prince);\
+    #                                                                             mPrime(state);\
+    #                                                                             sBox_layer_inv(state, prince);\
+    #                                                                             last_rounds(state,key_1,RC,prince_inv);\
+    #                                                                             state = ((RC[11] ^ key_1) ^ state);\
+    #                                                                             state = state ^ key_prime;\
+    #                                                                         }\
+    #                                                                         void m0(@Int(16) state, @Int(16) output)   {\
+    #                                                                             output[15] = state[11] ^ state[7] ^ state[3];\
+    #                                                                             output[14] = state[14] ^ state[6] ^ state[2];\
+    #                                                                             output[13] = state[13] ^ state[9] ^ state[1];\
+    #                                                                             output[12] = state[12] ^ state[8] ^ state[4];\
+    #                                                                             output[11] = state[15] ^ state[11] ^ state[7];\
+    #                                                                             output[10] = state[10] ^ state[6] ^ state[2];\
+    #                                                                             output[9] = state[13] ^ state[5] ^ state[1];\
+    #                                                                             output[8] = state[12] ^ state[8] ^ state[0];\
+    #                                                                             output[7] = state[15] ^ state[11] ^ state[3];\
+    #                                                                             output[6] = state[14] ^ state[10] ^ state[6];\
+    #                                                                             output[5] = state[9] ^ state[5] ^ state[1];\
+    #                                                                             output[4] = state[12] ^ state[4] ^ state[0];\
+    #                                                                             output[3] = state[15] ^ state[7] ^ state[3];\
+    #                                                                             output[2] = state[14] ^ state[10] ^ state[2];\
+    #                                                                             output[1] = state[13] ^ state[9] ^ state[5];\
+    #                                                                             output[0] = state[8] ^ state[4] ^ state[0];\
+    #                                                                         }\
+    #                                                                         void m1(@Int(16) state, @Int(16) output)   {\
+    #                                                                             output[15] = state[15] ^ state[11] ^ state[7];\
+    #                                                                             output[14] = state[10] ^ state[6] ^ state[2];\
+    #                                                                             output[13] = state[13] ^ state[5] ^ state[1];\
+    #                                                                             output[12] = state[12] ^ state[8] ^ state[0];\
+    #                                                                             output[11] = state[15] ^ state[11] ^ state[3];\
+    #                                                                             output[10] = state[14] ^ state[10] ^ state[6];\
+    #                                                                             output[9] = state[9] ^ state[5] ^ state[1];\
+    #                                                                             output[8] = state[12] ^ state[4] ^ state[0];\
+    #                                                                             output[7] = state[15] ^ state[7] ^ state[3];\
+    #                                                                             output[6] = state[14] ^ state[10] ^ state[2];\
+    #                                                                             output[5] = state[13] ^ state[9] ^ state[5];\
+    #                                                                             output[4] = state[8] ^ state[4] ^ state[0];\
+    #                                                                             output[3] = state[11] ^ state[7] ^ state[3];\
+    #                                                                             output[2] = state[14] ^ state[6] ^ state[2];\
+    #                                                                             output[1] = state[13] ^ state[9] ^ state[1];\
+    #                                                                             output[0] = state[12] ^ state[8] ^ state[4];\
+    #                                                                         }\
+    #                                                                         void mPrime(@Int(64) state)    {\
+    #                                                                             @Int(16) output;\
+    #                                                                             m0(state[0:15], output);\
+    #                                                                             state[0:15] = output[0:15];\
+    #                                                                             m1(state[16:31], output);\
+    #                                                                             state[16:31] =  output[0:15];\
+    #                                                                             m1(state[32:47], output);\
+    #                                                                             state[32:47] = output[0:15];\
+    #                                                                             m0(state[48:63], output);\
+    #                                                                             state[48:63] = output[0:15];\
+    #                                                                         }\
+    #                                                                         void sBox_layer(@Int(64) state, Sbox(4)[16] prince)  {\
+    #                                                                             for(Int(8) i = 0; i < 16; i = i + 1){\
+    #                                                                                 state[(i * 4) : (i * 4) + 3] = prince[state[(i * 4) : (i * 4) + 3]];\
+    #                                                                             }\
+    #                                                                         }\
+    #                                                                         void sBox_layer_inv(@Int(64) state, Sbox(4)[16] prince_inv)  {\
+    #                                                                             for(Int(8) i = 0; i < 16; i = i + 1){\
+    #                                                                                 state[(i * 4) : (i * 4) + 3] = prince_inv[state[(i * 4) : (i * 4) + 3]];\
+    #                                                                             }\
+    #                                                                         }\
+    #                                                                         @Int(64) shift_rows(@Int(64) state, Int(8) inverse){\
+    #                                                                             Int(8) target = 0;\
+    #                                                                             @Int(64) output;\
+    #                                                                             output[59 : 63] = state[59 : 63];\
+    #                                                                             for(Int(8) nibble = 1; nibble < 16; nibble = nibble + 1){\
+    #                                                                                 if(inverse == 1){\
+    #                                                                                     target = (target + 5) % 16;\
+    #                                                                                 }\
+    #                                                                                 if(inverse == 0){\
+    #                                                                                     target = (target + 13) % 16;\
+    #                                                                                 }\
+    #                                                                                 output[(63 - (target * 4)) - 3 : 63 - (target * 4)] = state[(63 - (nibble * 4)) - 3 : 63 - (nibble * 4)];\
+    #                                                                             }\
+    #                                                                             return output;\
+    #                                                                         }\
+    #                                                                         void first_rounds(@Int(64) state, @Int(64) key, @Int(64)[11] RC, Sbox(4)[16] prince){\
+    #                                                                             for(Int(8) r = 1; r < 6; r = r + 1){\
+    #                                                                                 sBox_layer(state, prince);\
+    #                                                                                 mPrime(state);\
+    #                                                                                 state = shift_rows(state, 0);\
+    #                                                                                 state = ((RC[r] ^ key) ^ state);\
+    #                                                                             }\
+    #                                                                         }\
+    #                                                                         void last_rounds(@Int(64) state, @Int(64) key, @Int(64)[11] RC, Sbox(4)[16] prince_inv){\
+    #                                                                             for(Int(8) r = 6; r < 11; r = r + 1){\
+    #                                                                                 state = ((RC[r] ^ key) ^ state);\
+    #                                                                                 state = shift_rows(state, 1);\
+    #                                                                                 mPrime(state);\
+    #                                                                                 sBox_layer_inv(state, prince_inv);\
+    #                                                                             }\
+    #                                                                         }\
+    #                                                                         ")), True)
+    #         Data_reader.write("prince_dsl", "prince_dsl", par.semantic_analyser.IR.translate())
+    #         assert_equals(subprocess.call(['../DSL/testing/prince_dsl/./run_tests.sh']), 0)
 
     # def test_PRESENT_translation(self):
     #     par = Parser()

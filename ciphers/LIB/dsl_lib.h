@@ -24,6 +24,7 @@ void hex_print(uint8_t *state, int row_width, int area);
 int bits_in(int value);
 void shift_right_2(uint8_t *target, uint8_t *source, int var_size, int shift);
 void shift_left_2(uint8_t *target, uint8_t *source, int var_size, int shift);
+void bitslice_add(uint32_t *output, uint32_t *A, uint32_t *B, int width);
 // uint8_t **clone_square_matrix(uint8_t **input, int length, int ele_size);
 // void print_sq_matrix(uint8_t **m, int length);
 // int compare_sq_matrix(uint8_t **a, uint8_t **b, int length);

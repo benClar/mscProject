@@ -301,4 +301,64 @@ uint32_t  (*int_index_set_14(uint32_t a[5][5][10][8]))[5][10][8]{
 a[0][0][0][0] = 0xffffffff;
 return a;
 }
+void  bs_arith_add(uint32_t *temp_30_bs_return){ 
+uint32_t a[8] = {0};
+a[0]= 0xffffffff;
+a[1]= 0;
+a[2]= 0;
+a[3]= 0xffffffff;
+a[4]= 0xffffffff;
+a[5]= 0xffffffff;
+a[6]= 0;
+a[7]= 0;
+uint32_t b[8] = {0};
+b[0]= 0xffffffff;
+b[1]= 0;
+b[2]= 0;
+b[3]= 0;
+b[4]= 0xffffffff;
+b[5]= 0xffffffff;
+b[6]= 0;
+b[7]= 0;
+uint32_t temp_31__bin[8] = {0};
+bitslice_add(temp_31__bin, a, b, 8);
+temp_30_bs_return[0] = temp_31__bin[0];
+temp_30_bs_return[1] = temp_31__bin[1];
+temp_30_bs_return[2] = temp_31__bin[2];
+temp_30_bs_return[3] = temp_31__bin[3];
+temp_30_bs_return[4] = temp_31__bin[4];
+temp_30_bs_return[5] = temp_31__bin[5];
+temp_30_bs_return[6] = temp_31__bin[6];
+temp_30_bs_return[7] = temp_31__bin[7];
+}
+void  bs_arith_sub(uint32_t *temp_33_bs_return){ 
+uint32_t a[8] = {0};
+a[0]= 0;
+a[1]= 0xffffffff;
+a[2]= 0;
+a[3]= 0xffffffff;
+a[4]= 0;
+a[5]= 0;
+a[6]= 0xffffffff;
+a[7]= 0;
+uint32_t b[8] = {0};
+b[0]= 0xffffffff;
+b[1]= 0xffffffff;
+b[2]= 0xffffffff;
+b[3]= 0;
+b[4]= 0;
+b[5]= 0xffffffff;
+b[6]= 0;
+b[7]= 0;
+uint32_t temp_34__bin[8] = {0};
+bitslice_subtract(temp_34__bin, a, b, 8);
+temp_33_bs_return[0] = temp_34__bin[0];
+temp_33_bs_return[1] = temp_34__bin[1];
+temp_33_bs_return[2] = temp_34__bin[2];
+temp_33_bs_return[3] = temp_34__bin[3];
+temp_33_bs_return[4] = temp_34__bin[4];
+temp_33_bs_return[5] = temp_34__bin[5];
+temp_33_bs_return[6] = temp_34__bin[6];
+temp_33_bs_return[7] = temp_34__bin[7];
+}
 
