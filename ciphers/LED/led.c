@@ -9,7 +9,7 @@
 void enc(uint32_t state[64], uint32_t key[64], uint32_t MDS[16][4], uint32_t RC[32][6]) {
     int r = 0; 
     for(r = 0; r < 32; r++)  {
-        if(!r%4)    {
+        if(!(r%4))    {
             state[0] ^= key[0];
             state[1] ^= key[1];
             state[2] ^= key[2];
@@ -141,7 +141,6 @@ void enc(uint32_t state[64], uint32_t key[64], uint32_t MDS[16][4], uint32_t RC[
     state[61] ^= key[61];
     state[62] ^= key[62];
     state[63] ^= key[63];
-    // hex_print(state,16,64);
 }
 
 void step(uint32_t curr_state[64], uint32_t rc[6], uint32_t MDS[16][4]) {
@@ -154,9 +153,7 @@ void step(uint32_t curr_state[64], uint32_t rc[6], uint32_t MDS[16][4]) {
 
 void mixColumnsSerial(uint32_t curr_state[64], uint32_t mds[16][4])   {
     int col = 0,col_row;
-    // uint32_t res[8] = {0};
     uint32_t column[4][4];
-    // uint32_t test[4];
     uint32_t a[8] = {0};
     uint32_t b[8] = {0};
     uint32_t c[8] = {0};
@@ -201,8 +198,8 @@ void gm_bs_2(uint32_t g[8], uint32_t a[4], uint32_t b[4]){
     g[6] = 0;
     g[7] = 0;
     uint32_t hbs[1] = {0};
-    uint32_t gf_poly[8] = {0,0,0,1,0,0,1,1};
-    uint32_t one[8] = {0,0,0,0,0,0,0,1};
+    uint32_t gf_poly[8] = {0,0,0,0xffffffff,0,0,0xffffffff,0xffffffff};
+    uint32_t one[8] = {0,0,0,0,0,0,0,0xffffffff};
     uint32_t a_in[8] = {0};
     uint32_t b_in[8] = {0};
     for(int bit = 0; bit < 4; bit++)    {
@@ -379,20 +376,20 @@ void shiftRow(uint32_t curr_state[64])   {
     }
 }
 
-uint8_t sbox_1(uint32_t input[4])  {
-    return (((~input[A] & ~input[C] & ~input[D] ) | (~input[A] & input[C] & input[D] ) | (input[A] & ~input[B] & input[D]) | (input[A] & ~input[B] & input[C]) | (~input[A] & input[B] & input[C])) & 1);
+uint32_t sbox_1(uint32_t input[4])  {
+    return (~input[A] & ~input[C] & ~input[D] ) | (~input[A] & input[C] & input[D] ) | (input[A] & ~input[B] & input[D]) | (input[A] & ~input[B] & input[C]) | (~input[A] & input[B] & input[C]);
 }
 
-uint8_t sbox_2(uint32_t input[4])  {
-    return (((~input[B] & input[C] & ~input[D]) | (input[A] & input[B] & ~input[C]) | (~input[B] & ~input[C] & input[D]) | (~input[A] & ~input[B] & ~input[C]) | (~input[A] & input[B] & input[C] & input[D])) & 1);
+uint32_t sbox_2(uint32_t input[4])  {
+    return (~input[B] & input[C] & ~input[D]) | (input[A] & input[B] & ~input[C]) | (~input[B] & ~input[C] & input[D]) | (~input[A] & ~input[B] & ~input[C]) | (~input[A] & input[B] & input[C] & input[D]);
 }
 
-uint8_t sbox_3(uint32_t input[4])  {
-    return (((input[A] & input[B] & input[D]) | (input[A] & ~input[B] & ~input[C]) | (~input[A] & input[C] & ~input[D]) | (~input[A] & ~input[B] & input[C]) | (input[A] & ~input[B] & ~input[D])) & 1);
+uint32_t sbox_3(uint32_t input[4])  {
+    return (input[A] & input[B] & input[D]) | (input[A] & ~input[B] & ~input[C]) | (~input[A] & input[C] & ~input[D]) | (~input[A] & ~input[B] & input[C]) | (input[A] & ~input[B] & ~input[D]);
 }
 
-uint8_t sbox_4(uint32_t input[4])  {
-    return (((~input[A] & input[C] & input[D] ) | ( input[A] & input[C] & ~input[D] ) | (input[A] & ~input[B] & ~input[D] ) | (~input[A] & ~input[B] & input[D]) | ( ~input[A] & input[B] & ~input[C] & ~input[D]) | (input[A] & input[B] & ~input[C] & input[D])) & 1);
+uint32_t sbox_4(uint32_t input[4])  {
+    return (~input[A] & input[C] & input[D] ) | ( input[A] & input[C] & ~input[D] ) | (input[A] & ~input[B] & ~input[D] ) | (~input[A] & ~input[B] & input[D]) | ( ~input[A] & input[B] & ~input[C] & ~input[D]) | (input[A] & input[B] & ~input[C] & input[D]);
 }
 
 
@@ -401,10 +398,6 @@ void sBox_array_input(uint32_t output[4], uint32_t input[4])   {
     output[1] = sbox_2(input);
     output[2] = sbox_3(input);
     output[3] = sbox_4(input);
-    input[0] = output[0];
-    input[1] = output[1];
-    input[2] = output[2];
-    input[3] = output[3];
 }
 
 void subCells(uint32_t curr_state[64])   {

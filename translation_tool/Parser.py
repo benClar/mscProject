@@ -5,7 +5,7 @@ from pyparsing import Literal, Word, nums, ParseException, Forward, alphas,\
 import unittest
 from nose.tools import assert_equals
 from Semantic_analyser import Semantic_analyser
-from AST import *
+from Syntax_tree import *
 import traceback
 import sys
 
@@ -16,10 +16,9 @@ class Parser(object):
     @property
     def semantic_analyser(self):
         return self._AST.semantic_analyser
-    
 
     def __init__(self):
-        self._AST = AST()
+        self._AST = Syntax_tree()
 
         # keywords
         self.int_ = Keyword('Int')

@@ -7,8 +7,8 @@
 
 int main() {
 	sput_start_testing();
-	sput_enter_suite("LED Test 1");
-	sput_run_test(led_test_1);
+	// sput_enter_suite("LED Test 1");
+	// sput_run_test(led_test_1);
 	sput_enter_suite("LED Test 2");
 	sput_run_test(led_test_2);
 	sput_finish_testing();

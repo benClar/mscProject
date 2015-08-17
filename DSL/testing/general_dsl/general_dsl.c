@@ -297,4 +297,8 @@ a = 14;
 a ^= (0x1 << 0);
 return a;
 }
+uint32_t  (*int_index_set_14(uint32_t a[5][5][10][8]))[5][10][8]{ 
+a[0][0][0][0] = 0xffffffff;
+return a;
+}
 

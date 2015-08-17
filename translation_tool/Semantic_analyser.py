@@ -159,12 +159,16 @@ class Semantic_analyser(object):
                 raise SemanticException(str(id_set.target.target.type) + " Cannot be set to " + str(id_set.value.type))
 
     def analyse_ID_set(self, node):
-        if node.target.node_type == DATA_TYPE.ID:
-            return self.basic_id_set(node)
-        elif node.target.node_type == DATA_TYPE.INDEX_SELECT:
-            return self.index_set(node)
-        else:
-            raise InternalException("Internal Error: Unknown type " + node.target.node_type)
+        try:
+            if node.target.node_type == DATA_TYPE.ID:
+                return self.basic_id_set(node)
+            elif node.target.node_type == DATA_TYPE.INDEX_SELECT:
+                return self.index_set(node)
+            else:
+                raise InternalException("Internal Error: Unknown type " + node.target.node_type)
+        except SemanticException as details:
+            Semantic_analysis_errors.semantic_err(node, details)
+            return False
 
     def basic_id_set(self, node):
         id_set = Set(Name(node.target.ID, self.sym_table.id_type(node.target.ID)), self.expr_type_is(node.value))
@@ -175,46 +179,58 @@ class Semantic_analyser(object):
         return id_set
 
     def analyse_int_decl(self, node):
-        if node.value is not None:
-            decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)), self.expr_type_is(node.value))
-        else:
-            decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)))
-        if decl.constraints.node_type != DATA_TYPE.INT_LITERAL:
-            raise SemanticException("Word Length cannot be variable")
-        if node.value is not None and self.value_matches_expected(decl.value.type, node.node_type) is False:  #Should be more specific
-                raise SemanticException(str(decl.value.type) + " Cannot be assigned to " + str(node.node_type) + " assignment")
-        if decl.ID.name is not None:
-            self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
-            self.sym_table.id(node.ID)['constraints'] = decl.constraints
-            self.sym_table.id(node.ID)['size'] = None
-        return decl
+        try:
+            if node.value is not None:
+                decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)), self.expr_type_is(node.value))
+            else:
+                decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)))
+            if decl.constraints.node_type != DATA_TYPE.INT_LITERAL:
+                raise SemanticException("Word Length cannot be variable")
+            if node.value is not None and self.value_matches_expected(decl.value.type, node.node_type) is False:  #Should be more specific
+                    raise SemanticException(str(decl.value.type) + " Cannot be assigned to " + str(node.node_type) + " assignment")
+            if decl.ID.name is not None:
+                self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
+                self.sym_table.id(node.ID)['constraints'] = decl.constraints
+                self.sym_table.id(node.ID)['size'] = None
+            return decl
+        except SemanticException as details:
+            Semantic_analysis_errors.semantic_err(node, details)
+            return False
 
     def analyse_bit_decl(self, node):
-        if node.value is not None:
-            decl = Bit_decl(Name(node.ID, DATA_TYPE.BIT_VAL), self.expr_type_is(node.value))
-        else:
-            decl = Bit_decl(Name(node.ID, DATA_TYPE.BIT_VAL))
-        if node.value is not None:
-            if decl.value.type != DATA_TYPE.BIT_VAL:
-                raise SemanticException("Cannot Assign " + str(decl.value.type) + " in " +  str(DATA_TYPE.BIT_DECL))
-        if node.ID is not None:
-            self.sym_table.add_bit_id(node.ID)
-            self.sym_table.id(node.ID)['constraints'] = None
-            self.sym_table.id(node.ID)['size'] = None
-        return decl
+        try:
+            if node.value is not None:
+                decl = Bit_decl(Name(node.ID, DATA_TYPE.BIT_VAL), self.expr_type_is(node.value))
+            else:
+                decl = Bit_decl(Name(node.ID, DATA_TYPE.BIT_VAL))
+            if node.value is not None:
+                if decl.value.type != DATA_TYPE.BIT_VAL:
+                    raise SemanticException("Cannot Assign " + str(decl.value.type) + " in " +  str(DATA_TYPE.BIT_DECL))
+            if node.ID is not None:
+                self.sym_table.add_bit_id(node.ID)
+                self.sym_table.id(node.ID)['constraints'] = None
+                self.sym_table.id(node.ID)['size'] = None
+            return decl
+        except SemanticException as details:
+            Semantic_analysis_errors.semantic_err(node, details)
+            return False
 
     def analyse_bit_seq(self, node):
-        if node.value is None:
-            decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID)
-        else:
-            decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value))
-            if decl.value.type != DATA_TYPE.SEQ_BIT_VAL:
-                raise SemanticException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
-        if node.ID is not None:
-            self.sym_table.add_id(node.ID, decl.ID.type, len(decl.size))
-            self.sym_table.id(node.ID)['size'] = decl.size
-            self.sym_table.id(node.ID)['constraints'] = None
-        return decl
+        try:
+            if node.value is None:
+                decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID)
+            else:
+                decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value))
+                if decl.value.type != DATA_TYPE.SEQ_BIT_VAL:
+                    raise SemanticException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
+            if node.ID is not None:
+                self.sym_table.add_id(node.ID, decl.ID.type, len(decl.size))
+                self.sym_table.id(node.ID)['size'] = decl.size
+                self.sym_table.id(node.ID)['constraints'] = None
+            return decl
+        except SemanticException as details:
+            Semantic_analysis_errors.semantic_err(node, details)
+            return False
 
     def seq_value_dimension(self, seq_value, dimension=0):
         dimension += 1
@@ -250,22 +266,26 @@ class Semantic_analyser(object):
 
     def analyse_bit_cnst_seq(self, node):
         """Analyse Sequences that have bit constraints set on their members and build IR node"""
-        if node.value is None:
-            if node.node_type == DATA_TYPE.SBOX_DECL:
-                raise SemanticException("Sbox declaractions cannot be unitialised")
-            decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, constraints=self.expr_type_is(node.bit_constraints))
-        else:
-            decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value), self.expr_type_is(node.bit_constraints))
-            if self.seq_expr_dimension(decl.value) != len(decl.size):
-                raise SemanticException((str(decl.value.type) + "[]" * self.seq_value_dimension(decl.value)) +
-                                     " Cannot be assigned to " + str(decl.value.type) + ("[]" * len(decl.size)))
-        if decl.constraints.node_type != DATA_TYPE.INT_LITERAL:
-            raise SemanticException("Must use an Integer literal to declare word length")
-        if node.ID is not None:
-            self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type), len(decl.size))
-            self.sym_table.id(node.ID)['constraints'] = decl.constraints
-            self.sym_table.id(node.ID)['size'] = decl.size
-        return decl
+        try:
+            if node.value is None:
+                if node.node_type == DATA_TYPE.SBOX_DECL:
+                    raise SemanticException("Sbox declaractions cannot be unitialised")
+                decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, constraints=self.expr_type_is(node.bit_constraints))
+            else:
+                decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value), self.expr_type_is(node.bit_constraints))
+                if self.seq_expr_dimension(decl.value) != len(decl.size):
+                    raise SemanticException((str(decl.value.type) + "[]" * self.seq_value_dimension(decl.value)) +
+                                         " Cannot be assigned to " + str(decl.value.type) + ("[]" * len(decl.size)))
+            if decl.constraints.node_type != DATA_TYPE.INT_LITERAL:
+                raise SemanticException("Must use an Integer literal to declare word length")
+            if node.ID is not None:
+                self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type), len(decl.size))
+                self.sym_table.id(node.ID)['constraints'] = decl.constraints
+                self.sym_table.id(node.ID)['size'] = decl.size
+            return decl
+        except SemanticException as details:
+            Semantic_analysis_errors.semantic_err(node, details)
+            return False
 
     def analyse_array_size(self, node):
         size = []
@@ -621,34 +641,41 @@ class Semantic_analyser(object):
         return False
 
     def analyse_if_stmt_decl(self, node):
-        self.sym_table.add_scope()
-        if len(node.condition) > 1:
-            raise InternalException("Internal Error: If stmt has more than one condition token")
-        if_stmt = If_stmt(self.expr_type_is(node.condition[0]))
-        for stmt in node.body:
-            if_stmt.add_stmt(self.analyse_sub_stmt(stmt))
-        self.sym_table.leave_scope()
-        return if_stmt
+        try:
+            self.sym_table.add_scope()
+            if len(node.condition) > 1:
+                raise InternalException("Internal Error: If stmt has more than one condition token")
+            if_stmt = If_stmt(self.expr_type_is(node.condition[0]))
+            for stmt in node.body:
+                if_stmt.add_stmt(self.analyse_sub_stmt(stmt))
+            self.sym_table.leave_scope()
+            return if_stmt
+        except SemanticException as details:
+            Semantic_analysis_errors.semantic_err(node, details)
+            return False
 
     def analyse_for_loop_decl(self, node):
         self.sym_table.add_scope()
         for_loop = For_loop()
+        try:
+            for i in node.initializer:
+                for_loop.initializer.append(self.analyse_sub_stmt(i))
 
-        for i in node.initializer:
-            for_loop.initializer.append(self.analyse_sub_stmt(i))
+            for t in node.terminator:
+                for_loop.terminator.append(self.expr_type_is(t))
 
-        for t in node.terminator:
-            for_loop.terminator.append(self.expr_type_is(t))
+            for i in node.increment:
+                for_loop.increment.append(self.analyse_ID_set(i))
 
-        for i in node.increment:
-            for_loop.increment.append(self.analyse_ID_set(i))
+            for stmt in node.body:
+                for_loop.body.append(self.analyse_sub_stmt(stmt))
 
-        for stmt in node.body:
-            for_loop.body.append(self.analyse_sub_stmt(stmt))
-
-        # self.translator.translate_for_loop(node, self.sym_table)
-        self.sym_table.leave_scope()
-        return for_loop
+            # self.translator.translate_for_loop(node, self.sym_table)
+            self.sym_table.leave_scope()
+            return for_loop
+        except SemanticException as details:
+            Semantic_analysis_errors.semantic_err(node, details)
+            return False
 
     def scope(self):
         return self.call_stack.peek()
@@ -743,25 +770,35 @@ class Semantic_analyser(object):
 
     def analyse_func_decl(self, node):
         """Performs Semantic Analysis on function declaration and body, creating an IR node if successful"""
-        self.sym_table.add_scope()
-        ret_val = self.build_ret_val(node.return_value)
-        func_decl = Function_decl(node.ID, ret_val)
-        ret_pres = False
-        for p in node.parameters:
-            func_decl.parameters.append(self.AST_func_param_to_IR(p))
-        for s in node.stmts:
-            if s.node_type == DATA_TYPE.SBOX_DECL:
-                raise SemanticException("Sboxes must be declared as global variables")
-            if s.node_type == DATA_TYPE.RETURN_STMT:
-                ret_pres = True
-                func_decl.body.append(self.analyse_return_stmt(s, func_decl))
-            else:
-                func_decl.body.append(self.analyse_sub_stmt(s))
-
-        if func_decl.return_type != DATA_TYPE.VOID and ret_pres is False:
-            raise SemanticException("Function " + str(func_decl.ID.name) + " requires return value " + str(func_decl.return_type))
-        self.sym_table.leave_scope()
-        return func_decl
+        try:
+            correct = True
+            self.sym_table.add_scope()
+            ret_val = self.build_ret_val(node.return_value)
+            func_decl = Function_decl(node.ID, ret_val)
+            ret_pres = False
+            for p in node.parameters:
+                func_decl.parameters.append(self.AST_func_param_to_IR(p))
+            for s in node.stmts:
+                if s.node_type == DATA_TYPE.SBOX_DECL:
+                    raise SemanticException("Sboxes must be declared as global variables")
+                if s.node_type == DATA_TYPE.RETURN_STMT:
+                    ret_pres = True
+                    func_decl.body.append(self.analyse_return_stmt(s, func_decl))
+                else:
+                    try:
+                        func_decl.body.append(self.analyse_sub_stmt(s))
+                    except SemanticException as details:
+                        Semantic_analysis_errors.semantic_err(node, details)
+                        correct = False
+            if func_decl.return_type != DATA_TYPE.VOID and ret_pres is False:
+                raise SemanticException("Function " + str(func_decl.ID.name) + " requires return value " + str(func_decl.return_type))
+            self.sym_table.leave_scope()
+            if correct is True:
+                return func_decl
+            return False
+        except SemanticException as details:
+            Semantic_analysis_errors.semantic_err(node, details)
+            return False
 
     def AST_func_param_to_IR(self, old_decl):
         """Converts AST param node to equivilent IR node"""
@@ -800,14 +837,11 @@ class Semantic_analyser(object):
         return stmt
 
     def analyse(self, AST):
-        try:
-            for node in AST.tree:
-                result = Semantic_analyser.node_type_lookup[node.node_type](self, node)
-                if result is False:
-                    return False
-                else:
-                    self.IR.add(result)
-        except SemanticException as details:
-            Semantic_analysis_errors.semantic_err(node, details)
-            return False
-        return True
+        correct = True
+        for node in AST.tree:
+            result = Semantic_analyser.node_type_lookup[node.node_type](self, node)
+            if result is not False:
+                self.IR.add(result)
+            else:
+                correct = False
+        return correct

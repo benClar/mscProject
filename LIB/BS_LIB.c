@@ -173,8 +173,8 @@ void bitslice_bend(uint32_t *target, long source, int var_size)	{
 	int bit;
 	for(bit = 0; bit < var_size; bit++)	{
 		if ((source >> bit) & 1)	{
-			target[(var_size - bit) - 1] = 0x1;
-			// target[(var_size - bit) - 1] = 0xffffffff;
+			// target[(var_size - bit) - 1] = 0x1;
+			target[(var_size - bit) - 1] = 0xffffffff;
 		} else {
 			target[var_size - bit - 1] = 0;
 		}

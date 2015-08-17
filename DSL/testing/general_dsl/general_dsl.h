@@ -13,4 +13,5 @@ uint8_t  int_index_set_10();
 uint8_t  int_index_set_11();
 uint8_t  int_index_set_12();
 uint8_t  int_index_set_13();
+uint32_t  (*int_index_set_14(uint32_t a[5][5][10][8]))[5][10][8];
 

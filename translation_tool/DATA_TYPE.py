@@ -77,7 +77,7 @@ class DATA_TYPE(Enum):
                     DATA_TYPE.VOID: "Void",
                     DATA_TYPE.FUNCTION_PARAM: "Function Parameter",
                     DATA_TYPE.BS_INT_DECL: "Bitsliced Integer Declaration",
-                    DATA_TYPE.BS_SEQ_INT_DECL: "Sequence of Bitsliced Integers",
+                    DATA_TYPE.BS_SEQ_INT_DECL: "Sequence of Bitsliced Integers Declaration",
                     DATA_TYPE.SEQ_INT_DECL: "Sequence of Integers Declaration",
                     DATA_TYPE.SEQ_BIT_DECL: "Sequence of Bits Declaration",
                     DATA_TYPE.INDEX_SET: "ID Set Statement",

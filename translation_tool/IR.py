@@ -7,12 +7,13 @@ from Translation_exceptions import SemanticException, InternalException
 
 
 class Sym_count(object):
-
+    """Stores a count of the number of temporary variables created."""
     def __init__(self):
         self.count = 0
 
 
 class IR(object):
+    """Stores IR nodes."""
 
     def __init__(self):
         self._IR = []
@@ -26,6 +27,7 @@ class IR(object):
         return self._IR
 
     def translate(self):
+        """Iterates through all IR nodes and stores their code emissions"""
         result = {'main': "", 'header': ""}
         for node in self.IR:
             try: 
@@ -40,6 +42,7 @@ class IR(object):
 
 
 class Function_decl(object):
+    """Intermediate Representation node that stores function declaration statements."""
 
     def __init__(self, ID, return_type):
         self._ID = Name(ID, None)
@@ -51,6 +54,7 @@ class Function_decl(object):
 
     @property
     def return_type(self):
+        """Accessor for node return type."""
         if self._return_value == DATA_TYPE.VOID:
             return DATA_TYPE.VOID
         else:
@@ -58,14 +62,17 @@ class Function_decl(object):
 
     @property
     def return_value(self):
+        """Accessor for node representing return type of function."""
         return self._return_value
 
     @property
     def parameters(self):
+        """Accessor for node parameters."""
         return self._parameters
 
     @property
     def body(self):
+        """Accessor for statement nodes making up function body."""
         return self._body
 
     @property
@@ -98,14 +105,14 @@ class Function_decl(object):
         ret = ""
         return_type = self.return_value.ID.type
         if DATA_TYPE.is_seq_type(return_type):
+            # ret += ")"
             for i, dim in enumerate(self.return_value.size):
                 if i == 0:
                     ret += ")"
                 else:
-                    ret += "[" + dim.translate() + "]"
-            ret += ")"
-        if return_type == DATA_TYPE.BS_SEQ_INT_VAL:
-            ret += "[" + self.return_value.constraints.value + "]"
+                    ret += "[" + dim.translate()['result'] + "]"
+            if return_type == DATA_TYPE.BS_SEQ_INT_VAL:
+                ret += "[" + self.return_value.constraints.value + "]"
         return ret
 
     def translate_body(self, sym_count):
@@ -391,7 +398,6 @@ class Index_select(object):
             else:
                 #Avoid loop for 1 bit bs int vals
                 selection_dims = self.translate_selection_dim(sym_count)
-                print(selection_dims)
                 result['emit'] += selection_dims['emit']
                 result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[0] = " + value['result'] + "[0];\n"       
         elif self.type == DATA_TYPE.BIT_VAL:
@@ -999,14 +1005,15 @@ class Seq_decl(object):
             index += "[" + str(i) + "]"
         return index
 
-    # def translate_type(self):
-    #     if self.constraints.value in Int_decl.type_decl_lookup or self.node_type == DATA_TYPE.SEQ_BS_INT_DECL:
-    #         if self.node_type == DATA_TYPE.SEQ_INT_DECL:
-    #             return Int_decl.type_decl_lookup[self.constraints.value] + 
-    #         elif self.node_type == DATA_TYPE.BS_INT_DECL:
-    #             return "uint32_t "
-    #     else:
-    #         raise ParseException("Custom Size: Not yet implemented")
+    def translate_type(self):
+        if self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
+            return "uint32_t "
+        elif self.node_type == DATA_TYPE.SEQ_BIT_DECL:
+            return "uint8_t "
+        else:
+            if self.constraints.translate()['result'] not in Target_factory.type_decl_lookup:
+                raise SemanticException("Custom sized integers not implemented")
+            return Target_factory.type_decl_lookup[self.constraints.translate()]
 
 class Seq_val(object):
 
