@@ -127,9 +127,17 @@ class Semantic_analyser(object):
                 if i.node_type == DATA_TYPE.INT_LITERAL:
                     try:
                         if int(i.value) >= int(self.sym_table.id(index_id)['size'][dim].value):
+                            print(self.sym_table.id(index_id))
+                            print(index_id)
+                            print(i.value)
+                            print(self.sym_table.id(index_id)['size'][dim].value)
                             raise SemanticException("Index Selection out of range")
                     except IndexError:
                         pass
+                    except TypeError:
+                        if self.sym_table.id(index_id)['type'] == DATA_TYPE.BS_INT_VAL or self.sym_table.id(index_id)['type'] == DATA_TYPE.INT_VAL:
+                            if int(i.value) > int(self.sym_table.id(index_id)['constraints'].value):
+                                raise SemanticException("Index Selection out of variable bit width")
 
     def can_assign_type(self, target_type, value_type):
         allowed_values = {DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
@@ -849,8 +857,16 @@ class Semantic_analyser(object):
 
     def analyse(self, AST):
         correct = True
+        result = None
         for node in AST.tree:
-            result = Semantic_analyser.node_type_lookup[node.node_type](self, node)
+            try:
+                result = Semantic_analyser.node_type_lookup[node.node_type](self, node)
+            except SemanticException as details:
+                if node.node_type == DATA_TYPE.EXPR:
+                    Semantic_analysis_errors.semantic_err(node, details)
+                    result = False
+                else:
+                    raise SemanticException(details)
             if result is not False:
                 self.IR.add(result)
             else:

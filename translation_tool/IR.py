@@ -689,8 +689,6 @@ class Set(object):
         return self._value
 
     def translate(self, sym_count, end=True):
-        print(self.target.type)
-        print(self.value.type)
         result = {'emit': "", 'result': ""}
         if self.target.node_type == DATA_TYPE.INDEX_SELECT:
             if DATA_TYPE.needs_cast(self.target.type, self.value.type):
