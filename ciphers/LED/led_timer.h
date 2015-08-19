@@ -6,3 +6,4 @@ void subCells_time();
 void shift_row_time();
 void gm_mult_time();
 void MixColumnSerial_time();
+void single_run();

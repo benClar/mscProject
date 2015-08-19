@@ -1,6 +1,7 @@
 #include <x86intrin.h>
 #include "led_dsl.h"
 
+void single_run();
 void cipher_time();
 void addConstants_time();
 void subCells_time();

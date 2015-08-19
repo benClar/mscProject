@@ -6,11 +6,27 @@
 #include "present_timer.h"
 
 int main() {
-	cipher_constant_time();
+	single_run();
+	// cipher_constant_time();
 	// cipher_time();
 	// pLayer_time();
 	// generate_round_keys_time();
 	// sBox_layer_time();
+}
+
+void single_run()	{
+	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint32_t key[80] = {0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
+	uint32_t round_keys[32][64] = {{ 0 }};
+	struct task_basic_info t_info;
+	mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+	uint64_t start, finish;
+	task_info(mach_task_self(),TASK_BASIC_INFO, (task_info_t)&t_info,&t_info_count);
+	start =  t_info.resident_size;
+	enc(key, state, round_keys);
+	task_info(mach_task_self(),TASK_BASIC_INFO, (task_info_t)&t_info,&t_info_count);
+	finish =  t_info.resident_size;
+	printf("%llu\n", finish - start);
 }
 
 void cipher_constant_time()	{

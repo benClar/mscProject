@@ -2,6 +2,7 @@
 #include "present.h"
 #include <x86intrin.h>
 
+void single_run();
 void cipher_constant_time();
 void cipher_time();
 void pLayer_time();

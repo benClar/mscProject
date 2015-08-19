@@ -406,8 +406,24 @@ class Index_select(object):
             result['emit'] += self.set_int_bit_val(value, sym_count)['emit']
         elif self.type == DATA_TYPE.SEQ_BIT_VAL:
             result['emit'] += self.set_seq_bit_val(value, sym_count)['emit']
+        elif self.type == DATA_TYPE.INT_VAL:
+            result['emit'] += self.set_seq_int_val(value, sym_count)['emit']
         else:
             raise ParseException("Unsupported extraction on LHS " + str(self.type))
+        return result
+
+    def set_seq_int_val(self, value, sym_count):
+        result = {'emit': "", 'result': ""}
+        selection_dims = self.translate_selection_dim(sym_count)
+        result['emit'] += selection_dims['emit']
+        if self.is_range():
+            raise ParseException("Ranges of int sequences not yet implemented")
+        elif len(self.indices[-1]) > 1:
+            raise ParseException("Ranges of int sequences not yet implemented")
+        else:
+            selection = self.indices[-1][-1].translate(sym_count)
+            result['emit'] += selection['emit']
+            result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[" + selection['result'] + "]" + " = " + value['result'] + ";\n"
         return result
 
     def set_seq_bit_val(self, value, sym_count):
@@ -673,10 +689,10 @@ class Set(object):
         return self._value
 
     def translate(self, sym_count, end=True):
-        # print(self.target.type)
+        print(self.target.type)
+        print(self.value.type)
         result = {'emit': "", 'result': ""}
         if self.target.node_type == DATA_TYPE.INDEX_SELECT:
-            # value_result = self.value.translate(sym_count)
             if DATA_TYPE.needs_cast(self.target.type, self.value.type):
                 value_result = self.implicit_cast(sym_count)
                 # result['emit'] += value_result['emit']
@@ -752,14 +768,14 @@ class Set(object):
         """Cast to bit-sliced int.  Target is not an index select."""
         result = {'emit': "", 'result': ""}
         if self.value.type == DATA_TYPE.SEQ_BIT_VAL or self.value.type == DATA_TYPE.INT_VAL:
-            if self.value.node_type == DATA_TYPE.INT_LITERAL:
-                if self.target.node_type == DATA_TYPE.ID:
+            if self.value.node_type == DATA_TYPE.INT_LITERAL and self.target.node_type == DATA_TYPE.ID:
+                # if self.target.node_type == DATA_TYPE.ID:
                     # def bitslice_literal(sym_count, value, size, target = None):
-                    bitslice_cast = Cast.bitslice_literal(sym_count, self.value.translate(sym_count)['result'], self.target.constraints.translate()['result'], self.target.translate()['result'])
-                    result['emit'] += bitslice_cast['emit']
-                    result['result'] += bitslice_cast['result']
+                bitslice_cast = Cast.bitslice_literal(sym_count, self.value.translate(sym_count)['result'], self.target.constraints.translate()['result'], self.target.translate()['result'])
+                result['emit'] += bitslice_cast['emit']
+                result['result'] += bitslice_cast['result']
             else:
-                bitslice_cast = self.run_time_bitslice(self,sym_count);
+                bitslice_cast = self.run_time_bitslice(sym_count);
                 result['emit'] += bitslice_cast['emit']
                 result['result'] += bitslice_cast['result']
         else:
@@ -774,6 +790,7 @@ class Set(object):
         result['emit'] += casted_value['emit']
         result['emit'] += "int_to_bitsliced(" + casted_value['result'] + ", " + value['result'] + ", " + casted_value['res_size'] + ");\n"
         result['result'] = casted_value['result']
+        return result
 
     def translate_index_selection_set(self, sym_count, value):
         result = {'emit': "", 'result': ""}
@@ -789,6 +806,8 @@ class Set(object):
         elif self.target.type == DATA_TYPE.BIT_VAL:
             result['emit'] += self.target.translate_as_lhs(sym_count, value)['emit']
         elif self.target.type == DATA_TYPE.SEQ_BIT_VAL:
+            result['emit'] += self.target.translate_as_lhs(sym_count, value)['emit']
+        elif self.target.type == DATA_TYPE.INT_VAL:
             result['emit'] += self.target.translate_as_lhs(sym_count, value)['emit']
         else:
             raise ParseException("Unsupported index set : " + str(self.target.type))

@@ -121,6 +121,16 @@ class Semantic_analyser(object):
         if self.value_matches_expected(id_set.value.type, id_set.target.type) is False:
             raise SemanticException(str(id_set.value.type) + " cannot be assigned to variable of type " + str(id_set.target.type))
 
+    def check_index_in_limit(self, index_id, indices):
+        for dim, index in enumerate(indices):
+            for i in index:
+                if i.node_type == DATA_TYPE.INT_LITERAL:
+                    try:
+                        if int(i.value) >= int(self.sym_table.id(index_id)['size'][dim].value):
+                            raise SemanticException("Index Selection out of range")
+                    except IndexError:
+                        pass
+
     def can_assign_type(self, target_type, value_type):
         allowed_values = {DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
                           DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
@@ -419,6 +429,7 @@ class Semantic_analyser(object):
                 index_sel.type = DATA_TYPE.seq_to_index_sel(index_sel.type)
             return index_sel
         else:
+            self.check_index_in_limit(node.ID, ir_indices)
             if DATA_TYPE.is_seq_type(self.sym_table.id(node.ID)['type']):
                 # element index select on sequence
                 return self.build_seq_index_ir(node, ir_indices)
