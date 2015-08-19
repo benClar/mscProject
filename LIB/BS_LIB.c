@@ -14,27 +14,27 @@ void print(uint32_t *arr, int size)	{
 	printf("\n");
 }
 
-void bitslice_add(uint32_t *output, uint32_t *A, uint32_t *B, int width)	{
+void bitslice_add(uint32_t *output, uint32_t *operand_1, uint32_t *operand_2, int width)	{
 	int bit;
 	uint32_t carry = 0;
 	for(bit = 0; bit < width; bit++)	{
-		output[bit] = ((A[bit] ^ B[bit]) ^ carry);
-		carry = ((A[bit] ^ B[bit]) & carry) | (A[bit] & B[bit]);
+		output[bit] = ((operand_1[bit] ^ operand_2[bit]) ^ carry);
+		carry = ((operand_1[bit] ^ operand_2[bit]) & carry) | (operand_1[bit] & operand_2[bit]);
 	}
 	output[bit] = carry;
 }
 
-void bitslice_subtract(uint32_t *output, uint32_t *A, uint32_t *B, int width)	{
+void bitslice_subtract(uint32_t *output, uint32_t *operand_1, uint32_t *operand_2, int width)	{
 	int bit;
 	uint32_t b_not[width];
 	uint32_t temp_res[width];
 	uint32_t one_bs[width];
 	for(bit = 0; bit < width; bit++) {
 		one_bs[bit] = 0;
-		b_not[bit] = ~B[bit];
+		b_not[bit] = ~operand_2[bit];
 	}
 	one_bs[0] = 0xffffffff;
-	bitslice_add(temp_res,A,b_not,width);
+	bitslice_add(temp_res,operand_1,b_not,width);
 	bitslice_add(output,temp_res,one_bs,width);
 }
 
@@ -148,13 +148,13 @@ void int_to_bitsliced(uint32_t *target, uint32_t source, int var_size)	{
 
 void bitslice_shift(uint32_t *target, uint32_t *source, int shift, int var_size, char *op)	{
 	if(!strcmp(op, ">>")) {
-		shift_left(target, source, var_size, shift);
+		shift_left(target, source, shift, var_size);
 	} else if (!strcmp(op, "<<")) {
-		shift_right(target, source, var_size, shift);
+		shift_right(target, source, shift, var_size);
 	} else if (!strcmp(op, ">>>"))	{
-		rotate_left(target, source, var_size, shift);
+		rotate_left(target, source, shift, var_size);
 	}else if (!strcmp(op, "<<<"))	{
-		rotate_right(target, source, var_size, shift);
+		rotate_right(target, source, shift, var_size);
 	} else {
 		printf("Internal Error: Unrecognised shift operator\n");
 		exit(1);

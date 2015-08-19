@@ -8,9 +8,9 @@ EVAL_INCS = /Users/benjaminclarke/Project/DSL/testing/lfsr_dsl/lfsr_dsl.h /Users
 CC = gcc
 all: $(TARGET)
 
-$(TARGET) $(SOURCES):  $(INCS)
+$(TARGET):  $(SOURCES) $(INCS)
 	$(CC) $(SOURCES) -o /Users/benjaminclarke/Project/DSL/testing/lfsr_dsl/pOut  $(CFLAGS) $(LIBS)
 
 eval: $(EVAL_TARGET)
-$(EVAL_TARGET) $(EVAL_SOURCES):  $(EVAL_INCS)
+$(EVAL_TARGET):  $(EVAL_SOURCES) $(EVAL_INCS)
 	$(CC) $(EVAL_SOURCES) -o evalOut  $(CFLAGS) $(LIBS) 

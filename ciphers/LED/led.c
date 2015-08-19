@@ -418,3 +418,5 @@ void subCells(uint32_t curr_state[64])   {
         curr_state[bit_ele + 3] = result[3];
     }
 }
+
+

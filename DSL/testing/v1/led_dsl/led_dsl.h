@@ -11,5 +11,4 @@ void shift_row(uint32_t state[64]);
 void addConstants(uint32_t state[64], uint32_t constant[6]);
 void subCells(uint32_t state[64]);
 void step(uint32_t state[64], uint32_t r[6], uint32_t MDS[16][4]);
-uint32_t  (*enc(uint32_t state[64], uint32_t key[64], uint32_t MDS[16][4], uint32_t RC[32][6]));
-
+void enc(uint32_t state[64], uint32_t key[64], uint32_t MDS[16][4], uint32_t RC[32][6]);

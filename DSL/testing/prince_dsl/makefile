@@ -8,10 +8,10 @@ EVAL_INCS = /Users/benjaminclarke/Project/DSL/testing/prince_dsl/prince_dsl.h /U
 CC = gcc
 all: $(TARGET)
 
-$(TARGET) $(SOURCES):  $(INCS)
+$(TARGET):  $(SOURCES) $(INCS)
 	$(CC) $(SOURCES) -o /Users/benjaminclarke/Project/DSL/testing/prince_dsl/pOut  $(CFLAGS) $(LIBS)
 
 eval: $(EVAL_TARGET)
 
-$(EVAL_TARGET) $(EVAL_SOURCE):  $(EVAL_INCS)
+$(EVAL_TARGET):  $(EVAL_SOURCE) $(EVAL_INCS)
 	$(CC) $(EVAL_SOURCE) -o /Users/benjaminclarke/Project/DSL/testing/prince_dsl/evalOut  $(CFLAGS) $(LIBS)

@@ -1,6 +1,7 @@
+#include <x86intrin.h>
 #include "prince_dsl.h"
-#include "../../../LIB/BS_LIB.h"
 
+void cipher_constant_time();
 void lastRounds_time();
 void cipher_time();
 void firstRounds_time();

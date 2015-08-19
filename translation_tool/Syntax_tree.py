@@ -54,17 +54,24 @@ class Syntax_tree(object):
 
     @property
     def tree(self):
-        """returns the list of statement nodes for testing if there are no function nodes"""
+        """Returns the list of statement nodes for testing if there are no function nodes."""
         # if len(self._tree) == 0:
         #     return self._statements
         # else:
         return self._tree
 
     def stand_alone_expr(self, tokens):
+        """Adds a single expression syntax fragment.
+
+        Args:
+        tokens: parsed tokens that make up statement."""
         self.add_statement(Expr_syn_node(tokens[0]))
 
     def bit_decl(self, tokens):
-        # print(tokens)
+        """Accepts tokens and constructs a bit declaration syntax fragment.
+
+        Args:
+        tokens: parsed tokens that make up statement."""
         token = tokens[0]
         for decl in token['value']:
             if 'set_value' in decl:
@@ -73,6 +80,10 @@ class Syntax_tree(object):
                 self.add_statement(Bit_decl_syn_node(decl[Syntax_tree.ID]))
 
     def int_decl(self, tokens):
+        """Accepts tokens and constructs an integer declaration syntax fragment.
+
+        Args:
+        tokens: parsed tokens that make up statement."""
         token = tokens[0]
         # print(token.dump())
         if token['decl'] == "@Int":
@@ -86,6 +97,10 @@ class Syntax_tree(object):
                 self.add_statement(Int_decl_syn_node(decl_type, decl['ID'][0], token[1]))
 
     def seq_decl(self, tokens):
+        """Accepts tokens and constructs an sequence declaration syntax fragment.
+
+        Args:
+        tokens: parsed tokens that make up statement."""
         token = tokens[0]
         # print(token.dump())
 
@@ -97,6 +112,10 @@ class Syntax_tree(object):
             raise ParseException("Unrecognised Token type")
 
     def begin_for(self, tokens):
+        """Creates for statement syntax node and sets it as current target for further statements.
+
+        Args:
+        tokens: parsed tokens that make up statement."""
         new_for = for_loop_syn_node()
         self.add_statement(new_for)
         self.add_target({'parent': new_for, 'target': new_for.initializer})
