@@ -73,11 +73,16 @@ class Syntax_tree(object):
         Args:
         tokens: parsed tokens that make up statement."""
         token = tokens[0]
+        # print(token.dump())
+        if token['decl'] == "@Bit":
+            decl_type = DATA_TYPE.BS_BIT_DECL
+        else:
+            decl_type = DATA_TYPE.BIT_DECL
         for decl in token['value']:
             if 'set_value' in decl:
-                self.add_statement(Bit_decl_syn_node(decl[Syntax_tree.ID], decl[Syntax_tree.BIT_EXPR]))
+                self.add_statement(Bit_decl_syn_node(decl[Syntax_tree.ID], decl_type, decl[Syntax_tree.BIT_EXPR]))
             else:
-                self.add_statement(Bit_decl_syn_node(decl[Syntax_tree.ID]))
+                self.add_statement(Bit_decl_syn_node(decl[Syntax_tree.ID], decl_type))
 
     def int_decl(self, tokens):
         """Accepts tokens and constructs an integer declaration syntax fragment.
@@ -188,10 +193,8 @@ class Syntax_tree(object):
 
 
     def function_decl(self, tokens):
-
         token = tokens[0]
         params = []
-        # print(tokens[0].dump())
         for p in token['func_param']:
             decl_type = self.param_type(p)
             if decl_type == DATA_TYPE.INT_DECL or decl_type == DATA_TYPE.BS_INT_DECL:
@@ -201,7 +204,7 @@ class Syntax_tree(object):
             elif decl_type == DATA_TYPE.SEQ_BIT_DECL:
                 params.append(Seq_decl_syn_node(decl_type, p[2][1][0], p[1]))
             elif decl_type == DATA_TYPE.BIT_DECL:
-                params.append(Bit_decl_syn_node(p[1][1][0]))
+                params.append(Bit_decl_syn_node(p[1][1][0], DATA_TYPE.BIT_DECL))
             else:
                 raise ParseException("Unknown Param Type")
 
@@ -209,12 +212,6 @@ class Syntax_tree(object):
         self.target['parent'].ID = ID_syn_node(token['func_ID'][1][0])
         self.target['parent'].parameters = params
         self.add_to_function_table(self.target['parent'])
-        # print("ADDED TO FUNC TABLE")
-        # print(self.target['parent'].return_value.node_type)
-
-        # self.add_function_node(function_declaration_ast(self.return_type(token[0]), token['func_ID'][1][0], params))
-        # self.tree[-1].stmts += self.statements[:]
-        # self.statements.clear()
         self.remove_target()
 
 
@@ -241,6 +238,8 @@ class Syntax_tree(object):
             function_table_op(ID, DATA_TYPE.BIT_DECL)
         elif var.node_type == DATA_TYPE.SBOX_DECL:
             function_table_op(ID, DATA_TYPE.SBOX_DECL, constraints=var.bit_constraints.expressions[0].value, size=var.size)
+        elif var.node_type == DATA_TYPE.BS_BIT_DECL:
+            function_table_op(ID, DATA_TYPE.BS_BIT_DECL)
         else:
             raise ParseException("Internal Error: Unrecognised var type for f table op " + str(var.node_type))
 
@@ -267,7 +266,6 @@ class Syntax_tree(object):
                 raise ParseException("Sbox type must be sequence of integers")
 
     def return_type(self, param):
-        # print(param)
         if param[0] == "@Int":
             if self.is_sequence(param):
                 return Seq_decl_syn_node(DATA_TYPE.BS_SEQ_INT_DECL, None, size=param[2], constraints=param[1])
@@ -283,9 +281,16 @@ class Syntax_tree(object):
             if self.is_sequence(param):
                 return Seq_decl_syn_node(DATA_TYPE.SEQ_BIT_DECL, None, param[1])
             else:
-                return Bit_decl_syn_node(None)
+                return Bit_decl_syn_node(None, DATA_TYPE.BIT_DECL)
+        elif param[0] == "@Bit":
+            if self.is_sequence(param):
+                return Seq_decl_syn_node(DATA_TYPE.SEQ_BS_BIT_DECL, None, param[1])
+            else:
+                return Bit_decl_syn_node(None, DATA_TYPE.BS_BIT_DECL)
         elif param[0] == "void":
             return DATA_TYPE.VOID
+        else: 
+            raise ParseException("Internal error: Unknown return type")
 
     def is_sequence(self, param):
         if 'seq_size' in param:
@@ -514,11 +519,10 @@ class Int_decl_syn_node(object):
 
 class Bit_decl_syn_node(object):
 
-    node_type = DATA_TYPE.BIT_DECL
-
-    def __init__(self, ID, value=None):
+    def __init__(self, ID, bit_type, value=None):
 
         self._ID = ID_syn_node(ID)
+        self.node_type = bit_type
         if value is not None:
             self._value = Expr_syn_node(value)
         else:

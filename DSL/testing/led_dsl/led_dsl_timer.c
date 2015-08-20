@@ -6,14 +6,14 @@
 #include "led_dsl_timer.h"
 
 int main() {
-	single_run();
+	// single_run();
 	// cipher_constant_time();
-	// cipher_time();
-	// addConstants_time();
-	// subCells_time();
-	// shift_row_time();
-	// MixColumnSerial_time();
-	// gm_mult_time();
+	cipher_time();
+	addConstants_time();
+	subCells_time();
+	shift_row_time();
+	MixColumnSerial_time();
+	gm_mult_time();
 }
 
 void single_run()	{
@@ -78,7 +78,6 @@ void single_run()	{
 	enc(state, key, MDS, RC);
 	task_info(mach_task_self(),TASK_BASIC_INFO, (task_info_t)&t_info,&t_info_count);
 	finish =  t_info.resident_size;
-
 	printf("%llu\n", finish - start);
 }
 
@@ -229,13 +228,12 @@ void cipher_time(){
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
-	for(int run = 0; run < 1000; run++)	{
+	for(int run = 0; run < 100000; run++)	{
 		start = mach_absolute_time();
 		enc(state, key, MDS, RC);
 		end = mach_absolute_time();
 		curr_time = (end - start);
 		result += curr_time;
-		printf("%d %lu a\n",run + 1, (curr_time * info.numer) / info.denom);
 		for(int bit = 0; bit < 64; bit++)	{
 			state[bit] = 0;
 		}
@@ -250,8 +248,8 @@ void cipher_time(){
 		}
 	}
 	printf("cipher time: %lu\n", (result / 100000) * info.numer / info.denom);
-	printf("cipher high: %lu\n", (high / 100000) * info.numer / info.denom);
-	printf("cipher low: %lu\n", (low / 100000) * info.numer / info.denom);
+	// printf("cipher high: %lu\n", (high / 100000) * info.numer / info.denom);
+	// printf("cipher low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void addConstants_time()	{
@@ -355,8 +353,8 @@ void shift_row_time()	{
 		}
 	}
 	printf("shift_row time: %lu\n", (result / 100000) * info.numer / info.denom);
-	printf("shift_row high: %lu\n", (high / 100000) * info.numer / info.denom);
-	printf("shift_row low: %lu\n", (low / 100000) * info.numer / info.denom);
+	// printf("shift_row high: %lu\n", (high / 100000) * info.numer / info.denom);
+	// printf("shift_row low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void MixColumnSerial_time()	{
@@ -382,7 +380,7 @@ void MixColumnSerial_time()	{
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
-	for(int run = 0; run < 1000; run++)	{
+	for(int run = 0; run < 100000; run++)	{
 		start = mach_absolute_time();
 		MixColumnSerial(state, MDS);
 		end = mach_absolute_time();

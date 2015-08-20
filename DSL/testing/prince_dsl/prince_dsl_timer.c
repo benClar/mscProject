@@ -6,13 +6,13 @@
 #include "prince_dsl_timer.h"
 
 int main() {
-	cipher_constant_time();
-	// cipher_time();
-	// mPrime_time();
-	// sBox_layer_time();
-	// shift_rows_time();
-	// lastRounds_time();
-	// firstRounds_time();
+	// cipher_constant_time();
+	cipher_time();
+	mPrime_time();
+	sBox_layer_time();
+	shift_rows_time();
+	lastRounds_time();
+	firstRounds_time();
 }
 
 void cipher_constant_time()	{
@@ -86,7 +86,7 @@ void cipher_time()	{
 	clock_t start, end, result = 0, high = 0, low = 0, curr_time = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
-	for(int run = 0; run < 1000; run++)	{
+	for(int run = 0; run < 100000; run++)	{
 		start = mach_absolute_time();
 		enc(RC, state, key_0, key_1);
 		end = mach_absolute_time();
@@ -97,7 +97,6 @@ void cipher_time()	{
 			key_0[bit] = 0;
 			key_1[bit] = 0;
 		}
-		printf("%d %lu a\n",run + 1, (curr_time * info.numer) / info.denom);
 		if (result > high)	{
 			high = result;
 		}

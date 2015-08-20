@@ -16,7 +16,7 @@ void m1(uint32_t state[16], uint32_t output[16]);
 void mPrime(uint32_t state[64]);
 void sBox_layer(uint32_t state[64]);
 void sBox_layer_inv(uint32_t state[64]);
-void  shift_rows(uint32_t *temp_65_bs_return, uint32_t state[64], uint8_t inverse);
+void  shift_rows(uint32_t *temp_63_bs_return, uint32_t state[64], uint8_t inverse);
 void first_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]);
 void last_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]);
 

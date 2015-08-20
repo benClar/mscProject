@@ -31,8 +31,8 @@ class Symbol_Table(object):
     def symbols(self):
         return self._symbols
 
-    def add_bit_id(self, ID):
-        self.add_id(ID, DATA_TYPE.BIT_VAL)
+    def add_bit_id(self, ID, bit_type):
+        self.add_id(ID, bit_type)
 
     def add_int_id(self, ID):
         self.add_id(ID, DATA_TYPE.INT_VAL)

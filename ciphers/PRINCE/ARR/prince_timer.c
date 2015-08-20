@@ -6,13 +6,13 @@
 #include "prince_timer.h"
 
 int main() {
-	cipher_constant_time();
-	// cipher_time();
-	// mPrime_time();
-	// sBox_layer_time();
-	// shift_rows_time();
-	// lastRounds_time();
-	// firstRounds_time();
+	// cipher_constant_time();
+	cipher_time();
+	mPrime_time();
+	sBox_layer_time();
+	shift_rows_time();
+	lastRounds_time();
+	firstRounds_time();
 }
 
 void cipher_constant_time()	{
@@ -91,12 +91,6 @@ void cipher_time(){
 			state[bit] = 0xffffffff;
 			key_0[bit] = 0;
 			key_1[bit] = 0;
-		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
 		}
 	}
 	printf("cipher time: %lu\n", (result / 100000) * info.numer / info.denom);

@@ -6,7 +6,7 @@
 #include "present_dsl_timer.h"
 
 int main() {
-	cipher_time();
+	// cipher_time();
 	pLayer_time();
 	generate_round_keys_time();
 	sBox_layer_time();
@@ -117,7 +117,7 @@ void sBox_layer_time()	{
 			low = result;
 		}
 	}
-	// printf("sbox_Layer time: %lu\n", (result / 100000) * info.numer / info.denom;
+	printf("sbox_Layer time: %lu\n", (result / 100000) * info.numer / info.denom);
 	// printf("sbox_Layer high: %lu\n", (high / 100000) * info.numer / info.denom);
 	// printf("sbox_Layer low: %lu\n", (low / 100000) * info.numer / info.denom);	
 }

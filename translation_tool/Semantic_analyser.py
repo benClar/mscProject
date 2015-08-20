@@ -23,7 +23,8 @@ class Semantic_analyser(object):
                         DATA_TYPE.BS_SEQ_INT_DECL: lambda self, node: self.analyse_bit_cnst_seq(node),
                         DATA_TYPE.BS_INT_DECL: lambda self, node: self.analyse_int_decl(node),
                         DATA_TYPE.SBOX_DECL: lambda self, node: self.analyse_bit_cnst_seq(node),
-                        DATA_TYPE.EXPR: lambda self, node: self.analyse_expr(node) }
+                        DATA_TYPE.EXPR: lambda self, node: self.analyse_expr(node),
+                        DATA_TYPE.BS_BIT_DECL: lambda self, node: self.analyse_bit_decl(node)}
     def __init__(self):
         self.initialise()
 
@@ -218,14 +219,14 @@ class Semantic_analyser(object):
     def analyse_bit_decl(self, node):
         try:
             if node.value is not None:
-                decl = Bit_decl(Name(node.ID, DATA_TYPE.BIT_VAL), self.expr_type_is(node.value))
+                decl = Bit_decl(Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)), node.node_type, self.expr_type_is(node.value))
             else:
-                decl = Bit_decl(Name(node.ID, DATA_TYPE.BIT_VAL))
+                decl = Bit_decl(Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)), node.node_type)
             if node.value is not None:
                 if decl.value.type != DATA_TYPE.BIT_VAL:
                     raise SemanticException("Cannot Assign " + str(decl.value.type) + " in " +  str(DATA_TYPE.BIT_DECL))
             if node.ID is not None:
-                self.sym_table.add_bit_id(node.ID)
+                self.sym_table.add_bit_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
                 self.sym_table.id(node.ID)['constraints'] = None
                 self.sym_table.id(node.ID)['size'] = None
             return decl
@@ -608,9 +609,8 @@ class Semantic_analyser(object):
             size = []
             for dim in self.sym_table.f_table[ID]["return"]['size']:
                 size.append(self.expr_type_is(dim))
-
         if ret_type == DATA_TYPE.BIT_VAL:
-            return Bit_decl(Name(ID, DATA_TYPE.BIT_VAL))
+            return Bit_decl(Name(ID, DATA_TYPE.BIT_VAL), DATA_TYPE.BS_BIT_VAL)
         elif ret_type == DATA_TYPE.BS_INT_VAL:
             return Int_decl(DATA_TYPE.BS_INT_DECL, width, Name(ID, DATA_TYPE.BS_INT_VAL))
         elif ret_type == DATA_TYPE.INT_VAL:
@@ -623,6 +623,8 @@ class Semantic_analyser(object):
             return Seq_decl(DATA_TYPE.SBOX_DECL, size, width, Name(ID, DATA_TYPE.SBOX_DECL))
         elif ret_type == DATA_TYPE.VOID:
             return DATA_TYPE.VOID
+        elif ret_type == DATA_TYPE.BS_BIT_VAL:
+           return Bit_decl(Name(ID, DATA_TYPE.BS_BIT_VAL), DATA_TYPE.BS_BIT_DECL)
         else:
             raise InternalException("Internal Error: Unknown Return type")
 
@@ -784,6 +786,8 @@ class Semantic_analyser(object):
             return self.analyse_bit_seq(ast_node)
         elif ast_node.node_type == DATA_TYPE.BIT_DECL:
             return self.analyse_bit_decl(ast_node)
+        elif ast_node.node_type == DATA_TYPE.BS_BIT_DECL:
+            return self.analyse_bit_decl(ast_node)
         else:
             raise InternalException("Internal Error: Unrecognised return type")
 
@@ -840,8 +844,8 @@ class Semantic_analyser(object):
                 self.sym_table.add_id(decl.ID.name, decl.ID.type)
             self.sym_table.id(decl.ID.name)['constraints'] = decl.constraints
             self.sym_table.id(decl.ID.name)['size'] = decl.size
-        elif old_decl.node_type == DATA_TYPE.BIT_DECL:
-            decl = Bit_decl(Name(old_decl.ID, DATA_TYPE.BIT_VAL))
+        elif old_decl.node_type == DATA_TYPE.BIT_DECL or old_decl.node_type == DATA_TYPE.BS_BIT_DECL:
+            decl = Bit_decl(Name(old_decl.ID, DATA_TYPE.BIT_VAL), old_decl.node_type)
             self.sym_table.add_id(decl.ID.name, decl.ID.type)
             self.sym_table.id(decl.ID.name)['constraints'] = None
             self.sym_table.id(decl.ID.name)['size'] = None

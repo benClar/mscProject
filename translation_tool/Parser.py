@@ -12,7 +12,7 @@ import sys
 ParserElement.enablePackrat()
 
 class Parser(object):
-
+    
     @property
     def semantic_analyser(self):
         return self._AST.semantic_analyser
@@ -24,7 +24,7 @@ class Parser(object):
         self.int_ = Keyword('Int')
         self.false_ = Keyword('False')
         self.true_ = Keyword('True')
-        self.bit_ = Keyword('Bit')
+        self.bit_ = Combine(Optional(Literal("@")) + Keyword('Bit'))
         self.sbox_ = Keyword('Sbox')
         self.l_shift_ = Keyword('<<')
         self.r_shift_ = Keyword('>>')

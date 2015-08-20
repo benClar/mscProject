@@ -6,8 +6,8 @@
 #include "lfsr_dsl_timer.h"
 
 int main()	{
-	cipher_constant_time();
-	program_time();
+	// cipher_constant_time();
+	// program_time();
 	generate_bit_time();
 }
 

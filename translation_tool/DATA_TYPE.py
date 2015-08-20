@@ -47,7 +47,9 @@ class DATA_TYPE(Enum):
     SBOX_DECL = 40,
     INDEX_SELECT = 41,
     BS_BIT_VAL = 42,
-    SEQ_BS_BIT_VAL = 43
+    SEQ_BS_BIT_VAL = 43,
+    BS_BIT_DECL = 44,
+    SEQ_BS_BIT_DECL = 45
 
     def __str__(type_input):
         to_string ={DATA_TYPE.SEQ_VAL: "Sequence Value",
@@ -88,7 +90,9 @@ class DATA_TYPE(Enum):
                     DATA_TYPE.SBOX_DECL: "Sbox Declaration",
                     DATA_TYPE.INDEX_SELECT: "Index Select Operation",
                     DATA_TYPE.BS_BIT_VAL: "Bitsliced Bit",
-                    DATA_TYPE.SEQ_BS_BIT_VAL: "Sequence of Bitsliced Bits"}
+                    DATA_TYPE.SEQ_BS_BIT_VAL: "Sequence of Bitsliced Bits",
+                    DATA_TYPE.SEQ_BS_BIT_DECL: "Sequence of Bitsliced Bits Declaration",
+                    DATA_TYPE.BS_BIT_DECL: "Bitsliced Bit Declaration"}
         return to_string[type_input]
 
 
@@ -225,6 +229,8 @@ class DATA_TYPE(Enum):
             return DATA_TYPE.SEQ_BIT_VAL
         elif type_input == DATA_TYPE.SBOX_DECL:
             return DATA_TYPE.SBOX_DECL
+        elif type_input == DATA_TYPE.BS_BIT_DECL:
+            return DATA_TYPE.BS_BIT_VAL
         elif type_input == DATA_TYPE.VOID:
             return DATA_TYPE.VOID
         else:

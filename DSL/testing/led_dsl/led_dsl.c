@@ -5,16 +5,16 @@
 
 #include "led_dsl.h"
 uint32_t led_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & C & ~B & ~A) | (~D & ~C & A) | (D & B & ~A) | (D & ~C & ~A) | (D & C & ~B & A) | (~D & B & A));
+return ((D & ~C & ~A) | (D & C & ~B & A) | (D & B & ~A) | (~D & B & A) | (~D & C & ~B & ~A) | (~D & ~C & A));
 }
 uint32_t led_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & B & ~A) | (D & ~C & ~B) | (~D & ~C & B) | (D & ~B & A) | (D & C & A) | (~C & B & ~A));
+return ((D & ~C & ~A) | (D & ~C & ~B) | (D & ~B & A) | (~D & ~C & B) | (D & C & A) | (~D & B & ~A));
 }
 uint32_t led_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & C & B & A) | (~C & ~B & A) | (D & ~B & A) | (D & C & ~B) | (~C & B & ~A) | (~D & ~C & ~A));
+return ((~D & C & B & A) | (~C & ~B & A) | (D & ~B & A) | (~C & B & ~A) | (D & C & ~B) | (~D & ~C & ~A));
 }
 uint32_t led_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~C & A) | (~D & ~B & ~A) | (D & ~C & B) | (~D & C & B) | (~D & B & A) | (~D & C & ~A));
+return ((~D & C & B) | (D & ~C & A) | (~D & B & A) | (D & ~C & B) | (~D & ~B & ~A) | (~D & C & ~A));
 }
 void led(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -107,46 +107,53 @@ uint32_t column[4][4] = {{ 0 }};
 uint8_t col;
 col = 0;
 for(;col < 4;) { 
-column[0][0] = state[(col * 4)];
-column[0][1] = state[((col * 4) + 1)];
-column[0][2] = state[((col * 4) + 2)];
-column[0][3] = state[((col * 4) + 3)];
-column[0][0] = state[(col * 4)];
-column[1][0] = state[((col + 4) * 4)];
-column[1][1] = state[(((col + 4) * 4) + 1)];
-column[1][2] = state[(((col + 4) * 4) + 2)];
-column[1][3] = state[(((col + 4) * 4) + 3)];
-column[2][0] = state[((col + 8) * 4)];
-column[2][1] = state[(((col + 8) * 4) + 1)];
-column[2][2] = state[(((col + 8) * 4) + 2)];
-column[2][3] = state[(((col + 8) * 4) + 3)];
-column[3][0] = state[((col + 12) * 4)];
-column[3][1] = state[(((col + 12) * 4) + 1)];
-column[3][2] = state[(((col + 12) * 4) + 2)];
-column[3][3] = state[(((col + 12) * 4) + 3)];
+uint32_t temp_10_rnge[(((col * 4) + 3) - (col * 4)) + 1];
+extract_bs_range(temp_10_rnge, state, (col * 4), ((col * 4) + 3));
+column[0][0] = temp_10_rnge[0];
+column[0][1] = temp_10_rnge[1];
+column[0][2] = temp_10_rnge[2];
+column[0][3] = temp_10_rnge[3];
+uint32_t temp_14_rnge[((((col + 4) * 4) + 3) - ((col + 4) * 4)) + 1];
+extract_bs_range(temp_14_rnge, state, ((col + 4) * 4), (((col + 4) * 4) + 3));
+column[1][0] = temp_14_rnge[0];
+column[1][1] = temp_14_rnge[1];
+column[1][2] = temp_14_rnge[2];
+column[1][3] = temp_14_rnge[3];
+uint32_t temp_20_rnge[((((col + 8) * 4) + 3) - ((col + 8) * 4)) + 1];
+extract_bs_range(temp_20_rnge, state, ((col + 8) * 4), (((col + 8) * 4) + 3));
+column[2][0] = temp_20_rnge[0];
+column[2][1] = temp_20_rnge[1];
+column[2][2] = temp_20_rnge[2];
+column[2][3] = temp_20_rnge[3];
+uint32_t temp_26_rnge[((((col + 12) * 4) + 3) - ((col + 12) * 4)) + 1];
+extract_bs_range(temp_26_rnge, state, ((col + 12) * 4), (((col + 12) * 4) + 3));
+column[3][0] = temp_26_rnge[0];
+column[3][1] = temp_26_rnge[1];
+column[3][2] = temp_26_rnge[2];
+column[3][3] = temp_26_rnge[3];
 uint8_t col_nibble;
 col_nibble = 0;
 for(;col_nibble < 4;) { 
-uint32_t temp_52__bin[4] = {0};
-uint32_t temp_53__bin[4] = {0};
-uint32_t temp_54__bin[4] = {0};
-uint32_t temp_55_call[4];
-gmMult(temp_55_call, MDS[(col_nibble * 4)], column[0]);
-uint32_t temp_57_call[4];
-gmMult(temp_57_call, MDS[((col_nibble * 4) + 1)], column[1]);
-XOR(temp_54__bin, temp_55_call, temp_57_call, 4);
-uint32_t temp_60_call[4];
-gmMult(temp_60_call, MDS[((col_nibble * 4) + 2)], column[2]);
-XOR(temp_53__bin, temp_54__bin, temp_60_call, 4);
-uint32_t temp_63_call[4];
-gmMult(temp_63_call, MDS[((col_nibble * 4) + 3)], column[3]);
-XOR(temp_52__bin, temp_53__bin, temp_63_call, 4);
-uint8_t temp_66_init = 0;
-uint32_t temp_67_rnge_size = 0;
-temp_67_rnge_size = ((((col * 4) + (col_nibble * 16)) + 3)-((col * 4) + (col_nibble * 16))) + 1;
-uint8_t temp_78_rng_start = ((col * 4) + (col_nibble * 16));
-for(temp_66_init = 0; temp_66_init < temp_67_rnge_size; temp_66_init++, temp_78_rng_start++){
-state[temp_78_rng_start] = temp_52__bin[temp_66_init];
+uint32_t temp_33__bin[4] = {0};
+uint32_t temp_34__bin[4] = {0};
+uint32_t temp_35__bin[4] = {0};
+uint32_t temp_36_call[4];
+gmMult(temp_36_call, MDS[(col_nibble * 4)], column[0]);
+uint32_t temp_38_call[4];
+gmMult(temp_38_call, MDS[((col_nibble * 4) + 1)], column[1]);
+XOR(temp_35__bin, temp_36_call, temp_38_call, 4);
+uint32_t temp_41_call[4];
+gmMult(temp_41_call, MDS[((col_nibble * 4) + 2)], column[2]);
+XOR(temp_34__bin, temp_35__bin, temp_41_call, 4);
+uint32_t temp_44_call[4];
+gmMult(temp_44_call, MDS[((col_nibble * 4) + 3)], column[3]);
+XOR(temp_33__bin, temp_34__bin, temp_44_call, 4);
+uint8_t temp_47_init = 0;
+uint32_t temp_48_rnge_size = 0;
+temp_48_rnge_size = ((((col * 4) + (col_nibble * 16)) + 3)-((col * 4) + (col_nibble * 16))) + 1;
+uint8_t temp_59_rng_start = ((col * 4) + (col_nibble * 16));
+for(temp_47_init = 0; temp_47_init < temp_48_rnge_size; temp_47_init++, temp_59_rng_start++){
+state[temp_59_rng_start] = temp_33__bin[temp_47_init];
 }
 col_nibble = (col_nibble + 1);
 } 
@@ -154,117 +161,117 @@ col = (col + 1);
 } 
 }
 void shift_row(uint32_t state[64]){ 
-uint32_t temp_79__bin[(31 - 16) + 1] = {0};
-uint32_t temp_80_rnge[(31 - 16) + 1];
-extract_bs_range(temp_80_rnge, state, 16, 31);
-rotate_left(temp_79__bin, temp_80_rnge, 4, (31 - 16) + 1);
-state[16] = temp_79__bin[0];
-state[17] = temp_79__bin[1];
-state[18] = temp_79__bin[2];
-state[19] = temp_79__bin[3];
-state[20] = temp_79__bin[4];
-state[21] = temp_79__bin[5];
-state[22] = temp_79__bin[6];
-state[23] = temp_79__bin[7];
-state[24] = temp_79__bin[8];
-state[25] = temp_79__bin[9];
-state[26] = temp_79__bin[10];
-state[27] = temp_79__bin[11];
-state[28] = temp_79__bin[12];
-state[29] = temp_79__bin[13];
-state[30] = temp_79__bin[14];
-state[31] = temp_79__bin[15];
-uint32_t temp_81__bin[(47 - 32) + 1] = {0};
-uint32_t temp_82_rnge[(47 - 32) + 1];
-extract_bs_range(temp_82_rnge, state, 32, 47);
-rotate_left(temp_81__bin, temp_82_rnge, 8, (47 - 32) + 1);
-state[32] = temp_81__bin[0];
-state[33] = temp_81__bin[1];
-state[34] = temp_81__bin[2];
-state[35] = temp_81__bin[3];
-state[36] = temp_81__bin[4];
-state[37] = temp_81__bin[5];
-state[38] = temp_81__bin[6];
-state[39] = temp_81__bin[7];
-state[40] = temp_81__bin[8];
-state[41] = temp_81__bin[9];
-state[42] = temp_81__bin[10];
-state[43] = temp_81__bin[11];
-state[44] = temp_81__bin[12];
-state[45] = temp_81__bin[13];
-state[46] = temp_81__bin[14];
-state[47] = temp_81__bin[15];
-uint32_t temp_83__bin[(63 - 48) + 1] = {0};
-uint32_t temp_84_rnge[(63 - 48) + 1];
-extract_bs_range(temp_84_rnge, state, 48, 63);
-rotate_left(temp_83__bin, temp_84_rnge, 12, (63 - 48) + 1);
-state[48] = temp_83__bin[0];
-state[49] = temp_83__bin[1];
-state[50] = temp_83__bin[2];
-state[51] = temp_83__bin[3];
-state[52] = temp_83__bin[4];
-state[53] = temp_83__bin[5];
-state[54] = temp_83__bin[6];
-state[55] = temp_83__bin[7];
-state[56] = temp_83__bin[8];
-state[57] = temp_83__bin[9];
-state[58] = temp_83__bin[10];
-state[59] = temp_83__bin[11];
-state[60] = temp_83__bin[12];
-state[61] = temp_83__bin[13];
-state[62] = temp_83__bin[14];
-state[63] = temp_83__bin[15];
+uint32_t temp_60__bin[(31 - 16) + 1] = {0};
+uint32_t temp_61_rnge[(31 - 16) + 1];
+extract_bs_range(temp_61_rnge, state, 16, 31);
+rotate_left(temp_60__bin, temp_61_rnge, 4, (31 - 16) + 1);
+state[16] = temp_60__bin[0];
+state[17] = temp_60__bin[1];
+state[18] = temp_60__bin[2];
+state[19] = temp_60__bin[3];
+state[20] = temp_60__bin[4];
+state[21] = temp_60__bin[5];
+state[22] = temp_60__bin[6];
+state[23] = temp_60__bin[7];
+state[24] = temp_60__bin[8];
+state[25] = temp_60__bin[9];
+state[26] = temp_60__bin[10];
+state[27] = temp_60__bin[11];
+state[28] = temp_60__bin[12];
+state[29] = temp_60__bin[13];
+state[30] = temp_60__bin[14];
+state[31] = temp_60__bin[15];
+uint32_t temp_62__bin[(47 - 32) + 1] = {0};
+uint32_t temp_63_rnge[(47 - 32) + 1];
+extract_bs_range(temp_63_rnge, state, 32, 47);
+rotate_left(temp_62__bin, temp_63_rnge, 8, (47 - 32) + 1);
+state[32] = temp_62__bin[0];
+state[33] = temp_62__bin[1];
+state[34] = temp_62__bin[2];
+state[35] = temp_62__bin[3];
+state[36] = temp_62__bin[4];
+state[37] = temp_62__bin[5];
+state[38] = temp_62__bin[6];
+state[39] = temp_62__bin[7];
+state[40] = temp_62__bin[8];
+state[41] = temp_62__bin[9];
+state[42] = temp_62__bin[10];
+state[43] = temp_62__bin[11];
+state[44] = temp_62__bin[12];
+state[45] = temp_62__bin[13];
+state[46] = temp_62__bin[14];
+state[47] = temp_62__bin[15];
+uint32_t temp_64__bin[(63 - 48) + 1] = {0};
+uint32_t temp_65_rnge[(63 - 48) + 1];
+extract_bs_range(temp_65_rnge, state, 48, 63);
+rotate_left(temp_64__bin, temp_65_rnge, 12, (63 - 48) + 1);
+state[48] = temp_64__bin[0];
+state[49] = temp_64__bin[1];
+state[50] = temp_64__bin[2];
+state[51] = temp_64__bin[3];
+state[52] = temp_64__bin[4];
+state[53] = temp_64__bin[5];
+state[54] = temp_64__bin[6];
+state[55] = temp_64__bin[7];
+state[56] = temp_64__bin[8];
+state[57] = temp_64__bin[9];
+state[58] = temp_64__bin[10];
+state[59] = temp_64__bin[11];
+state[60] = temp_64__bin[12];
+state[61] = temp_64__bin[13];
+state[62] = temp_64__bin[14];
+state[63] = temp_64__bin[15];
 }
 void addConstants(uint32_t state[64], uint32_t constant[6]){ 
 uint32_t roundConstant[64] = {0};
 uint8_t row;
 row = 0;
 for(;row < 4;) { 
-uint8_t  temp_86_extracted = 0;
-uint8_t temp_87_int_rng_start  = 0;
-uint8_t  temp_89_target_bit = 0;
-for(;temp_87_int_rng_start < 3;temp_87_int_rng_start++, temp_89_target_bit++){
-temp_86_extracted |= ((row >> temp_87_int_rng_start)  << temp_89_target_bit);
+uint8_t  temp_67_extracted = 0;
+uint8_t temp_68_int_rng_start  = 0;
+uint8_t  temp_70_target_bit = 0;
+for(;temp_68_int_rng_start < 3;temp_68_int_rng_start++, temp_70_target_bit++){
+temp_67_extracted |= ((row >> temp_68_int_rng_start)  << temp_70_target_bit);
 }
-uint32_t temp_90_cast_bs_seq[(((row * 16) + 3) - (row * 16)) + 1];
-int_to_bitsliced(temp_90_cast_bs_seq, temp_86_extracted, (((row * 16) + 3) - (row * 16)) + 1);
-uint8_t temp_94_init = 0;
-uint32_t temp_95_rnge_size = 0;
-temp_95_rnge_size = (((row * 16) + 3)-(row * 16)) + 1;
-uint8_t temp_100_rng_start = (row * 16);
-for(temp_94_init = 0; temp_94_init < temp_95_rnge_size; temp_94_init++, temp_100_rng_start++){
-roundConstant[temp_100_rng_start] = temp_90_cast_bs_seq[temp_94_init];
+uint32_t temp_71_cast_bs_seq[(((row * 16) + 3) - (row * 16)) + 1];
+int_to_bitsliced(temp_71_cast_bs_seq, temp_67_extracted, (((row * 16) + 3) - (row * 16)) + 1);
+uint8_t temp_75_init = 0;
+uint32_t temp_76_rnge_size = 0;
+temp_76_rnge_size = (((row * 16) + 3)-(row * 16)) + 1;
+uint8_t temp_81_rng_start = (row * 16);
+for(temp_75_init = 0; temp_75_init < temp_76_rnge_size; temp_75_init++, temp_81_rng_start++){
+roundConstant[temp_81_rng_start] = temp_71_cast_bs_seq[temp_75_init];
 }
 if(row == 0 || row == 2) { 
-uint32_t temp_101_rnge[(5 - 3) + 1];
-extract_bs_range(temp_101_rnge, constant, 3, 5);
-uint8_t temp_102_init = 0;
-uint32_t temp_103_rnge_size = 0;
-temp_103_rnge_size = (((row * 16) + 6)-((row * 16) + 4)) + 1;
-uint8_t temp_110_rng_start = ((row * 16) + 4);
-for(temp_102_init = 0; temp_102_init < temp_103_rnge_size; temp_102_init++, temp_110_rng_start++){
-roundConstant[temp_110_rng_start] = temp_101_rnge[temp_102_init];
+uint32_t temp_82_rnge[(5 - 3) + 1];
+extract_bs_range(temp_82_rnge, constant, 3, 5);
+uint8_t temp_83_init = 0;
+uint32_t temp_84_rnge_size = 0;
+temp_84_rnge_size = (((row * 16) + 6)-((row * 16) + 4)) + 1;
+uint8_t temp_91_rng_start = ((row * 16) + 4);
+for(temp_83_init = 0; temp_83_init < temp_84_rnge_size; temp_83_init++, temp_91_rng_start++){
+roundConstant[temp_91_rng_start] = temp_82_rnge[temp_83_init];
 }
 } 
 if(row == 1 || row == 3) { 
-uint32_t temp_111_rnge[(2 - 0) + 1];
-extract_bs_range(temp_111_rnge, constant, 0, 2);
-uint8_t temp_112_init = 0;
-uint32_t temp_113_rnge_size = 0;
-temp_113_rnge_size = (((row * 16) + 6)-((row * 16) + 4)) + 1;
-uint8_t temp_120_rng_start = ((row * 16) + 4);
-for(temp_112_init = 0; temp_112_init < temp_113_rnge_size; temp_112_init++, temp_120_rng_start++){
-roundConstant[temp_120_rng_start] = temp_111_rnge[temp_112_init];
+uint32_t temp_92_rnge[(2 - 0) + 1];
+extract_bs_range(temp_92_rnge, constant, 0, 2);
+uint8_t temp_93_init = 0;
+uint32_t temp_94_rnge_size = 0;
+temp_94_rnge_size = (((row * 16) + 6)-((row * 16) + 4)) + 1;
+uint8_t temp_101_rng_start = ((row * 16) + 4);
+for(temp_93_init = 0; temp_93_init < temp_94_rnge_size; temp_93_init++, temp_101_rng_start++){
+roundConstant[temp_101_rng_start] = temp_92_rnge[temp_93_init];
 }
 } 
-uint32_t temp_121_cast_bs_seq[(((row * 16) + 15) - ((row * 16) + 8)) + 1];
-int_to_bitsliced(temp_121_cast_bs_seq, 0, (((row * 16) + 15) - ((row * 16) + 8)) + 1);
-uint8_t temp_126_init = 0;
-uint32_t temp_127_rnge_size = 0;
-temp_127_rnge_size = (((row * 16) + 15)-((row * 16) + 8)) + 1;
-uint8_t temp_134_rng_start = ((row * 16) + 8);
-for(temp_126_init = 0; temp_126_init < temp_127_rnge_size; temp_126_init++, temp_134_rng_start++){
-roundConstant[temp_134_rng_start] = temp_121_cast_bs_seq[temp_126_init];
+uint32_t temp_102_cast_bs_seq[(((row * 16) + 15) - ((row * 16) + 8)) + 1];
+int_to_bitsliced(temp_102_cast_bs_seq, 0, (((row * 16) + 15) - ((row * 16) + 8)) + 1);
+uint8_t temp_107_init = 0;
+uint32_t temp_108_rnge_size = 0;
+temp_108_rnge_size = (((row * 16) + 15)-((row * 16) + 8)) + 1;
+uint8_t temp_115_rng_start = ((row * 16) + 8);
+for(temp_107_init = 0; temp_107_init < temp_108_rnge_size; temp_107_init++, temp_115_rng_start++){
+roundConstant[temp_115_rng_start] = temp_102_cast_bs_seq[temp_107_init];
 }
 row = (row + 1);
 } 
@@ -337,15 +344,15 @@ void subCells(uint32_t state[64]){
 uint8_t i;
 i = 0;
 for(;i < 16;) { 
-uint32_t temp_136_rnge[(((i * 4) + 3) - (i * 4)) + 1];
-extract_bs_range(temp_136_rnge, state, (i * 4), ((i * 4) + 3));
-led(temp_136_rnge);
-uint8_t temp_140_init = 0;
-uint32_t temp_141_rnge_size = 0;
-temp_141_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
-uint8_t temp_146_rng_start = (i * 4);
-for(temp_140_init = 0; temp_140_init < temp_141_rnge_size; temp_140_init++, temp_146_rng_start++){
-state[temp_146_rng_start] = temp_136_rnge[temp_140_init];
+uint32_t temp_117_rnge[(((i * 4) + 3) - (i * 4)) + 1];
+extract_bs_range(temp_117_rnge, state, (i * 4), ((i * 4) + 3));
+led(temp_117_rnge);
+uint8_t temp_121_init = 0;
+uint32_t temp_122_rnge_size = 0;
+temp_122_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
+uint8_t temp_127_rng_start = (i * 4);
+for(temp_121_init = 0; temp_121_init < temp_122_rnge_size; temp_121_init++, temp_127_rng_start++){
+state[temp_127_rng_start] = temp_117_rnge[temp_121_init];
 }
 i = (i + 1);
 } 

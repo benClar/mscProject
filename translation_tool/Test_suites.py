@@ -509,17 +509,6 @@ class TestSemanticAnalysis(unittest.TestCase):
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit test_func1(Int(10) a) { a = a + 10; return False; }\
                                                                             Int(10) test_func(Int(10) a) { Int(10) d = test_func(test_func1(10)) + 20; return d;}")), False)  # NOQA
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) test_func2(Bit a) {\
-                                                                            Int(10) d = 39; return d;\
-                                                                            }\
-                                                                            Bit test_func1(Bit a) {\
-                                                                                Int(10) d = 10;\
-                                                                                return False;\
-                                                                            }\
-                                                                            Int(10) test_func(Int(10) a) {\
-                                                                                Int(10) d = test_func(test_func2(test_func1(False))) + 20; return d;\
-                                                                            }")), True)  # NOQA
-        par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) test_func2(Bit a) { @Int(10) d = 39; return d;}\
                                                                             void test_func3(Bit a) { @Int(10) i = test_func2(False); }")), True)
         par = Parser()
@@ -937,14 +926,14 @@ class test_IR_generation(unittest.TestCase):
 
 class test_translation(unittest.TestCase):
 
-    # def test_semantic_errors(self):
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void incorrect_set_1()    {\
-    #                                                                         Int(8)[9] a;\
-    #                                                                         a[8][10] = 10;\
-    #                                                                     }\
-    #                                                                     ")), True)
-    #     print(par.semantic_analyser.IR.translate()['main'])
+# #     def test_semantic_errors(self):
+# #         par = Parser()
+# #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void incorrect_set_1()    {\
+# #                                                                             Int(8)[9] a;\
+# #                                                                             a[8][10] = 10;\
+# #                                                                         }\
+# #                                                                         ")), True)
+# #         print(par.semantic_analyser.IR.translate()['main'])
 
 
     def test_general_operations(self):
@@ -1035,16 +1024,16 @@ class test_translation(unittest.TestCase):
 
     def test_LFSR_translation(self):
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(1) generate_bit(@Int(8) state) {\
-                                                                            @Int(1) output;\
-                                                                            @Int(1) input;\
-                                                                            output[0] = state[7];\
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Bit generate_bit(@Int(8) state) {\
+                                                                            @Bit output;\
+                                                                            @Bit input;\
+                                                                            output = state[7];\
                                                                             state = state << 1;\
-                                                                            input[0] =  (state[0] ^ state[4]) ^ (state[5] ^ state[6]);\
-                                                                            state[0] = input[0];\
+                                                                            input =  (state[0] ^ state[4]) ^ (state[5] ^ state[6]);\
+                                                                            state[0] = input;\
                                                                             return output;\
                                                                         }\
-                                                                        void lfsr(@Int(1)[32] rndm_bits, @Int(8) state){\
+                                                                        void lfsr(@Int(32) rndm_bits, @Int(8) state){\
                                                                             for(Int(8) r = 0; r < 32; r = r + 1) {\
                                                                                 rndm_bits[r] = generate_bit(state);\
                                                                             }\
@@ -1052,7 +1041,6 @@ class test_translation(unittest.TestCase):
                                                                         ")), True)
         assert_equals(Data_reader.write("lfsr_dsl", "lfsr_dsl", par.semantic_analyser.IR.translate()), True)
         assert_equals(subprocess.call(['../DSL/testing/lfsr_dsl/./run_tests.sh']), 0)
-
 
     def test_PRINCE_translation(self):
             par = Parser()
@@ -1159,6 +1147,12 @@ class test_translation(unittest.TestCase):
                                                                                 }\
                                                                             }\
                                                                             ")), True)
+            # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64)[12] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
+            #                                                                     @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
+            #                                                                 }\
+            #                                                                 "
+            #                                                                 )), True)
+            # print(par.semantic_analyser.IR.translate()['main'])
             Data_reader.write("prince_dsl", "prince_dsl", par.semantic_analyser.IR.translate())
             assert_equals(subprocess.call(['../DSL/testing/prince_dsl/./run_tests.sh']), 0)
 
@@ -1238,23 +1232,10 @@ class test_translation(unittest.TestCase):
                                                                         void MixColumnSerial(@Int(64) state, @Int(4)[16] MDS) {\
                                                                             @Int(4)[4] column;\
                                                                             for(Int(8) col = 0; col < 4; col = col + 1)  {\
-                                                                                column[0][0] = state[col * 4];\
-                                                                                column[0][1] = state[col * 4 + 1];\
-                                                                                column[0][2] = state[col * 4 + 2];\
-                                                                                column[0][3] = state[col * 4 + 3];\
-                                                                                column[0][0] = state[col * 4];\
-                                                                                column[1][0] = state[((col + 4) * 4)];\
-                                                                                column[1][1] = state[((col + 4) * 4) + 1];\
-                                                                                column[1][2] = state[((col + 4) * 4) + 2];\
-                                                                                column[1][3] = state[((col + 4) * 4) + 3];\
-                                                                                column[2][0] = state[((col + 8) * 4)];\
-                                                                                column[2][1] = state[((col + 8) * 4) + 1];\
-                                                                                column[2][2] = state[((col + 8) * 4) + 2];\
-                                                                                column[2][3] = state[((col + 8) * 4) + 3];\
-                                                                                column[3][0] = state[((col + 12) * 4)];\
-                                                                                column[3][1] = state[((col + 12) * 4) + 1];\
-                                                                                column[3][2] = state[((col + 12) * 4) + 2];\
-                                                                                column[3][3] = state[((col + 12) * 4) + 3];\
+                                                                                column[0][0 : 3] = state[col * 4 : col * 4 + 3];\
+                                                                                column[1][0 : 3] = state[((col + 4) * 4) : ((col + 4) * 4) + 3];\
+                                                                                column[2][0 : 3] = state[((col + 8) * 4) : ((col + 8) * 4) + 3];\
+                                                                                column[3][0 : 3] = state[((col + 12) * 4) : ((col + 12) * 4) + 3];\
                                                                                 for(Int(8) col_nibble = 0; col_nibble < 4; col_nibble = col_nibble + 1) {\
                                                                                     state[(col * 4) + (col_nibble * 16) : ((col * 4) + (col_nibble * 16)) + 3] = gmMult(MDS[(col_nibble * 4)], column[0]) ^ gmMult(MDS[(col_nibble * 4) + 1], column[1]) ^ gmMult(MDS[(col_nibble * 4) + 2], column[2]) ^ gmMult(MDS[(col_nibble * 4) + 3], column[3]);\
                                                                                 }\

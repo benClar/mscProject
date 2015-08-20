@@ -6,7 +6,7 @@
 #include "led_dsl_timer.h"
 
 int main() {
-	cipher_time();
+	// cipher_time();
 	addConstants_time();
 	subCells_time();
 	shift_row_time();

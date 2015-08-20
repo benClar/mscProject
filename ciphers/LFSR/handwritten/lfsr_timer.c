@@ -6,7 +6,7 @@
 #include "lfsr_timer.h"
 
 int main()	{
-	cipher_constant_time();
+	// cipher_constant_time();
 	program_time();
 	generate_bit_time();
 }
@@ -117,7 +117,5 @@ void generate_bit_time()	{
 	}
 
 	printf("generate bit: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("generate bit high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("generate bit low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 

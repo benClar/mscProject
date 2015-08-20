@@ -31,5 +31,4 @@ def group_len(grouped_vals):
             print(key + " :" + str(value))
 
 if __name__ == '__main__':
-    group_len(group([300000, 400000, 500000, 600000, 700000, 800000], read(sys.argv[1])))
-    
+    group_len(group([10000, 15000, 20000, 25000, 30000, 100000000], read(sys.argv[1])))

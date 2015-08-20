@@ -6,14 +6,14 @@
 #include "led_timer.h"
 
 int main() {
-	single_run();
+	// single_run();
 	// cipher_constant_time();
-	// cipher_time();
-	// addConstants_time();
-	// subCells_time();
-	// shift_row_time();
-	// MixColumnSerial_time();
-	// gm_mult_time();
+	cipher_time();
+	addConstants_time();
+	subCells_time();
+	shift_row_time();
+	MixColumnSerial_time();
+	gm_mult_time();
 }
 
 void single_run()	{
