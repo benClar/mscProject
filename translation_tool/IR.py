@@ -703,10 +703,11 @@ class Set(object):
             if self.value.node_type == DATA_TYPE.BITWISE_OP and self.value.can_be_optimised() and (self.value.type == self.target.type):
                 result['emit'] += self.translate_optimised_bitwise_set(sym_count)['emit']
             else:
-                value_result = self.value.translate(sym_count)
-                result['emit'] += value_result['emit']
                 if DATA_TYPE.needs_cast(self.target.type, self.value.type):
                     value_result = self.implicit_cast(sym_count)
+                    result['emit'] += value_result['emit']
+                else:
+                    value_result = self.value.translate(sym_count)
                     result['emit'] += value_result['emit']
                     # raise ParseException(str(self.value.type) + " being assigned to a  " + str(self.target.type) + " : Cast needed")
                 if self.target.type == DATA_TYPE.INT_VAL or self.target.type == DATA_TYPE.BS_BIT_VAL or self.target.type == DATA_TYPE.BIT_VAL: 

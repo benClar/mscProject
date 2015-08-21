@@ -16,11 +16,13 @@
 /*---------- Main -----------*/
 
 void keyXOR(uint32_t key[80], int round)	{
-	key[79 - 19] ^= ((round >> 4) & 1);
-	key[79 - 18] ^= ((round >> 3) & 1);
-	key[79 - 17] ^= ((round >> 2) & 1);
-	key[79 - 16] ^= ((round >> 1) & 1);
-	key[79 - 15] ^= (round & 1);
+	uint32_t r_bs[5] = {0};
+	bitslice(r_bs, round, 5);
+	key[79 - 19] ^= r_bs[4];
+	key[79 - 18] ^= r_bs[3];
+	key[79 - 17] ^= r_bs[2];
+	key[79 - 16] ^= r_bs[1];
+	key[79 - 15] ^= r_bs[0];
 }
 
 int generateRoundKey(uint32_t key[80], uint32_t round_key[32][64]) {
@@ -187,19 +189,19 @@ int generateRoundKey(uint32_t key[80], uint32_t round_key[32][64]) {
 }
 
 uint32_t sbox_1(uint32_t input[4])	{
-	return (((~input[A] & ~input[C] & ~input[D] ) | (~input[A] & input[C] & input[D] ) | (input[A] & ~input[B] & input[D]) | (input[A] & ~input[B] & input[C]) | (~input[A] & input[B] & input[C])) & 1);
+	return ((~input[A] & ~input[C] & ~input[D] ) | (~input[A] & input[C] & input[D] ) | (input[A] & ~input[B] & input[D]) | (input[A] & ~input[B] & input[C]) | (~input[A] & input[B] & input[C]));
 }
 
 uint32_t sbox_2(uint32_t input[4])	{
-	return (((~input[B] & input[C] & ~input[D]) | (input[A] & input[B] & ~input[C]) | (~input[B] & ~input[C] & input[D]) | (~input[A] & ~input[B] & ~input[C]) | (~input[A] & input[B] & input[C] & input[D])) & 1);
+	return ((~input[B] & input[C] & ~input[D]) | (input[A] & input[B] & ~input[C]) | (~input[B] & ~input[C] & input[D]) | (~input[A] & ~input[B] & ~input[C]) | (~input[A] & input[B] & input[C] & input[D]));
 }
 
 uint32_t sbox_3(uint32_t input[4])  {
-	return (((input[A] & input[B] & input[D]) | (input[A] & ~input[B] & ~input[C]) | (~input[A] & input[C] & ~input[D]) | (~input[A] & ~input[B] & input[C]) | (input[A] & ~input[B] & ~input[D])) & 1);
+	return ((input[A] & input[B] & input[D]) | (input[A] & ~input[B] & ~input[C]) | (~input[A] & input[C] & ~input[D]) | (~input[A] & ~input[B] & input[C]) | (input[A] & ~input[B] & ~input[D]));
 }
 
 uint32_t sbox_4(uint32_t input[4])  {
-	return (((~input[A] & input[C] & input[D] ) | ( input[A] & input[C] & ~input[D] ) | (input[A] & ~input[B] & ~input[D] ) | (~input[A] & ~input[B] & input[D]) | ( ~input[A] & input[B] & ~input[C] & ~input[D]) | (input[A] & input[B] & ~input[C] & input[D])) & 1);
+	return ((~input[A] & input[C] & input[D] ) | ( input[A] & input[C] & ~input[D] ) | (input[A] & ~input[B] & ~input[D] ) | (~input[A] & ~input[B] & input[D]) | ( ~input[A] & input[B] & ~input[C] & ~input[D]) | (input[A] & input[B] & ~input[C] & input[D]));
 }
 
 
@@ -366,8 +368,6 @@ void sBox_layer(uint32_t state[64])	{
 }
 
 uint32_t (*enc(uint32_t key[80], uint32_t state[64], uint32_t round_key[32][64])){
-
-	
 	int round;
 
 	generateRoundKey(key,round_key);

@@ -222,65 +222,61 @@ uint8_t temp_21_casted_bit_seq = 0;
 temp_21_casted_bit_seq |= 0x1 << 0;
 temp_21_casted_bit_seq |= 0x1 << 1;
 temp_21_casted_bit_seq |= 0x1 << 3;
-uint8_t temp_22_casted_bit_seq = 0;
-temp_22_casted_bit_seq |= 0x1 << 0;
-temp_22_casted_bit_seq |= 0x1 << 1;
-temp_22_casted_bit_seq |= 0x1 << 3;
-a = temp_22_casted_bit_seq;
+a = temp_21_casted_bit_seq;
 return a;
 }
 uint8_t  int_index_set_9(){ 
 uint8_t a;
 a = 0;
-uint8_t temp_24_casted_bit_seq = 0;
-temp_24_casted_bit_seq |= 0x1 << 0;
-temp_24_casted_bit_seq |= 0x1 << 1;
-temp_24_casted_bit_seq |= 0x1 << 3;
-a = (temp_24_casted_bit_seq + 10);
+uint8_t temp_23_casted_bit_seq = 0;
+temp_23_casted_bit_seq |= 0x1 << 0;
+temp_23_casted_bit_seq |= 0x1 << 1;
+temp_23_casted_bit_seq |= 0x1 << 3;
+a = (temp_23_casted_bit_seq + 10);
 return a;
 }
 uint8_t  int_index_set_10(){ 
 uint8_t a;
 a = 0;
-uint8_t temp_26_casted_bit_seq = 0;
-temp_26_casted_bit_seq |= 0x1 << 0;
-temp_26_casted_bit_seq |= 0x1 << 1;
-temp_26_casted_bit_seq |= 0x1 << 3;
-uint32_t temp_27_bit_seq = 0x0;
-temp_27_bit_seq = (temp_26_casted_bit_seq << 1) | (temp_26_casted_bit_seq >> (4 - 1));
-uint32_t temp_28_mask_loop_init = 4;
-for(; temp_28_mask_loop_init < 32; temp_28_mask_loop_init++) {
-temp_27_bit_seq &= ~(0x1 << temp_28_mask_loop_init);
+uint8_t temp_25_casted_bit_seq = 0;
+temp_25_casted_bit_seq |= 0x1 << 0;
+temp_25_casted_bit_seq |= 0x1 << 1;
+temp_25_casted_bit_seq |= 0x1 << 3;
+uint32_t temp_26_bit_seq = 0x0;
+temp_26_bit_seq = (temp_25_casted_bit_seq << 1) | (temp_25_casted_bit_seq >> (4 - 1));
+uint32_t temp_27_mask_loop_init = 4;
+for(; temp_27_mask_loop_init < 32; temp_27_mask_loop_init++) {
+temp_26_bit_seq &= ~(0x1 << temp_27_mask_loop_init);
 }
-a = (temp_27_bit_seq + 10);
+a = (temp_26_bit_seq + 10);
 return a;
 }
 uint8_t  int_index_set_11(){ 
 uint8_t a;
 a = 7;
-uint8_t  temp_29_extracted = 0;
-temp_29_extracted ^= (((a >> 3) & 0x1) << 0);
-temp_29_extracted ^= (((a >> 2) & 0x1) << 1);
-temp_29_extracted ^= (((a >> 1) & 0x1) << 2);
-temp_29_extracted ^= (((a >> 0) & 0x1) << 3);
-if(((temp_29_extracted >> 0) & 0x1) == 0 ){
+uint8_t  temp_28_extracted = 0;
+temp_28_extracted ^= (((a >> 3) & 0x1) << 0);
+temp_28_extracted ^= (((a >> 2) & 0x1) << 1);
+temp_28_extracted ^= (((a >> 1) & 0x1) << 2);
+temp_28_extracted ^= (((a >> 0) & 0x1) << 3);
+if(((temp_28_extracted >> 0) & 0x1) == 0 ){
 a &= ~(0x1 <<0);
-} else if (((temp_29_extracted >> 0) & 0x1) == 1 ){
+} else if (((temp_28_extracted >> 0) & 0x1) == 1 ){
 a |= (0x1 << 0);
 }
-if(((temp_29_extracted >> 1) & 0x1) == 0 ){
+if(((temp_28_extracted >> 1) & 0x1) == 0 ){
 a &= ~(0x1 <<1);
-} else if (((temp_29_extracted >> 1) & 0x1) == 1 ){
+} else if (((temp_28_extracted >> 1) & 0x1) == 1 ){
 a |= (0x1 << 1);
 }
-if(((temp_29_extracted >> 2) & 0x1) == 0 ){
+if(((temp_28_extracted >> 2) & 0x1) == 0 ){
 a &= ~(0x1 <<2);
-} else if (((temp_29_extracted >> 2) & 0x1) == 1 ){
+} else if (((temp_28_extracted >> 2) & 0x1) == 1 ){
 a |= (0x1 << 2);
 }
-if(((temp_29_extracted >> 3) & 0x1) == 0 ){
+if(((temp_28_extracted >> 3) & 0x1) == 0 ){
 a &= ~(0x1 <<3);
-} else if (((temp_29_extracted >> 3) & 0x1) == 1 ){
+} else if (((temp_28_extracted >> 3) & 0x1) == 1 ){
 a |= (0x1 << 3);
 }
 return a;
@@ -301,7 +297,7 @@ uint32_t  (*int_index_set_14(uint32_t a[5][5][10][8]))[5][10][8]{
 a[0][0][0][0] = 0xffffffff;
 return a;
 }
-void  bs_arith_add(uint32_t *temp_30_bs_return){ 
+void  bs_arith_add(uint32_t *temp_29_bs_return){ 
 uint32_t a[8] = {0};
 a[0]= 0xffffffff;
 a[1]= 0;
@@ -320,18 +316,18 @@ b[4]= 0xffffffff;
 b[5]= 0xffffffff;
 b[6]= 0;
 b[7]= 0;
-uint32_t temp_31__bin[8] = {0};
-bitslice_add(temp_31__bin, a, b, 8);
-temp_30_bs_return[0] = temp_31__bin[0];
-temp_30_bs_return[1] = temp_31__bin[1];
-temp_30_bs_return[2] = temp_31__bin[2];
-temp_30_bs_return[3] = temp_31__bin[3];
-temp_30_bs_return[4] = temp_31__bin[4];
-temp_30_bs_return[5] = temp_31__bin[5];
-temp_30_bs_return[6] = temp_31__bin[6];
-temp_30_bs_return[7] = temp_31__bin[7];
+uint32_t temp_30__bin[8] = {0};
+bitslice_add(temp_30__bin, a, b, 8);
+temp_29_bs_return[0] = temp_30__bin[0];
+temp_29_bs_return[1] = temp_30__bin[1];
+temp_29_bs_return[2] = temp_30__bin[2];
+temp_29_bs_return[3] = temp_30__bin[3];
+temp_29_bs_return[4] = temp_30__bin[4];
+temp_29_bs_return[5] = temp_30__bin[5];
+temp_29_bs_return[6] = temp_30__bin[6];
+temp_29_bs_return[7] = temp_30__bin[7];
 }
-void  bs_arith_sub(uint32_t *temp_33_bs_return){ 
+void  bs_arith_sub(uint32_t *temp_32_bs_return){ 
 uint32_t a[8] = {0};
 a[0]= 0;
 a[1]= 0xffffffff;
@@ -350,15 +346,15 @@ b[4]= 0;
 b[5]= 0xffffffff;
 b[6]= 0;
 b[7]= 0;
-uint32_t temp_34__bin[8] = {0};
-bitslice_subtract(temp_34__bin, a, b, 8);
-temp_33_bs_return[0] = temp_34__bin[0];
-temp_33_bs_return[1] = temp_34__bin[1];
-temp_33_bs_return[2] = temp_34__bin[2];
-temp_33_bs_return[3] = temp_34__bin[3];
-temp_33_bs_return[4] = temp_34__bin[4];
-temp_33_bs_return[5] = temp_34__bin[5];
-temp_33_bs_return[6] = temp_34__bin[6];
-temp_33_bs_return[7] = temp_34__bin[7];
+uint32_t temp_33__bin[8] = {0};
+bitslice_subtract(temp_33__bin, a, b, 8);
+temp_32_bs_return[0] = temp_33__bin[0];
+temp_32_bs_return[1] = temp_33__bin[1];
+temp_32_bs_return[2] = temp_33__bin[2];
+temp_32_bs_return[3] = temp_33__bin[3];
+temp_32_bs_return[4] = temp_33__bin[4];
+temp_32_bs_return[5] = temp_33__bin[5];
+temp_32_bs_return[6] = temp_33__bin[6];
+temp_32_bs_return[7] = temp_33__bin[7];
 }
 

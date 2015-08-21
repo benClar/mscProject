@@ -34,6 +34,7 @@ void present_test_1()	{
 			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
 		}
 	}
+	// rprint(exp_res,64);
 }
 
 void present_test_2()	{
@@ -50,6 +51,7 @@ void present_test_2()	{
 		}
 		printf("\n");
 	}
+	// rprint(exp_res,64);
 }
 
 void present_test_3()	{
@@ -65,6 +67,7 @@ void present_test_3()	{
 				sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 3");
 		}
 	}
+	// rprint(exp_res,64);
 }
 
 void present_test_4()	{
@@ -80,4 +83,5 @@ void present_test_4()	{
 			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 4");
 		}
 	}
+	// rprint(exp_res,64);
 }

@@ -14,6 +14,6 @@ uint8_t  int_index_set_11();
 uint8_t  int_index_set_12();
 uint8_t  int_index_set_13();
 uint32_t  (*int_index_set_14(uint32_t a[5][5][10][8]))[5][10][8];
-void  bs_arith_add(uint32_t *temp_32_bs_return);
-void  bs_arith_sub(uint32_t *temp_35_bs_return);
+void  bs_arith_add(uint32_t *temp_31_bs_return);
+void  bs_arith_sub(uint32_t *temp_34_bs_return);
 
