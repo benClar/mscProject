@@ -635,12 +635,20 @@ class Semantic_analyser(object):
             f_call = Call(node.ID, return_.ID.type, return_.ID.size, return_.ID.constraints, return_)
         else:
             f_call = Call(node.ID, return_, None, None, return_)
+        if self.get_param_length(node.parameters) != self.get_param_length(self.sym_table.f_table[node.ID]['parameters']):
+            raise SemanticException("Incorrect arguments supplied for function " + node.ID + " expected: " + str(len(self.sym_table.f_table[node.ID]['parameters'])))
         for i, p in enumerate(node.parameters):
             f_call.add_parameter(self.expr_type_is(p))
             if self.value_matches_expected(f_call.parameters[i].type, self.sym_table.f_table[node.ID]['parameters'][i]['type']) is False:
                 raise SemanticException(str(f_call.parameters[i].type) + " does not equal " + str(self.sym_table.f_table[node.ID]['parameters'][i]['type']) + " in function call to " + node.ID)
                 return False
         return f_call
+
+    def get_param_length(self, params):
+        if params is None:
+            return 0
+        else:
+            return len(params)
 
     def value_matches_expected(self, result_value, expected_value):
         """Lookup for allowed assignment types"""

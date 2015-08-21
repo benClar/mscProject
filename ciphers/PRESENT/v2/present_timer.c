@@ -8,7 +8,7 @@
 int main() {
 	// single_run();
 	// cipher_constant_time();
-	// cipher_time();
+	cipher_time();
 	pLayer_time();
 	generate_round_keys_time();
 	sBox_layer_time();

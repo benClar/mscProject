@@ -51,7 +51,7 @@ double get_time()	{
 void rprint(uint32_t *arr, int size)	{
 	int i;
 	for(i = size - 1; i >= 0; i--)	{
-		printf("%d",arr[i]);
+		printf("%d",arr[i] & 0x1);
 	}
 	printf("\n");
 }
