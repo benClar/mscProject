@@ -8,3 +8,4 @@
 void prince_test_1();
 void prince_test_2();
 void prince_test_3();
+void prince_test_4();

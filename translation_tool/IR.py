@@ -1255,7 +1255,10 @@ class Int_decl(object):
             else:
                 result['emit'] += self.translate_type() + self.ID.translate()["result"] + "[" + self.constraints.translate()['result'] + "]" + ";\n"
         elif self.node_type == DATA_TYPE.INT_DECL:
-            result['emit'] += self.translate_type() + self.ID.translate()["result"] + ";\n"
+            if func_param == False:
+                result['emit'] += self.translate_type() + self.ID.translate()["result"] + " = 0;\n"
+            else:
+                result['emit'] += self.translate_type() + self.ID.translate()["result"] + ";\n"
         if self.value is not None:
             result['emit'] += self.body.translate(sym_count)
             #     value_result = self.value.translate(sym_count)

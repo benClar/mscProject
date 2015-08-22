@@ -9,7 +9,7 @@
 void print(uint32_t *arr, int size)	{
 	int i;
 	for(i = 0; i < size; i++)	{
-		printf("%d",arr[i]);
+		printf("%d",(arr[i] & 0x1));
 	}
 	printf("\n");
 }

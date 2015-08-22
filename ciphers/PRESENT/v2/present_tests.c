@@ -31,7 +31,7 @@ void present_test_1()	{
 	enc(key, state, round_key);
 	for(int slice = 0; slice < 32; slice++)	{
 		for(bit = 0; bit < 64; bit++)	{
-			// sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
+			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
 		}
 	}
 	print(exp_res,64);
@@ -46,7 +46,7 @@ void present_test_2()	{
 	enc(key, state, round_key);
 	for(int slice = 0; slice < 32; slice++)	{
 		for(bit = 0; bit < 64; bit++)	{
-			// sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
+			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
 		}
 	}
 	print(exp_res,64);
@@ -61,7 +61,7 @@ void present_test_3()	{
 	enc(key, state, round_key);
 	for(int slice = 0; slice < 32; slice++)	{
 		for(bit = 0; bit < 64; bit++)	{
-			// sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
+			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
 		}
 	}
 	print(exp_res,64);
@@ -76,7 +76,7 @@ void present_test_4()	{
 	enc(key, state, round_key);
 	for(int slice = 0; slice < 32; slice++)	{
 		for(bit = 0; bit < 64; bit++)	{
-			// sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
+			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"present Test 1");
 		}
 	}
 	print(exp_res,64);

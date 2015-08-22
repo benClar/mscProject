@@ -46,6 +46,7 @@ void prince_test_1()	{
 			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"prince Test 1");
 		}
 	}
+	// rprint(exp_res,64);
 }
 
 void prince_test_2()	{
@@ -128,7 +129,6 @@ void prince_test_4(){
 	enc(RC, state, key_0, key_1);
 	for(slice = 0; slice < 32; slice++)	{
 		for(bit = 0; bit < 64; bit++)	{
-			// printf("%d",(state[bit] >> slice) & 0x1);
 			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"Prince Test 4");
 		}
 		// printf("\n");

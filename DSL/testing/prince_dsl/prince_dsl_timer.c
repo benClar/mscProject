@@ -8,9 +8,9 @@
 int main() {
 	// cipher_constant_time();
 	cipher_time();
-	mPrime_time();
-	sBox_layer_time();
-	shift_rows_time();
+	// mPrime_time();
+	// sBox_layer_time();
+	// shift_rows_time();
 	lastRounds_time();
 	firstRounds_time();
 }
@@ -120,7 +120,7 @@ void shift_rows_time()	{
 	mach_timebase_info(&info);
 	for(int run = 0; run < 100000; run++)	{
 		start = mach_absolute_time();
-		shift_rows(output, state, 1);
+		shift_rows(state, 1);
 		end = mach_absolute_time();
 		result += (end - start);
 		for(bit = 0; bit < 64; bit++)	{

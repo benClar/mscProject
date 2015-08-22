@@ -5,16 +5,16 @@
 
 #include "prince_dsl.h"
 uint32_t prince_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~C & ~B & A) | (~D & ~C & ~B) | (~D & C & B) | (D & ~B & A) | (~D & B & ~A) | (C & B & ~A));
+return ((~D & ~C & ~B) | (C & B & ~A) | (~C & ~B & A) | (~D & C & B) | (D & ~B & A) | (~D & B & ~A));
 }
 uint32_t prince_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~C) | (~C & ~B) | (~B & ~A));
+return ((~C & ~B) | (~B & ~A) | (~D & ~C));
 }
 uint32_t prince_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
 return ((D & ~B) | (D & C) | (~B & A));
 }
 uint32_t prince_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & ~A) | (~D & ~B) | (D & B & ~A));
+return ((D & B & ~A) | (C & ~A) | (~D & ~B));
 }
 void prince(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -28,16 +28,16 @@ input[2] = temp_0_sbox_out[2];
 input[3] = temp_0_sbox_out[3];
 }
 uint32_t prince_inv_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & ~B & ~A) | (~D & ~B) | (C & B & A) | (~D & ~C & ~A));
+return ((C & ~B & ~A) | (C & B & A) | (~D & ~C & ~A) | (~D & ~B));
 }
 uint32_t prince_inv_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~C) | (~D & ~B & ~A) | (~C & ~B) | (D & ~B & A));
+return ((~C & ~B) | (D & ~B & A) | (~D & ~B & ~A) | (~D & ~C));
 }
 uint32_t prince_inv_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~B & A) | (C & ~B) | (D & B & ~A));
+return ((D & B & ~A) | (~B & A) | (C & ~B));
 }
 uint32_t prince_inv_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & C) | (~D & ~B & ~A) | (~C & ~B & ~A) | (C & ~B & A) | (C & B & ~A));
+return ((C & B & ~A) | (~D & C) | (~C & ~B & ~A) | (C & ~B & A));
 }
 void prince_inv(uint32_t input[4]){
 uint32_t temp_1_sbox_out[4];
@@ -508,7 +508,7 @@ state[62] = temp_12_rnge[14];
 state[63] = temp_12_rnge[15];
 }
 void sBox_layer(uint32_t state[64]){ 
-uint8_t i;
+uint8_t i = 0;
 i = 0;
 for(;i < 16;) { 
 uint32_t temp_14_rnge[(((i * 4) + 3) - (i * 4)) + 1];
@@ -525,7 +525,7 @@ i = (i + 1);
 } 
 }
 void sBox_layer_inv(uint32_t state[64]){ 
-uint8_t i;
+uint8_t i = 0;
 i = 0;
 for(;i < 16;) { 
 uint32_t temp_26_rnge[(((i * 4) + 3) - (i * 4)) + 1];
@@ -541,18 +541,17 @@ state[temp_36_rng_start] = temp_26_rnge[temp_30_init];
 i = (i + 1);
 } 
 }
-void  shift_rows(uint32_t *temp_37_bs_return, uint32_t state[64], uint8_t inverse){ 
-uint8_t target;
-target = 0;
+void shift_rows(uint32_t state[64], uint8_t inverse){ 
+uint8_t target = 0;
 uint32_t output[64] = {0};
-uint32_t temp_38_rnge[(63 - 59) + 1];
-extract_bs_range(temp_38_rnge, state, 59, 63);
-output[59] = temp_38_rnge[0];
-output[60] = temp_38_rnge[1];
-output[61] = temp_38_rnge[2];
-output[62] = temp_38_rnge[3];
-output[63] = temp_38_rnge[4];
-uint8_t nibble;
+uint32_t temp_37_rnge[(63 - 59) + 1];
+extract_bs_range(temp_37_rnge, state, 59, 63);
+output[59] = temp_37_rnge[0];
+output[60] = temp_37_rnge[1];
+output[61] = temp_37_rnge[2];
+output[62] = temp_37_rnge[3];
+output[63] = temp_37_rnge[4];
+uint8_t nibble = 0;
 nibble = 1;
 for(;nibble < 16;) { 
 if(inverse == 1) { 
@@ -561,154 +560,89 @@ target = ((target + 5) % 16);
 if(inverse == 0) { 
 target = ((target + 13) % 16);
 } 
-uint32_t temp_44_rnge[((63 - (nibble * 4)) - ((63 - (nibble * 4)) - 3)) + 1];
-extract_bs_range(temp_44_rnge, state, ((63 - (nibble * 4)) - 3), (63 - (nibble * 4)));
-uint8_t temp_50_init = 0;
-uint32_t temp_51_rnge_size = 0;
-temp_51_rnge_size = ((63 - (target * 4))-((63 - (target * 4)) - 3)) + 1;
-uint8_t temp_60_rng_start = ((63 - (target * 4)) - 3);
-for(temp_50_init = 0; temp_50_init < temp_51_rnge_size; temp_50_init++, temp_60_rng_start++){
-output[temp_60_rng_start] = temp_44_rnge[temp_50_init];
+uint32_t temp_43_rnge[((63 - (nibble * 4)) - ((63 - (nibble * 4)) - 3)) + 1];
+extract_bs_range(temp_43_rnge, state, ((63 - (nibble * 4)) - 3), (63 - (nibble * 4)));
+uint8_t temp_49_init = 0;
+uint32_t temp_50_rnge_size = 0;
+temp_50_rnge_size = ((63 - (target * 4))-((63 - (target * 4)) - 3)) + 1;
+uint8_t temp_59_rng_start = ((63 - (target * 4)) - 3);
+for(temp_49_init = 0; temp_49_init < temp_50_rnge_size; temp_49_init++, temp_59_rng_start++){
+output[temp_59_rng_start] = temp_43_rnge[temp_49_init];
 }
 nibble = (nibble + 1);
 } 
-temp_37_bs_return[0] = output[0];
-temp_37_bs_return[1] = output[1];
-temp_37_bs_return[2] = output[2];
-temp_37_bs_return[3] = output[3];
-temp_37_bs_return[4] = output[4];
-temp_37_bs_return[5] = output[5];
-temp_37_bs_return[6] = output[6];
-temp_37_bs_return[7] = output[7];
-temp_37_bs_return[8] = output[8];
-temp_37_bs_return[9] = output[9];
-temp_37_bs_return[10] = output[10];
-temp_37_bs_return[11] = output[11];
-temp_37_bs_return[12] = output[12];
-temp_37_bs_return[13] = output[13];
-temp_37_bs_return[14] = output[14];
-temp_37_bs_return[15] = output[15];
-temp_37_bs_return[16] = output[16];
-temp_37_bs_return[17] = output[17];
-temp_37_bs_return[18] = output[18];
-temp_37_bs_return[19] = output[19];
-temp_37_bs_return[20] = output[20];
-temp_37_bs_return[21] = output[21];
-temp_37_bs_return[22] = output[22];
-temp_37_bs_return[23] = output[23];
-temp_37_bs_return[24] = output[24];
-temp_37_bs_return[25] = output[25];
-temp_37_bs_return[26] = output[26];
-temp_37_bs_return[27] = output[27];
-temp_37_bs_return[28] = output[28];
-temp_37_bs_return[29] = output[29];
-temp_37_bs_return[30] = output[30];
-temp_37_bs_return[31] = output[31];
-temp_37_bs_return[32] = output[32];
-temp_37_bs_return[33] = output[33];
-temp_37_bs_return[34] = output[34];
-temp_37_bs_return[35] = output[35];
-temp_37_bs_return[36] = output[36];
-temp_37_bs_return[37] = output[37];
-temp_37_bs_return[38] = output[38];
-temp_37_bs_return[39] = output[39];
-temp_37_bs_return[40] = output[40];
-temp_37_bs_return[41] = output[41];
-temp_37_bs_return[42] = output[42];
-temp_37_bs_return[43] = output[43];
-temp_37_bs_return[44] = output[44];
-temp_37_bs_return[45] = output[45];
-temp_37_bs_return[46] = output[46];
-temp_37_bs_return[47] = output[47];
-temp_37_bs_return[48] = output[48];
-temp_37_bs_return[49] = output[49];
-temp_37_bs_return[50] = output[50];
-temp_37_bs_return[51] = output[51];
-temp_37_bs_return[52] = output[52];
-temp_37_bs_return[53] = output[53];
-temp_37_bs_return[54] = output[54];
-temp_37_bs_return[55] = output[55];
-temp_37_bs_return[56] = output[56];
-temp_37_bs_return[57] = output[57];
-temp_37_bs_return[58] = output[58];
-temp_37_bs_return[59] = output[59];
-temp_37_bs_return[60] = output[60];
-temp_37_bs_return[61] = output[61];
-temp_37_bs_return[62] = output[62];
-temp_37_bs_return[63] = output[63];
+state[0] = output[0];
+state[1] = output[1];
+state[2] = output[2];
+state[3] = output[3];
+state[4] = output[4];
+state[5] = output[5];
+state[6] = output[6];
+state[7] = output[7];
+state[8] = output[8];
+state[9] = output[9];
+state[10] = output[10];
+state[11] = output[11];
+state[12] = output[12];
+state[13] = output[13];
+state[14] = output[14];
+state[15] = output[15];
+state[16] = output[16];
+state[17] = output[17];
+state[18] = output[18];
+state[19] = output[19];
+state[20] = output[20];
+state[21] = output[21];
+state[22] = output[22];
+state[23] = output[23];
+state[24] = output[24];
+state[25] = output[25];
+state[26] = output[26];
+state[27] = output[27];
+state[28] = output[28];
+state[29] = output[29];
+state[30] = output[30];
+state[31] = output[31];
+state[32] = output[32];
+state[33] = output[33];
+state[34] = output[34];
+state[35] = output[35];
+state[36] = output[36];
+state[37] = output[37];
+state[38] = output[38];
+state[39] = output[39];
+state[40] = output[40];
+state[41] = output[41];
+state[42] = output[42];
+state[43] = output[43];
+state[44] = output[44];
+state[45] = output[45];
+state[46] = output[46];
+state[47] = output[47];
+state[48] = output[48];
+state[49] = output[49];
+state[50] = output[50];
+state[51] = output[51];
+state[52] = output[52];
+state[53] = output[53];
+state[54] = output[54];
+state[55] = output[55];
+state[56] = output[56];
+state[57] = output[57];
+state[58] = output[58];
+state[59] = output[59];
+state[60] = output[60];
+state[61] = output[61];
+state[62] = output[62];
+state[63] = output[63];
 }
 void first_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]){ 
-uint8_t r;
+uint8_t r = 0;
 r = 1;
 for(;r < 6;) { 
 sBox_layer(state);
 mPrime(state);
-uint32_t temp_63_call[64];
-shift_rows(temp_63_call, state, 0);
-state[0] = temp_63_call[0];
-state[1] = temp_63_call[1];
-state[2] = temp_63_call[2];
-state[3] = temp_63_call[3];
-state[4] = temp_63_call[4];
-state[5] = temp_63_call[5];
-state[6] = temp_63_call[6];
-state[7] = temp_63_call[7];
-state[8] = temp_63_call[8];
-state[9] = temp_63_call[9];
-state[10] = temp_63_call[10];
-state[11] = temp_63_call[11];
-state[12] = temp_63_call[12];
-state[13] = temp_63_call[13];
-state[14] = temp_63_call[14];
-state[15] = temp_63_call[15];
-state[16] = temp_63_call[16];
-state[17] = temp_63_call[17];
-state[18] = temp_63_call[18];
-state[19] = temp_63_call[19];
-state[20] = temp_63_call[20];
-state[21] = temp_63_call[21];
-state[22] = temp_63_call[22];
-state[23] = temp_63_call[23];
-state[24] = temp_63_call[24];
-state[25] = temp_63_call[25];
-state[26] = temp_63_call[26];
-state[27] = temp_63_call[27];
-state[28] = temp_63_call[28];
-state[29] = temp_63_call[29];
-state[30] = temp_63_call[30];
-state[31] = temp_63_call[31];
-state[32] = temp_63_call[32];
-state[33] = temp_63_call[33];
-state[34] = temp_63_call[34];
-state[35] = temp_63_call[35];
-state[36] = temp_63_call[36];
-state[37] = temp_63_call[37];
-state[38] = temp_63_call[38];
-state[39] = temp_63_call[39];
-state[40] = temp_63_call[40];
-state[41] = temp_63_call[41];
-state[42] = temp_63_call[42];
-state[43] = temp_63_call[43];
-state[44] = temp_63_call[44];
-state[45] = temp_63_call[45];
-state[46] = temp_63_call[46];
-state[47] = temp_63_call[47];
-state[48] = temp_63_call[48];
-state[49] = temp_63_call[49];
-state[50] = temp_63_call[50];
-state[51] = temp_63_call[51];
-state[52] = temp_63_call[52];
-state[53] = temp_63_call[53];
-state[54] = temp_63_call[54];
-state[55] = temp_63_call[55];
-state[56] = temp_63_call[56];
-state[57] = temp_63_call[57];
-state[58] = temp_63_call[58];
-state[59] = temp_63_call[59];
-state[60] = temp_63_call[60];
-state[61] = temp_63_call[61];
-state[62] = temp_63_call[62];
-state[63] = temp_63_call[63];
+shift_rows(state, 0);
 state[0] = (RC[r][0] ^ key[0]) ^ state[0];
 state[1] = (RC[r][1] ^ key[1]) ^ state[1];
 state[2] = (RC[r][2] ^ key[2]) ^ state[2];
@@ -777,7 +711,7 @@ r = (r + 1);
 } 
 }
 void last_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]){ 
-uint8_t r;
+uint8_t r = 0;
 r = 6;
 for(;r < 11;) { 
 state[0] = (RC[r][0] ^ key[0]) ^ state[0];
@@ -844,72 +778,7 @@ state[60] = (RC[r][60] ^ key[60]) ^ state[60];
 state[61] = (RC[r][61] ^ key[61]) ^ state[61];
 state[62] = (RC[r][62] ^ key[62]) ^ state[62];
 state[63] = (RC[r][63] ^ key[63]) ^ state[63];
-uint32_t temp_65_call[64];
-shift_rows(temp_65_call, state, 1);
-state[0] = temp_65_call[0];
-state[1] = temp_65_call[1];
-state[2] = temp_65_call[2];
-state[3] = temp_65_call[3];
-state[4] = temp_65_call[4];
-state[5] = temp_65_call[5];
-state[6] = temp_65_call[6];
-state[7] = temp_65_call[7];
-state[8] = temp_65_call[8];
-state[9] = temp_65_call[9];
-state[10] = temp_65_call[10];
-state[11] = temp_65_call[11];
-state[12] = temp_65_call[12];
-state[13] = temp_65_call[13];
-state[14] = temp_65_call[14];
-state[15] = temp_65_call[15];
-state[16] = temp_65_call[16];
-state[17] = temp_65_call[17];
-state[18] = temp_65_call[18];
-state[19] = temp_65_call[19];
-state[20] = temp_65_call[20];
-state[21] = temp_65_call[21];
-state[22] = temp_65_call[22];
-state[23] = temp_65_call[23];
-state[24] = temp_65_call[24];
-state[25] = temp_65_call[25];
-state[26] = temp_65_call[26];
-state[27] = temp_65_call[27];
-state[28] = temp_65_call[28];
-state[29] = temp_65_call[29];
-state[30] = temp_65_call[30];
-state[31] = temp_65_call[31];
-state[32] = temp_65_call[32];
-state[33] = temp_65_call[33];
-state[34] = temp_65_call[34];
-state[35] = temp_65_call[35];
-state[36] = temp_65_call[36];
-state[37] = temp_65_call[37];
-state[38] = temp_65_call[38];
-state[39] = temp_65_call[39];
-state[40] = temp_65_call[40];
-state[41] = temp_65_call[41];
-state[42] = temp_65_call[42];
-state[43] = temp_65_call[43];
-state[44] = temp_65_call[44];
-state[45] = temp_65_call[45];
-state[46] = temp_65_call[46];
-state[47] = temp_65_call[47];
-state[48] = temp_65_call[48];
-state[49] = temp_65_call[49];
-state[50] = temp_65_call[50];
-state[51] = temp_65_call[51];
-state[52] = temp_65_call[52];
-state[53] = temp_65_call[53];
-state[54] = temp_65_call[54];
-state[55] = temp_65_call[55];
-state[56] = temp_65_call[56];
-state[57] = temp_65_call[57];
-state[58] = temp_65_call[58];
-state[59] = temp_65_call[59];
-state[60] = temp_65_call[60];
-state[61] = temp_65_call[61];
-state[62] = temp_65_call[62];
-state[63] = temp_65_call[63];
+shift_rows(state, 1);
 mPrime(state);
 sBox_layer_inv(state);
 r = (r + 1);

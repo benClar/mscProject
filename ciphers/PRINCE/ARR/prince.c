@@ -1,17 +1,10 @@
-/*---------- Standard Headers -----------*/
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-/*---------- Custom Headers	-----------*/
-
 #include "prince.h"
 #include "sput.h"
-
-
 uint32_t (*enc(uint32_t RC[12][64], uint32_t state[64],uint32_t key_0[64],uint32_t key_1[64]))	{
-
 	uint32_t key_0_not[64];
 	uint32_t key_circ[64];
 	uint32_t key_shift[64] = {0}; 
@@ -81,7 +74,6 @@ uint32_t (*enc(uint32_t RC[12][64], uint32_t state[64],uint32_t key_0[64],uint32
 	key_0_not[61] = key_circ[61] ^ key_shift[61];
 	key_0_not[62] = key_circ[62] ^ key_shift[62];
 	key_0_not[63] = key_circ[63] ^ key_shift[63];
-
 	state[0] ^= key_0[0];
 	state[1] ^= key_0[1];
 	state[2] ^= key_0[2];
@@ -146,7 +138,6 @@ uint32_t (*enc(uint32_t RC[12][64], uint32_t state[64],uint32_t key_0[64],uint32
 	state[61] ^= key_0[61];
 	state[62] ^= key_0[62];
 	state[63] ^= key_0[63];
-
 	state[0] ^= (key_1[0] ^ RC[0][0]);
 	state[1] ^= (key_1[1] ^ RC[0][1]);
 	state[2] ^= (key_1[2] ^ RC[0][2]);
@@ -212,11 +203,9 @@ uint32_t (*enc(uint32_t RC[12][64], uint32_t state[64],uint32_t key_0[64],uint32
 	state[62] ^= (key_1[62] ^ RC[0][62]);
 	state[63] ^= (key_1[63] ^ RC[0][63]);
 	first_rounds(state, RC, key_1);
-
 	sBox(state, 0);
 	mprime(state);
 	sBox(state, 1);
-
 	last_rounds(state, RC, key_1);
 	state[0] ^= (key_1[0] ^ RC[11][0]);
 	state[1] ^= (key_1[1] ^ RC[11][1]);
@@ -348,7 +337,6 @@ uint32_t (*enc(uint32_t RC[12][64], uint32_t state[64],uint32_t key_0[64],uint32
 	state[63] ^= key_0_not[63];
 	return state;
 }
-
 void first_rounds(uint32_t state[64], uint32_t RC[12][64], uint32_t key_1[64])	{
 	for(int r = 1; r < 6; r++)	{
 		sBox(state,0);
@@ -420,7 +408,6 @@ void first_rounds(uint32_t state[64], uint32_t RC[12][64], uint32_t key_1[64])	{
 		state[63] ^= (key_1[63] ^ RC[r][63]);
 	}
 }
-
 void last_rounds(uint32_t state[64], uint32_t RC[12][64], uint32_t key_1[64])	{
 	for(int r = 6; r < 11; r++)	{
 		state[0] ^= (key_1[0] ^ RC[r][0]);
@@ -492,8 +479,6 @@ void last_rounds(uint32_t state[64], uint32_t RC[12][64], uint32_t key_1[64])	{
 		sBox(state,1);
 	}
 }
-
-
 void m0(uint32_t ret[16], uint32_t data[16])	{
     ret[ 0] = data[4] ^ data[ 8] ^ data[12];
     ret[ 1] = data[1] ^ data[ 9] ^ data[13];
@@ -512,7 +497,6 @@ void m0(uint32_t ret[16], uint32_t data[16])	{
     ret[14] = data[2] ^ data[ 6] ^ data[10];
     ret[15] = data[7] ^ data[11] ^ data[15];
 }
-
 void m1(uint32_t ret[16], uint32_t data[16])	{
     ret[ 0] = data[0] ^ data[ 4] ^ data[ 8];
     ret[ 1] = data[5] ^ data[ 9] ^ data[13];
@@ -531,7 +515,6 @@ void m1(uint32_t ret[16], uint32_t data[16])	{
     ret[14] = data[2] ^ data[ 6] ^ data[14];
     ret[15] = data[3] ^ data[ 7] ^ data[11];
 }
-
 void mprime(uint32_t state[64])	{
 	uint32_t output[16];
 	uint32_t extracted[16];
@@ -668,7 +651,6 @@ void mprime(uint32_t state[64])	{
 	state[62] = output[14];
 	state[63] = output[15];	
 }
-
 void sBox(uint32_t input[64], int invert)	{
 	uint32_t current[4];
 	int nibble;
@@ -684,7 +666,6 @@ void sBox(uint32_t input[64], int invert)	{
 		input[(nibble * 4) + 3] = current[3];
 	}
 }
-
 void sBox_nibble(uint32_t current[4],int invert)	{
 	 	uint32_t output[4];
 		if(!invert)	{
@@ -703,7 +684,6 @@ void sBox_nibble(uint32_t current[4],int invert)	{
 		current[2] = output[2];
 		current[3] = output[3];
 }
-
 void shift_rows(uint32_t input[64], int inverse)	{
 	uint32_t output[64];
 	int target = 0, nibble;
@@ -783,35 +763,27 @@ void shift_rows(uint32_t input[64], int inverse)	{
 	input[62] = output[62];
 	input[63] = output[63];
 }
-
 uint32_t inv_sbox_1(uint32_t input[4])	{
 	 return ((~input[A] & input[B]) | (~input[B] & ~input[C] & ~input[D]) | (input[B] & ~input[C] & input[D]) | (input[B] & input[C] & ~input[D]));
 }
-
 uint32_t inv_sbox_2(uint32_t input[4])	{
 	return ((~input[C] & input[D]) | (input[B] & ~input[C]) | (input[A] & input[C] & ~input[D]));
 }
-
 uint32_t inv_sbox_3(uint32_t input[4])	{
 	 return ((~input[A] & ~input[B]) | (~input[B] & ~input[C]) | (~input[A] & ~input[C] & ~input[D]) | (input[A] & ~input[C] & input[D]));
 }
-
 uint32_t inv_sbox_4(uint32_t input[4])	{
 	return ((~input[A] & ~input[C]) | (input[B] & input[C] & input[D]) | (input[B] & ~input[C] & ~input[D]) | (~input[A] & ~input[B] & ~input[D]));
 }
-
 uint32_t sbox_1(uint32_t input[4])	{
 	return ((~input[A] & ~input[C]) | (input[B] & ~input[D]) | (input[A] & input[C] & ~input[D]));
 }
-
 uint32_t sbox_2(uint32_t input[4])	{
 	return ((input[A] & input[B]) | (~input[C] & input[D]) | (input[A] & ~input[C]));
 }
-
 uint32_t sbox_3(uint32_t input[4])	{
 	return ((~input[A] & ~input[B]) | (~input[C] & ~input[D]) | (~input[B] & ~input[C]));
 }
-
 uint32_t sbox_4(uint32_t input[4])	{
 	return ((input[A] & ~input[C] & input[D]) | (~input[A] & ~input[B] & ~input[C]) | (input[B] & input[C] & ~input[D]) | (~input[A] & input[B] & input[C]) | (~input[A] & ~input[B] & ~input[D]));
 }

@@ -207,7 +207,8 @@ class Parser(object):
 
         self.grammar_test = self.stmt + StringEnd()  # Allows single statements to be parsed
 
-        self.grammar = self.function_decl + StringEnd()
+        self.grammar = ZeroOrMore(self.function_decl 
+                                    ^ self.decl + Suppress(self.term_st)) + StringEnd()
 
     def nest_operand_pairs(self, tokens):
         tokens = tokens[0]
@@ -270,7 +271,10 @@ class Parser(object):
         return [res, True]
 
     def parse(self, data_in):
-        return self.grammar.parseString(data_in)
+        self.grammar.parseString(data_in)
+        if self.semantic_analyser.analyse(self.AST) == True:
+            return self.semantic_analyser.IR.translate()
+
 
 # if __name__ == "__main__":
 #     suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)

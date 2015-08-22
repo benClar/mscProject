@@ -1,0 +1,27 @@
+cat lfsr_hw.txt | grep -v % | awk -F " " '{print $2}' > lfsr_hw_times.txt
+python counter.py lfsr_hw_times.txt
+cat lfsr_auto.txt | grep -v % | awk -F " " '{print $2}' > lfsr_auto_times.txt
+python counter.py lfsr_auto_times.txt
+
+cat prince_auto.txt | grep -v % | awk -F " " '{print $2}' > prince_auto_times.txt
+python counter.py prince_auto_times.txt 
+
+cat prince_hw.txt | grep -v % | awk -F " " '{print $2}' > prince_hw_times.txt
+python counter.py prince_hw_times.txt 
+
+cat present_auto.txt | grep -v % | awk -F " " '{print $2}' > present_auto_times.txt
+python counter.py present_auto_times.txt 
+
+cat present_hw.txt | grep -v % | awk -F " " '{print $2}' > present_hw_times.txt
+python counter.py present_hw_times.txt 
+
+cat led_auto.txt | grep -v % | awk -F " " '{print $2}' > led_auto_times.txt
+python counter.py led_auto_times.txt
+
+
+cat led_hw.txt | grep -v % | awk -F " " '{print $2}' > led_hw_times.txt
+python counter.py led_hw_times.txt
+
+
+cat print_subset.txt | grep -v % | awk -F " " '{print $2}' > print_subset_times.txt
+python counter.py print_subset_times.txt

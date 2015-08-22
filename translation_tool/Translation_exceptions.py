@@ -3,6 +3,9 @@ from DATA_TYPE import DATA_TYPE
 class SemanticException(Exception):
     pass
 
+class ReadException(Exception):
+    pass
+
 
 class InternalException(Exception):
     pass
