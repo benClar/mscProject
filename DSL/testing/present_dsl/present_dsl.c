@@ -5,16 +5,16 @@
 
 #include "present_dsl.h"
 uint32_t present_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C & ~B & A) | (D & B & ~A) | (D & ~C & ~A) | (~D & B & A) | (~D & ~C & A) | (~D & C & ~B & ~A));
+return ((D & C & ~B & A) | (~D & C & ~B & ~A) | (D & ~C & ~A) | (D & B & ~A) | (~D & ~C & A) | (~D & B & A));
 }
 uint32_t present_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~C & B) | (D & C & A) | (~D & B & ~A) | (D & ~C & ~A) | (D & ~B & A));
+return ((~D & ~C & B) | (~C & B & ~A) | (D & C & A) | (D & ~C & ~B) | (D & ~B & A) | (~D & B & ~A));
 }
 uint32_t present_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & C & B & A) | (~D & ~C & ~A) | (D & C & ~B) | (~C & ~B & A) | (~C & B & ~A) | (D & ~B & A));
+return ((~C & ~B & A) | (~C & B & ~A) | (D & C & ~B) | (D & ~B & A) | (~D & C & B & A) | (~D & ~C & ~B));
 }
 uint32_t present_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & C & ~A) | (~D & ~B & ~A) | (~D & C & B) | (~D & B & A) | (D & ~C & A) | (D & ~C & B));
+return ((~C & B & A) | (~D & C & B) | (D & ~C & B) | (D & ~C & A) | (~D & ~B & ~A) | (~D & C & ~A));
 }
 void present(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -28,7 +28,7 @@ input[2] = temp_0_sbox_out[2];
 input[3] = temp_0_sbox_out[3];
 }
 void pLayer(uint32_t state[64]){ 
-uint8_t target_bit;
+uint8_t target_bit = 0;
 uint32_t temp[64] = {0};
 temp[0] = state[0];
 temp[1] = state[1];
@@ -94,7 +94,7 @@ temp[60] = state[60];
 temp[61] = state[61];
 temp[62] = state[62];
 temp[63] = state[63];
-uint8_t bit;
+uint8_t bit = 0;
 bit = 0;
 for(;bit < 64;) { 
 target_bit = ((16 * bit) % 63);
@@ -106,7 +106,7 @@ bit = (bit + 1);
 } 
 }
 void generate_round_keys(uint32_t key[80], uint32_t round_keys[32][64]){ 
-uint8_t round;
+uint8_t round = 0;
 round = 1;
 for(;round < 33;) { 
 uint32_t temp_5_rnge[(79 - 16) + 1];
@@ -285,7 +285,7 @@ round = (round + 1);
 } 
 }
 void sBox_layer(uint32_t state[64]){ 
-uint8_t i;
+uint8_t i = 0;
 i = 0;
 for(;i < 16;) { 
 uint32_t temp_17_rnge[(((i * 4) + 3) - (i * 4)) + 1];
@@ -303,7 +303,7 @@ i = (i + 1);
 }
 void enc(uint32_t key[80], uint32_t state[64], uint32_t round_keys[32][64]){ 
 generate_round_keys(key, round_keys);
-uint8_t round;
+uint8_t round = 0;
 round = 0;
 for(;round < 31;) { 
 state[0] = state[0] ^ round_keys[round][0];

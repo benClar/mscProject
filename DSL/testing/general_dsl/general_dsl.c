@@ -5,7 +5,7 @@
 
 #include "general_dsl.h"
 uint8_t  int_index_set_1(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 10;
 uint8_t  temp_0_extracted = 0;
 temp_0_extracted = (a >> 1) & 0x1;
@@ -17,7 +17,7 @@ a &= ~(0x1 << 3);
 return a;
 }
 uint8_t  int_index_set_2(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 0;
 uint8_t temp_1_casted_bit_seq = 0;
 temp_1_casted_bit_seq |= 0x1 << 0;
@@ -40,7 +40,7 @@ a |= (0x1 << 3);
 return a;
 }
 uint8_t  int_index_set_3(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 5;
 uint8_t  temp_2_extracted = 0;
 temp_2_extracted ^= (((a >> 0) & 0x1) << 0);
@@ -76,7 +76,7 @@ a |= (0x1 << 3);
 return a;
 }
 uint8_t  int_index_set_4(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 5;
 uint8_t  temp_5_extracted = 0;
 temp_5_extracted ^= (((a >> 0) & 0x1) << 0);
@@ -112,7 +112,7 @@ a |= (0x1 << 3);
 return a;
 }
 uint8_t  int_index_set_5(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 19;
 uint8_t  temp_8_extracted = 0;
 temp_8_extracted ^= (((a >> 0) & 0x1) << 0);
@@ -154,7 +154,7 @@ a |= (0x1 << 4);
 return a;
 }
 uint8_t  int_index_set_6(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 19;
 uint8_t  temp_11_extracted = 0;
 uint8_t temp_12_int_rng_start  = 0;
@@ -196,7 +196,7 @@ a |= (0x1 << 4);
 return a;
 }
 uint8_t  int_index_set_7(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 0;
 uint8_t temp_17_casted_bit_seq = 0;
 temp_17_casted_bit_seq |= 0x1 << 0;
@@ -216,7 +216,7 @@ a |= (0x1 << temp_20_curr_bit);
 return a;
 }
 uint8_t  int_index_set_8(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 0;
 uint8_t temp_21_casted_bit_seq = 0;
 temp_21_casted_bit_seq |= 0x1 << 0;
@@ -226,7 +226,7 @@ a = temp_21_casted_bit_seq;
 return a;
 }
 uint8_t  int_index_set_9(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 0;
 uint8_t temp_23_casted_bit_seq = 0;
 temp_23_casted_bit_seq |= 0x1 << 0;
@@ -236,7 +236,7 @@ a = (temp_23_casted_bit_seq + 10);
 return a;
 }
 uint8_t  int_index_set_10(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 0;
 uint8_t temp_25_casted_bit_seq = 0;
 temp_25_casted_bit_seq |= 0x1 << 0;
@@ -252,7 +252,7 @@ a = (temp_26_bit_seq + 10);
 return a;
 }
 uint8_t  int_index_set_11(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 7;
 uint8_t  temp_28_extracted = 0;
 temp_28_extracted ^= (((a >> 3) & 0x1) << 0);
@@ -282,13 +282,13 @@ a |= (0x1 << 3);
 return a;
 }
 uint8_t  int_index_set_12(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 15;
 a &= ~(0x1 << 0);
 return a;
 }
 uint8_t  int_index_set_13(){ 
-uint8_t a;
+uint8_t a = 0;
 a = 14;
 a ^= (0x1 << 0);
 return a;

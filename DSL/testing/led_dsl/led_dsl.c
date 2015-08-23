@@ -5,16 +5,16 @@
 
 #include "led_dsl.h"
 uint32_t led_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & B & A) | (D & B & ~A) | (D & ~C & ~A) | (D & C & ~B & A) | (~D & C & ~B & ~A) | (~D & ~C & A));
+return ((D & C & ~B & A) | (~D & C & ~B & ~A) | (D & ~C & ~A) | (D & B & ~A) | (~D & ~C & A) | (~D & B & A));
 }
 uint32_t led_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & B & ~A) | (D & ~C & ~A) | (~D & ~C & B) | (D & C & A) | (D & ~B & A));
+return ((~D & ~C & B) | (~C & B & ~A) | (D & C & A) | (D & ~C & ~B) | (D & ~B & A) | (~D & B & ~A));
 }
 uint32_t led_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C & ~B) | (~D & C & B & A) | (~D & ~C & ~B) | (~C & ~B & A) | (~C & B & ~A) | (D & ~B & A));
+return ((~C & ~B & A) | (~C & B & ~A) | (D & C & ~B) | (D & ~B & A) | (~D & C & B & A) | (~D & ~C & ~B));
 }
 uint32_t led_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~C & B & A) | (D & ~C & B) | (~D & ~B & ~A) | (D & ~C & A) | (~D & C & B) | (~D & C & ~A));
+return ((~C & B & A) | (~D & C & B) | (D & ~C & B) | (D & ~C & A) | (~D & ~B & ~A) | (~D & C & ~A));
 }
 void led(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -29,6 +29,10 @@ input[3] = temp_0_sbox_out[3];
 }
 void  gmMult(uint32_t *temp_1_bs_return, uint32_t a[4], uint32_t b[4]){ 
 uint32_t output[4] = {0};
+output[0]= 0;
+output[1]= 0;
+output[2]= 0;
+output[3]= 0;
 uint32_t a_out[4] = {0};
 a_out[0] = a[0];
 a_out[1] = a[1];
@@ -45,16 +49,12 @@ GF_R[1]= 0xffffffff;
 GF_R[2]= 0;
 GF_R[3]= 0;
 uint32_t t[4] = {0};
+uint32_t mask[4] = {0};
 uint32_t f[1] = {0};
 uint32_t high[1] = {0};
 high[0]= 0;
-uint32_t mask[4] = {0};
 uint8_t bit = 0;
 bit = 0;
-output[0]= 0;
-output[1]= 0;
-output[2]= 0;
-output[3]= 0;
 uint8_t degree = 0;
 degree = 0;
 for(;degree < 4;) { 
