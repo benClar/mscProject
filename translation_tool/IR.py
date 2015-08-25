@@ -4,7 +4,7 @@ import random
 from quine_mccluskey.qm import QuineMcCluskey
 import itertools
 from Translation_exceptions import SemanticException, InternalException
-
+import sys
 
 class Sym_count(object):
     """Stores a count of the number of temporary variables created."""
@@ -30,10 +30,11 @@ class IR(object):
         """Iterates through all IR nodes and stores their code emissions"""
         result = {'main': "", 'header': ""}
         for node in self.IR:
-            try: 
-                result['main'] += node.translate(self.sym_count)
-            except TypeError:
-                result['main'] += node.translate(self.sym_count)['emit']
+            node_res = node.translate(self.sym_count)
+            if 'emit' in node_res:
+                result['main'] += node_res['emit']
+            else:
+                result['main'] += node_res
             if node.node_type == DATA_TYPE.FUNC_DECL:
                 result['header'] += node.translate_header(self.sym_count) + ";\n"
             elif node.node_type == DATA_TYPE.SBOX_DECL:
@@ -721,11 +722,23 @@ class Set(object):
                     self.translate_integer_set(result, value_result, sym_count)
                 elif self.target.type == DATA_TYPE.BS_INT_VAL:
                     self.translate_bs_int_set(result, value_result, sym_count)
+                elif self.target.type == DATA_TYPE.SEQ_INT_VAL:
+                    self.translate_seq_int_val_set(sym_count, value_result)
                 else:
                     raise ParseException("Unrecognised Target type " + str(self.target.node_type))
         else:
             raise ParseException("Unrecognised set type " + str(self.target.node_type))
         return result['emit']
+
+    def translate_seq_int_val_set(self, sym_count, value):
+        dims = []
+        for ind in self.target.size:
+            dims += ind.translate()['result']
+        # for range(int(self.target[-1].translate()['result'])):
+        #     self.target.translate()['result']
+        print(dims)
+        raise ParseException("END")
+
 
     def translate_optimised_bitwise_set(self, sym_count):
         return self.value.optimised_translate(self.target.translate()['result'], sym_count, self.target.constraints.translate()['result'])
@@ -919,8 +932,9 @@ class Seq_decl(object):
                 result['emit'] += Target_factory.type_decl_lookup[self.constraints.translate()['result']] + " " + self.ID.translate()['result'] + self.translate_index() + " = " + self.init_value() + ";\n"
         else:
             raise ParseException("Translation of Unknown Sequence Type attempted: " + str(self.node_type))
+        print(self.ID.translate())
         if self.body is not None and self.node_type != DATA_TYPE.SBOX_DECL:
-            result['emit'] += self.body.translate(sym_count)
+            result['emit'] += self.value.translate(sym_count, self.ID.translate()['result'])
         return result['emit']
 
     def init_value(self):
@@ -1052,6 +1066,19 @@ class Seq_val(object):
         self.constraints = None
         self._type = s_type
         self.node_type = DATA_TYPE.SEQ_VAL
+        self._dim_s = None
+        self.indiv_size = []
+
+    @property
+    def dim_s(self):
+        return self._dim_s
+
+    @dim_s.setter
+    def dim_s(self, value):
+        # if value > 1:
+        #     self._dim_s = value - 1
+        # else:
+        self._dim_s = value 
 
     @property
     def value(self):
@@ -1071,14 +1098,51 @@ class Seq_val(object):
     def translate_target_size(self, sym_count):
         return self.constraints.translate()
 
-    def translate(self, sym_count):
+    def translate(self, sym_count, target=None):
         result = {'emit': "", 'result': "", 'res_size' : None}
         if self.all_int_literal():
             return self.translate_int_literal_seq(sym_count, result)
-        if self.type == DATA_TYPE.SEQ_BIT_VAL:
+        elif self.type == DATA_TYPE.SEQ_BIT_VAL:
             return self.translate_bit_val_seq(sym_count)
+        elif self.type == DATA_TYPE.SEQ_INT_VAL:
+            return self.int_val_seq(sym_count, target)
         else:
             raise ParseException("Unknown sequence value translation")
+
+    def int_val_seq(self, sym_count, target = None):
+        result = {'emit': "", 'result': "", 'res_size' : None}
+        if target is None:
+            target = Target_factory.name(sym_count, "seq_val")
+            result['emit'] += "uint64_t " + target
+            for i in result['res_size']:
+                result['emit'] += "[" + str(i) + "]"
+            result['emit'] += ";\n"
+        seq_dimension = self.dim_s
+        self.get_seq_size(self.value)
+        self.indiv_size.reverse()
+        result['res_size'] = self.indiv_size
+        perms = list(itertools.product(*map(range, result['res_size'])))
+        for i in perms:
+            index_str = ""
+            for index in i:
+                index_str += "[" + str(index) + "]"
+            ele = self.get_val(self.value, list(i)).translate(sym_count)
+            result['emit'] += ele['emit']
+            result['emit'] += target + index_str + " = " + ele['result'] + ";\n"
+        return result['emit']
+
+    def get_val(self, target, index):
+        if len(index) == 1:
+            return target[index[0]]
+        else:
+            return self.get_val(target[index.pop(0)].value, index)
+
+    def get_seq_size(self, seq):
+        index = None
+        for index, ele in enumerate(seq):
+            if ele.node_type == DATA_TYPE.SEQ_VAL and index == 0:
+                self.get_seq_size(ele.value)
+        self.indiv_size.append(index + 1)
 
     def translate_bit_val_seq(self, sym_count):
         return Cast.bit_seq_to_int_val(self, sym_count)

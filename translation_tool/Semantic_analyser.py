@@ -292,7 +292,8 @@ class Semantic_analyser(object):
                 decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, constraints=self.expr_type_is(node.bit_constraints))
             else:
                 decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value), self.expr_type_is(node.bit_constraints))
-                if self.seq_expr_dimension(decl.value) != len(decl.size):
+                decl.value.dim_s = self.seq_expr_dimension(decl.value)
+                if decl.value.dim_s != len(decl.size):
                     raise SemanticException((str(decl.value.type) + "[]" * self.seq_value_dimension(decl.value)) +
                                          " Cannot be assigned to " + str(decl.value.type) + ("[]" * len(decl.size)))
             if decl.constraints.node_type != DATA_TYPE.INT_LITERAL:
