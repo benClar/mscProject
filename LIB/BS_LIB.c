@@ -38,6 +38,21 @@ void bitslice_subtract(uint32_t *output, uint32_t *operand_1, uint32_t *operand_
 	bitslice_add(output,temp_res,one_bs,width);
 }
 
+void bitslice_mult(uint32_t *output, uint32_t *operand_1, uint32_t *operand_2, int width)	{
+	int p_bit, outer_bit, inner_bit;
+	uint32_t p[width][width];
+	for(outer_bit = 0; outer_bit < width; outer_bit++)	{
+		for(inner_bit = 0; inner_bit < width; inner_bit++)	{
+			p[outer_bit][inner_bit] = operand_1[outer_bit] & operand_2[inner_bit];
+		}
+	}
+	for(outer_bit = 0; outer_bit < width; outer_bit++)	{
+		for(inner_bit = 0, p_bit = outer_bit; p_bit < width; inner_bit++, p_bit++)	{
+			output[p_bit] |= p[outer_bit][inner_bit];
+		}
+	}
+}
+
 double get_time()	{
 	double timeConvert;
 		mach_timebase_info_data_t timeBase;

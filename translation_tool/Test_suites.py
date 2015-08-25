@@ -927,23 +927,28 @@ import subprocess
 class test_translation(unittest.TestCase):
 
     # def test_demo_code(self):
-    #     par = Parser()
-        # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void mult_bit_val_1()    {\
-        #                                                                     @Int(8) a;\
-        #                                                                     a = [True, False, True, False] * 10;\
-        #                                                                 }\
-        #                                                                 ")), True)
+        # par = Parser()
+    #     # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void mult_bit_val_1()    {\
+    #     #                                                                     @Int(8) a;\
+    #     #                                                                     a = [True, False, True, False] * 10;\
+    #     #                                                                 }\
+    #     #                                                                 ")), True)
+    #     # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
+    #     #                                                                     @Int(8) a;\
+    #     #                                                                     a[0 : 5] = a[0 : 5] >>> 4;\
+    #     #                                                                     @Int(8) b;\
+    #     #                                                                     Int(8) d, e = 4;\
+    #     #                                                                     a[d : e] = a[d : e] >>> 4;\
+    #     #                                                                 }\
+    #     #                                                                 ")), True)
+    #     # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
+    #     #                                                                     @Int(8) a;\
+    #     #                                                                     a[0 : 5] = a[0 : 5] ^ (a[0 : 5] >>> 4);\
+    #     #                                                                 }\
+                                                                        # ")), True)
         # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
-        #                                                                     @Int(8) a;\
-        #                                                                     a[0 : 5] = a[0 : 5] >>> 4;\
-        #                                                                     @Int(8) b;\
-        #                                                                     Int(8) d, e = 4;\
-        #                                                                     a[d : e] = a[d : e] >>> 4;\
-        #                                                                 }\
-        #                                                                 ")), True)
-        # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
-        #                                                                     @Int(8) a;\
-        #                                                                     a[0 : 5] = a[0 : 5] ^ (a[0 : 5] >>> 4);\
+        #                                                                     Int(8) a;\
+        #                                                                     a = a[0,1,2,3] ^ a[0,2,3,4];\
         #                                                                 }\
         #                                                                 ")), True)
         # print(par.semantic_analyser.IR.translate()['main'])
