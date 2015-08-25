@@ -1186,7 +1186,6 @@ class Bit_decl(object):
         result = {'emit': "", 'result': ""}
         value = self.translate_value(sym_count)
         result['emit'] += value['emit']
-        print(self.node_type)
         if self.node_type == DATA_TYPE.BS_BIT_DECL:
             result['emit'] += self.translate_type() + self.ID.translate()['result'] + ";\n"
         elif self.node_type == DATA_TYPE.BIT_DECL:
@@ -1762,7 +1761,7 @@ class Binary_operation(object):
         elif self.node_type == DATA_TYPE.ARITH_OP:
             return self.constraints.translate()['result']
 
-    def int_int_operation(self, sym_count, target = None):
+    def int_int_operation(self, sym_count, target=None):
         if self.node_type == DATA_TYPE.COMP_OP:
             return self.int_compare_operation(sym_count)
         elif self.node_type == DATA_TYPE.LOG_OP:
@@ -1770,7 +1769,7 @@ class Binary_operation(object):
         else:
             return self.int_compute_operation(sym_count)
 
-    def bs_bit_operation(self, sym_count, target = None):
+    def bs_bit_operation(self, sym_count, target=None):
         if self.node_type == DATA_TYPE.COMP_OP:
             return self.int_compare_operation(sym_count)
         elif self.node_type == DATA_TYPE.LOG_OP:

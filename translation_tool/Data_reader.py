@@ -23,6 +23,8 @@ class Data_reader(object):
         return True
 
     def write(name, output):
+        if output is None:
+            return False
         include_c = \
         "#include <stdio.h>\n\
 #include <string.h>\n\
@@ -30,7 +32,7 @@ class Data_reader(object):
 #include <stdint.h>\n\
 \n\
 #include \"" + name + ".h\""
-        include_h = "#include \"../LIB/BS_LIB.h\"\n"
+        include_h = "#include \"BS_LIB.h\"\n"
         with open("./out/" + name + ".c", "w") as text_file:
             print(include_c, file=text_file)
             print(output['main'], file=text_file)

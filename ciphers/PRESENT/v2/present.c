@@ -1,20 +1,9 @@
-/*---------- Standard Headers -----------*/
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-/*---------- Custom Headers	-----------*/
-
 #include "debug.h"
 #include "present.h"
-#include "sput.h"
-
-/*---------- Symbolic Constants  -----------*/
-
-
-/*---------- Main -----------*/
-
 void keyXOR(uint32_t key[80], int round)	{
 	uint32_t r_bs[5] = {0};
 	bitslice(r_bs, round, 5);
@@ -24,7 +13,6 @@ void keyXOR(uint32_t key[80], int round)	{
 	key[79 - 16] ^= r_bs[1];
 	key[79 - 15] ^= r_bs[0];
 }
-
 int generateRoundKey(uint32_t key[80], uint32_t round_key[32][64]) {
 	for(int round = 1; round < 33; round++)	{
 	    uint32_t key_temp[80] = {0};
@@ -93,7 +81,6 @@ int generateRoundKey(uint32_t key[80], uint32_t round_key[32][64]) {
 		round_key[round - 1][61] = key[61];
 		round_key[round - 1][62] = key[62];
 		round_key[round - 1][63] = key[63];
-
 	    rotate_left(key_temp, key, 61, 80);
 		key[0] = key_temp[0];
 		key[1] = key_temp[1];
@@ -187,24 +174,18 @@ int generateRoundKey(uint32_t key[80], uint32_t round_key[32][64]) {
 	}
     return 1;
 }
-
 uint32_t sbox_1(uint32_t input[4])	{
 	return ((~input[A] & ~input[C] & ~input[D] ) | (~input[A] & input[C] & input[D] ) | (input[A] & ~input[B] & input[D]) | (input[A] & ~input[B] & input[C]) | (~input[A] & input[B] & input[C]));
 }
-
 uint32_t sbox_2(uint32_t input[4])	{
 	return ((~input[B] & input[C] & ~input[D]) | (input[A] & input[B] & ~input[C]) | (~input[B] & ~input[C] & input[D]) | (~input[A] & ~input[B] & ~input[C]) | (~input[A] & input[B] & input[C] & input[D]));
 }
-
 uint32_t sbox_3(uint32_t input[4])  {
 	return ((input[A] & input[B] & input[D]) | (input[A] & ~input[B] & ~input[C]) | (~input[A] & input[C] & ~input[D]) | (~input[A] & ~input[B] & input[C]) | (input[A] & ~input[B] & ~input[D]));
 }
-
 uint32_t sbox_4(uint32_t input[4])  {
 	return ((~input[A] & input[C] & input[D] ) | ( input[A] & input[C] & ~input[D] ) | (input[A] & ~input[B] & ~input[D] ) | (~input[A] & ~input[B] & input[D]) | ( ~input[A] & input[B] & ~input[C] & ~input[D]) | (input[A] & input[B] & ~input[C] & input[D]));
 }
-
-
 void pLayer(uint32_t state[64])	{
 	int bit;
 	uint32_t temp[64];
@@ -272,7 +253,6 @@ void pLayer(uint32_t state[64])	{
 	temp[61] = state[61];
 	temp[62] = state[62];
 	temp[63] = state[63];
-
 	for(bit = 63; bit >= 0; bit-- )	{
 		int target = ((16 * (63 - bit)) % (STATE_SIZE - 1));
 		if(bit == 0)	{
@@ -283,7 +263,6 @@ void pLayer(uint32_t state[64])	{
 		state[ target] = temp[ bit ];
 	}
 }
-
 void add_round_key(uint32_t key[64], uint32_t state[64])	{
 	state[0] ^= key[0];
 	state[1] ^= key[1];
@@ -350,7 +329,6 @@ void add_round_key(uint32_t key[64], uint32_t state[64])	{
 	state[62] ^= key[62];
 	state[63] ^= key[63];
 }
-
 void sBox_layer(uint32_t state[64])	{
 	uint32_t nibble[4];
 	int nibble_ele, bit_ele;
@@ -366,12 +344,9 @@ void sBox_layer(uint32_t state[64])	{
 		state[bit_ele + 3] = sbox_4(nibble);
 	}
 }
-
 uint32_t (*enc(uint32_t key[80], uint32_t state[64], uint32_t round_key[32][64])){
 	int round;
-
 	generateRoundKey(key,round_key);
-
 	for(round = 0; round < 31; round++)	{
 		add_round_key(round_key[round],state);
 		sBox_layer(state);
