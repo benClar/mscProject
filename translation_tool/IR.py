@@ -1133,7 +1133,10 @@ class Seq_val(object):
 
     def get_val(self, target, index):
         if len(index) == 1:
-            return target[index[0]]
+            try:
+                return target[index[0]]
+            except IndexError:
+                return Int_literal('0')
         else:
             return self.get_val(target[index.pop(0)].value, index)
 

@@ -929,7 +929,7 @@ class test_translation(unittest.TestCase):
     def test_demo_code(self):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
-                                                                            Int(8)[2][2][2] a = [[[1,2,3,4,5],[1,2,3,4,5]],[[1,2,3,4,5],[1,2,3,4,5]]];\
+                                                                            Int(8)[2][2][2] a = [[[1,2,3,4,5],[1,2]],[[1,2,3,4,5],[1,2,3,4,5]]];\
                                                                         }\
                                                                         ")), True)
         print(par.semantic_analyser.IR.translate()['main'])
