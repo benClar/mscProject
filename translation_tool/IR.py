@@ -736,7 +736,6 @@ class Set(object):
             dims += ind.translate()['result']
         # for range(int(self.target[-1].translate()['result'])):
         #     self.target.translate()['result']
-        print(dims)
         raise ParseException("END")
 
 
@@ -932,10 +931,16 @@ class Seq_decl(object):
                 result['emit'] += Target_factory.type_decl_lookup[self.constraints.translate()['result']] + " " + self.ID.translate()['result'] + self.translate_index() + " = " + self.init_value() + ";\n"
         else:
             raise ParseException("Translation of Unknown Sequence Type attempted: " + str(self.node_type))
-        print(self.ID.translate())
         if self.body is not None and self.node_type != DATA_TYPE.SBOX_DECL:
-            result['emit'] += self.value.translate(sym_count, self.ID.translate()['result'])
+            result['emit'] += self.value.translate(sym_count, {'result':self.ID.translate()['result'], 'res_size':self.translate_size_as_list(sym_count)})
         return result['emit']
+
+    def translate_size_as_list(self, sym_count):
+        size = []
+        for dim in self.size:
+            assert dim.node_type == DATA_TYPE.INT_LITERAL
+            size.append(int(dim.translate(sym_count)['result']))
+        return size
 
     def init_value(self):
         if self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
@@ -1068,6 +1073,7 @@ class Seq_val(object):
         self.node_type = DATA_TYPE.SEQ_VAL
         self._dim_s = None
         self.indiv_size = []
+        self.size = None
 
     @property
     def dim_s(self):
@@ -1109,19 +1115,40 @@ class Seq_val(object):
         else:
             raise ParseException("Unknown sequence value translation")
 
-    def int_val_seq(self, sym_count, target = None):
-        result = {'emit': "", 'result': "", 'res_size' : None}
+    def int_val_seq(self, sym_count, target=None):
+        """Translates sequence value either to a given target or to a returns temporary variable
+        Args:
+
+        sym_count: number of temporary variables in program.
+        target: passed in target for sequence value to be assigned to."""
+        result = {'emit': "", 'result': "", 'res_size': None}
         if target is None:
             target = Target_factory.name(sym_count, "seq_val")
             result['emit'] += "uint64_t " + target
+            seq_dimension = self.dim_s
+            self.get_seq_size(self.value)
+            self.indiv_size.reverse()
+            result['res_size'] = self.indiv_size
             for i in result['res_size']:
                 result['emit'] += "[" + str(i) + "]"
             result['emit'] += ";\n"
-        seq_dimension = self.dim_s
-        self.get_seq_size(self.value)
-        self.indiv_size.reverse()
-        result['res_size'] = self.indiv_size
-        perms = list(itertools.product(*map(range, result['res_size'])))
+            self.set_seq_val_to_target(sym_count, result, result['res_size'], target)     
+        else:
+            self.set_int_val_target(result, sym_count, target)
+        return result['emit']
+
+    def set_int_val_target(self, result, sym_count, target):
+        self.set_seq_val_to_target(sym_count, result, target['res_size'], target['result'])
+
+    def set_seq_val_to_target(self, sym_count, result, size, target):
+        """Sets the current sequence value to a target array.
+
+        Args:
+        sym_count: number of temporary variables in program.
+        result: Store emitted code and result.
+        size: Size of target.
+        target: target variable for result"""
+        perms = list(itertools.product(*map(range, size)))
         for i in perms:
             index_str = ""
             for index in i:
@@ -1129,7 +1156,7 @@ class Seq_val(object):
             ele = self.get_val(self.value, list(i)).translate(sym_count)
             result['emit'] += ele['emit']
             result['emit'] += target + index_str + " = " + ele['result'] + ";\n"
-        return result['emit']
+
 
     def get_val(self, target, index):
         if len(index) == 1:
@@ -1138,25 +1165,20 @@ class Seq_val(object):
             except IndexError:
                 return Int_literal('0')
         else:
-            return self.get_val(target[index.pop(0)].value, index)
+            try:
+                return self.get_val(target[index.pop(0)].value, index)
+            except IndexError:
+                return Int_literal('0')
 
     def get_seq_size(self, seq):
         index = None
         for index, ele in enumerate(seq):
-            if ele.node_type == DATA_TYPE.SEQ_VAL and index == 0:
+            if ele.node_type == DATA_TYPE.SEQ_VAL:
                 self.get_seq_size(ele.value)
         self.indiv_size.append(index + 1)
 
     def translate_bit_val_seq(self, sym_count):
         return Cast.bit_seq_to_int_val(self, sym_count)
-        # result = {'emit': "", 'result': "", 'res_size': None}
-        # result['result'] += Target_factory.name(sym_count, "seq_bit_val")
-        # result['emit'] += "uint8_t " + result['result'] + " = 0;\n"
-        # result['res_size'] = len(self.value)
-        # for i, element in enumerate(self.value):
-        #     result['emit'] += result['result'] + " |= (" + element.translate()['result'] + " << (" + str(len(self.value) - 1) + " - " + str(i) + "));\n"
-        # return result
-
 
     def translate_int_literal_seq(self, sym_count, result):
         temp_name = Target_factory.name(sym_count, "seq_val")

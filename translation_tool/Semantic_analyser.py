@@ -128,10 +128,6 @@ class Semantic_analyser(object):
                 if i.node_type == DATA_TYPE.INT_LITERAL:
                     try:
                         if int(i.value) >= int(self.sym_table.id(index_id)['size'][dim].value):
-                            print(self.sym_table.id(index_id))
-                            print(index_id)
-                            print(i.value)
-                            print(self.sym_table.id(index_id)['size'][dim].value)
                             raise SemanticException("Index Selection out of range")
                     except IndexError:
                         pass
@@ -144,7 +140,7 @@ class Semantic_analyser(object):
         allowed_values = {DATA_TYPE.SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
                           DATA_TYPE.BS_SEQ_INT_VAL: [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.BS_SEQ_INT_VAL],
                           DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL],
-                          DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.BS_BIT_VAL, DATA_TYPE.SEQ_BIT_VAL],
+                          DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.SEQ_BIT_VAL],
                           DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.SEQ_BIT_VAL],
                           DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
                           DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.BIT_VAL],
@@ -205,7 +201,7 @@ class Semantic_analyser(object):
                 decl = Int_decl(node.node_type, self.expr_type_is(node.bit_constraints), Name(node.ID, DATA_TYPE.decl_to_value(node.node_type)))
             if decl.constraints.node_type != DATA_TYPE.INT_LITERAL:
                 raise SemanticException("Word Length cannot be variable")
-            if node.value is not None and self.value_matches_expected(decl.value.type, node.node_type) is False:  #Should be more specific
+            if node.value is not None and self.can_assign_type(DATA_TYPE.decl_to_value(node.node_type), decl.value.type) is False:  #Should be more specific
                     raise SemanticException(str(decl.value.type) + " Cannot be assigned to " + str(node.node_type) + " assignment")
             if decl.ID.name is not None:
                 self.sym_table.add_id(node.ID, DATA_TYPE.decl_to_value(node.node_type))
@@ -252,6 +248,8 @@ class Semantic_analyser(object):
             return False
 
     def seq_value_dimension(self, seq_value, dimension=0):
+        if DATA_TYPE.is_op_type(seq_value.node_type):
+            print(seq_value.size)
         dimension += 1
         if DATA_TYPE.is_seq_type(seq_value.value[0].type) is True:
             dimension = self.seq_value_dimension(seq_value.value[0], dimension)
@@ -280,11 +278,14 @@ class Semantic_analyser(object):
         ret = Return(self.expr_type_is(ast_node.expr))
         if ret.type != func_decl.return_type:
             raise SemanticException("Function " + str(func_decl.ID.name) + " returns " + str(ret.type) +
-                                 ". requires return value " + str(func_decl.return_type))
+                                    ". requires return value " + str(func_decl.return_type))
         return ret
 
     def analyse_bit_cnst_seq(self, node):
-        """Analyse Sequences that have bit constraints set on their members and build IR node"""
+        """Analyse Sequences that have bit constraints set on their members and build IR node
+
+        Args:
+        node: Node to translate"""
         try:
             if node.value is None:
                 if node.node_type == DATA_TYPE.SBOX_DECL:
@@ -294,8 +295,12 @@ class Semantic_analyser(object):
                 decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value), self.expr_type_is(node.bit_constraints))
                 decl.value.dim_s = self.seq_expr_dimension(decl.value)
                 if decl.value.dim_s != len(decl.size):
+                    # Checking Dimensions match
                     raise SemanticException((str(decl.value.type) + "[]" * self.seq_value_dimension(decl.value)) +
                                          " Cannot be assigned to " + str(decl.value.type) + ("[]" * len(decl.size)))
+                if DATA_TYPE.is_seq_type(decl.value.type) and not DATA_TYPE.is_op_type(decl.value.node_type):
+                    # Checking elements in range
+                    self.seq_val_matches_dimensions(decl.value.dim_s, decl.size, decl.value)
             if decl.constraints.node_type != DATA_TYPE.INT_LITERAL:
                 raise SemanticException("Must use an Integer literal to declare word length")
             if node.ID is not None:
@@ -306,6 +311,19 @@ class Semantic_analyser(object):
         except SemanticException as details:
             Semantic_analysis_errors.semantic_err(node, details)
             return False
+
+    def seq_val_matches_dimensions(self, dim, expected_size, seq_val):
+        """Verifies that passed in sequence value matches expected size
+
+        Args:
+        dim: number of dimensions in sequence.
+        expected_size: expected size of each dimension.
+        seq_val: Sequence value being validated."""
+        for num, seq in enumerate(seq_val.value):
+            if num >= int(expected_size[len(expected_size) - dim].value):
+                raise SemanticException("Sequence value goes beyond range bounds.  Expected: " + str(expected_size[len(expected_size) - dim].value))
+            if dim > 1:
+                self.seq_val_matches_dimensions(dim - 1, expected_size, seq)
 
     def analyse_array_size(self, node):
         size = []
@@ -322,6 +340,7 @@ class Semantic_analyser(object):
             curr = self.expr_type_is(i)
             val.add_element(curr)
             values.append(curr.type)
+        curr.size =  len(values)
         val.type = self.analyse_seq_val_type(list(set(values)))
         if val.type == DATA_TYPE.SEQ_BIT_VAL:
             val.constraints = Int_literal(value=str(len(values)))
@@ -525,10 +544,12 @@ class Semantic_analyser(object):
             try:
                 operation.constraints = self.largest_int_lit(operation.left.constraints, operation.right.constraints)
             except AttributeError:
-                if operation.left.node_type == DATA_TYPE.SEQ_VAL or operation.right.node_type == DATA_TYPE.SEQ_VAL:
-                    pass
+                if operation.node_type == DATA_TYPE.SHIFT_OP:
+                    raise SemanticException("SEQ SHFIT OP")
                 else:
-                    raise InternalException("Internal Error: Sequence Value does not have constraint " + str(operation.left.node_type) + " " + str(operation.right.node_type))
+                    self.validate_seq_operation(operation.left, operation.right)
+                # else:
+                #     raise InternalException("Internal Error: Sequence Value does not have constraint " + str(operation.left.node_type) + " " + str(operation.right.node_type))
         elif operation.type == DATA_TYPE.BS_SEQ_INT_VAL:
             pass
         elif operation.type == DATA_TYPE.SEQ_BIT_VAL:
@@ -549,6 +570,16 @@ class Semantic_analyser(object):
         else:
             raise InternalException("Unknown size of binary operation " + str(operation.type))
 
+    def validate_seq_operation(self, op_1, op_2):
+        if (op_1.node_type != op_2.node_type) and (op_1.node_type == DATA_TYPE.SEQ_VAL or op_2 == DATA_TYPE.SEQ_VAL):
+            raise SemanticException("Cannot combine structurally different sequences in expression")
+        for left, right in zip(op_1.value, op_2.value):
+            if left.node_type == DATA_TYPE.SEQ_VAL:
+                raise SemanticException("Cannot combine Sequences of more than a single dimension in an expression")
+        if len(op_1.value) != len(op_2.value):
+            raise SemanticException("Cannot combine structurally different sequences in expression")
+        return True
+
     def get_seq_bit_op_width(self, op_1, op_2):
         op_1_size = None
         op_2_size = None
@@ -566,8 +597,6 @@ class Semantic_analyser(object):
         if op_1 > op_2:
             return op_1
         return op_2
-
-
 
     def get_operator_of_type(self, op_1, op_2, exp_type):
         if op_1.type == exp_type:
@@ -712,6 +741,10 @@ class Semantic_analyser(object):
         return self.call_stack.peek()
 
     def sub_expr_valid(self, expression):
+        """Checks if operands are valid with operator
+
+        Args:
+        expression: current expression to be checked"""
         if expression['OP'] is DATA_TYPE.ARITH_OP:
             return self.arith_expr_valid(expression)
         elif expression['OP'] is DATA_TYPE.SHIFT_OP:
@@ -735,16 +768,20 @@ class Semantic_analyser(object):
             return True
         elif DATA_TYPE.is_int_val(expression['OPERAND_0']) and DATA_TYPE.is_int_val(expression['OPERAND_2']):
             return True
+        return False
 
     def bitwise_expr_valid(self, expression):
         if DATA_TYPE.is_int_val(expression['OPERAND_0']) and DATA_TYPE.is_int_val(expression['OPERAND_2']):
             return True
         elif self.value_matches_expected(expression['OPERAND_0'], expression['OPERAND_2']):
             return True
+        return False
 
     def shift_expr_valid(self, expression):
-        if expression['OPERAND_2'] == DATA_TYPE.INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL:
+        valid_shift_operands = [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.SEQ_BIT_VAL]
+        if (expression['OPERAND_2'] == DATA_TYPE.INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL) and (expression['OPERAND_0'] in valid_shift_operands):
             return True
+        return False
 
     def arith_expr_valid(self, expression):
         valid_operands_types = {DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL],
@@ -810,6 +847,8 @@ class Semantic_analyser(object):
             func_decl = Function_decl(node.ID, ret_val)
             ret_pres = False
             for p in node.parameters:
+                if p.node_type == DATA_TYPE.SBOX_DECL:
+                    raise SemanticException("Sboxes cannot be passed as function parameters")
                 func_decl.parameters.append(self.AST_func_param_to_IR(p))
             for s in node.stmts:
                 if s.node_type == DATA_TYPE.SBOX_DECL:

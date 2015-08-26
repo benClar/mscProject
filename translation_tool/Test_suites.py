@@ -5,7 +5,7 @@ from DATA_TYPE import DATA_TYPE
 from Data_reader import Data_reader
 import subprocess
 
-# class TestParser(unittest.TestCase):
+class TestParser(unittest.TestCase):
 
 #     def test_int_decl_parsing(self):
 #         par = Parser()
@@ -357,6 +357,9 @@ import subprocess
 
 #     def test_int_decl(self):
 #         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) a = 10;\
+#                                                                         Int(8) b = a;")), False)
+#         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 4 << [1,2,3,4] << 2;")), False)
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 4 << 3 << 2;")), True)
@@ -375,7 +378,7 @@ import subprocess
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a; Int(10) b = a;")), True)
 #         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) a; Int(10) b = a + 3;")), True)
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) a; @Int(10) b = a + 3;")), True)
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) a; Int(10) b = 3 + 3 * (4 << a);")), True)
 
@@ -425,6 +428,8 @@ import subprocess
 
 #     def test_id_set(self):
 #         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) a; Int(10) b; b = a;")), False)
+#         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Int(10) b = a;")), True)
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Int(10) b = a; Bit c = b;")), False)
@@ -433,30 +438,30 @@ import subprocess
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) a = 5;  Bit d = False; Int(10) b = a * 10 * 3 << d;")), False)
 
-#     def test_seq_decl(self):
+    def test_seq_decl(self):
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2][2] a = [[1,2],[3,4]]; ")), True)
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2][2] a = [[False,2],[3,4]]; ")), False)
 #         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1, 2, 3, 4]; ")), True)
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[4] a = [1, 2, 3, 4]; ")), True)
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1]; ")), True)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1,2,3,4] ^ [1,2,3,4];")), True)
 #         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1,2,3,4] ^ [1,2,3,4];")), True)
-#         par = Parser()
-#         ## assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] ^ [1,2,3,4]);")), True)
-#         ## par = Parser()
-#         ## assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] << 4);")), True)
-#         ## par = Parser()
-#         ## assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([[1],[2],[3],[4]] << 4);")), False)
-#         ## par = Parser()
-#         ## assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] b = [1,2]; Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] << b[0]);")), True)  # NOQA
-#         ## par = Parser()
-#         ## assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Int(10)[2] a = [b,2,c,4] ^ [1,2,b * 2,4];")), True)
-#         ## par = Parser()
-#         ## assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Bit d = False; Int(10)[2] a = [b,d,c,4] ^ [1,2,b,4];")), False)  # NOQA
-#         ## par = Parser()
+#         # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] ^ [1,2,3,4]);")), True)
+#         # par = Parser()
+#         # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] << 4);")), True)
+#         # par = Parser()
+#         # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([[1],[2],[3],[4]] << 4);")), False)
+#         # par = Parser()
+#         # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] b = [1,2]; Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] << b[0]);")), True)  # NOQA
+#         # par = Parser()
+#         # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Int(10)[2] a = [b,2,c,4] ^ [1,2,b * 2,4];")), True)
+#         # par = Parser()
+#         # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 3; Int(10)c = 4; Bit d = False; Int(10)[2] a = [b,d,c,4] ^ [1,2,b,4];")), False)  # NOQA
+#         # par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[4] a = [1,2,3,4];")), True)
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(a * a)[4] a = [1,2,3,4];")), False)
@@ -518,7 +523,7 @@ import subprocess
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit[4] op_1 = [False, False, False, True];\
 #                                                                             Bit[4] op_2 = [False, False, False, True];\
-#                                                                             Int(10) a = ((Int(10)) op_1) + ((@Int(10)) op_2);")), True)
+#                                                                             @Int(10) a = ((Int(10)) op_1) + ((@Int(10)) op_2);")), True)
 
 #     def test_seq_operations(self):
 #         par = Parser()
@@ -587,7 +592,6 @@ import subprocess
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("for(Int(8) d, Int(8) a = 0, Int(8)[5] e = [1,2,3,4,5], Bit[4] f; a < 10; a = a + 1, d = d * a) {\
 #                                                                             d = d << 10;\
-#                                                                             e = e << 4;\
 #                                                                             f = f << 4;\
 #                                                                          }")), True)
 #         assert_equals(par.semantic_analyser.IR.IR[0].node_type, DATA_TYPE.FOR_LOOP)
@@ -602,12 +606,12 @@ import subprocess
 #         assert_equals(par.semantic_analyser.IR.IR[0].body[0].node_type, DATA_TYPE.ID_SET)
 #         assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.type, DATA_TYPE.INT_VAL)
 #         assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.left.name, "d")
-#         assert_equals(par.semantic_analyser.IR.IR[0].body[2].value.type, DATA_TYPE.SEQ_BIT_VAL)
-#         assert_equals(par.semantic_analyser.IR.IR[0].body[2].value.right.value, "4")
+#         assert_equals(par.semantic_analyser.IR.IR[0].body[1].value.type, DATA_TYPE.SEQ_BIT_VAL)
+#         assert_equals(par.semantic_analyser.IR.IR[0].body[1].value.right.value, "4")
 
 #     def test_func_decl(self):
 #         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) test_func(Int(8) a, Bit c, Bit[5] e, @Int(64) f) { Int(10) d = (1 + 3) + f;  Bit b = False; return a;}")), True)  # NOQA
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) test_func(Int(8) a, Bit c, Bit[5] e, @Int(64) f) { @Int(10) d = (1 + 3) + f;  Bit b = False; return a;}")), True)  # NOQA
 #         assert_equals(par.semantic_analyser.IR.IR[0].parameters[3].ID.type, DATA_TYPE.BS_INT_VAL)
 #         assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.type, DATA_TYPE.BS_INT_VAL)
 #         assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.left.type, DATA_TYPE.INT_VAL)
@@ -620,7 +624,7 @@ import subprocess
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8] a = [1,2,3,4,5,6,7,8]; a[3] = [1,2,3,4,5,5];")), False)  # NOQA
 #         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][2] a = [[1,2,3,4],[5,6,7,8]]; a[3] = [1,2];")), True)  # NOQA
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][4] a = [[1,2,3,4],[5,6,7,8]]; a[3] = [1,2];")), True)  # NOQA
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[8][5][10] a = [[[1]],[[5]]]; a[3][3][3] = 1;")), True)  # NOQA
 #         par = Parser()
@@ -709,80 +713,10 @@ import subprocess
 #                                                                         }")), True)  # NOQA
 #         assert_equals(par.semantic_analyser.IR.IR[0].node_type, DATA_TYPE.FUNC_DECL)
 
-#     def test_LED_syntax(self):
-#         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4)[16] shift_row(@Int(4)[16] state)  {\
-#                                                                             state[0 : 3 ] = state[0 : 3] <<< 0;\
-#                                                                             state[4 : 7] = state[4 : 7] <<< 1;\
-#                                                                             state[8 : 11] = state[8 : 11] <<< 2;\
-#                                                                             state[12 : 15] = state[12 : 15] <<< 3;\
-#                                                                             return state;\
-#                                                                          }")), True)
-#         assert_equals(par.semantic_analyser.IR.IR[0].node_type, DATA_TYPE.FUNC_DECL)
-#         assert_equals(par.semantic_analyser.IR.IR[0].body[0].target.target.name, "state")
-#         assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.operator, "<<<")
-#         assert_equals(par.semantic_analyser.IR.IR[0].body[0].value.type, DATA_TYPE.BS_SEQ_INT_VAL)
-#         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(4)[16] sBox_layer(@Int(4)[16] state, Sbox(4)[16] s)  {\
-#                                                                             for(Int(4) i = 0; i < 16; i = i + 1){\
-#                                                                                 state[i] = s[state[i]];\
-#                                                                             }\
-#                                                                             return state;\
-#                                                                          }\
-#                                                                          \
-#                                                                         Int(4) gmMult(@Int(4) a, @Int(4) b) {\
-#                                                                             Int(4) g = 0;\
-#                                                                             for(Int(4) i = 0; i < 4; i = i + 1)   {\
-#                                                                                 if(((Bit[4]) b)[0] == True)   {\
-#                                                                                     g = g ^ a;\
-#                                                                                 }\
-#                                                                                 a = a << 1;\
-#                                                                                 if(((Bit[4]) a)[3] == True)   {\
-#                                                                                     a = a ^ 0x13;\
-#                                                                                 }\
-#                                                                                 b = b >> 1;\
-#                                                                             }\
-#                                                                             return g;\
-#                                                                         }\
-#                                                                         @Int(4)[16] MixColumnSerial(@Int(4)[16] state, Int(4)[16] MDS) {\
-#                                                                             Int(4)[4] column;\
-#                                                                             for(Int(4) c = 0; c < 4; c = c + 1)  {\
-#                                                                                 column = state[c,c + 4,c + 8,c + 12];\
-#                                                                                 for(Int(4) r = 0; r < 4; r = r + 4)  {\
-#                                                                                     state[(4*c) + r] = gmMult(MDS[4 * c], column[0]) ^\
-#                                                                                         gmMult(MDS[(4 * c) + 1],column[1]) ^\
-#                                                                                         gmMult(MDS[(4 * c) + 2],column[2]) ^\
-#                                                                                         gmMult(MDS[(4 * c) + 3],column[3]);\
-#                                                                                 }\
-#                                                                             }\
-#                                                                             return state;\
-#                                                                         }\
-#                                                                         @Int(4)[16] addConstants(@Int(4)[16] state, @Int(5) constant)  {\
-#                                                                             Int(4)[16] roundConstant;\
-#                                                                             for(Int(4) row = 0; row < 4; row = row + 1)  {\
-#                                                                                 roundConstant[row * 4] = row;\
-#                                                                                 if(row == 0 || row == 2)    {\
-#                                                                                     roundConstant[(row * 4) + 1] = (Int(4)) constant[3:5];\
-#                                                                                 }\
-#                                                                                 if(row == 1 || row == 3) {\
-#                                                                                     roundConstant[(row * 4) + 1] = (Int(4)) constant[0:2];\
-#                                                                                 }\
-#                                                                                 roundConstant[(row * 4) + 2] = 0;\
-#                                                                                 roundConstant[(row * 4) + 3] = 0;\
-#                                                                             }\
-#                                                                             return (state ^ roundConstant);\
-#                                                                         }\
-#                                                                         @Int(4)[16] shift_row(@Int(4)[16] state)   {\
-#                                                                             state[0 : 3 ] = state[0 : 3] <<< 0;\
-#                                                                             state[4 : 7] = state[4 : 7] <<< 1;\
-#                                                                             state[8 : 11] = state[8 : 11] <<< 2;\
-#                                                                             state[12 : 15] = state[12 : 15] <<< 3;\
-#                                                                             return state;\
-#                                                                         }")), True)
-
 #     def test_PRESENT_syntax(self):
 #         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(64) pLayer(@Int(64) state) {\
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] s = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];\
+#                                                                         @Int(64) pLayer(@Int(64) state) {\
 #                                                                             Int(8) target_bit;\
 #                                                                             @Int(64) temp = state;\
 #                                                                             for(Int(8) bit = 0; bit < 64; bit = bit + 1)    {\
@@ -794,18 +728,18 @@ import subprocess
 #                                                                             }\
 #                                                                             return state;\
 #                                                                         }\
-#                                                                         @Int(64) sBox_layer(@Int(64) state, Sbox(4)[16] s)  {\
+#                                                                         @Int(64) sBox_layer(@Int(64) state)  {\
 #                                                                             for(Int(4) i = 0; i < 16; i = i + 1){\
 #                                                                                 state[(i * 4) : (i * 4) + 4] = s[state[(i * 4) : (i * 4) + 4]];\
 #                                                                             }\
 #                                                                             return state;\
 #                                                                         }\
-#                                                                         @Int(64)[32] generate_round_keys(@Int(80) key, Sbox(4)[16] sBox) {\
+#                                                                         @Int(64)[32] generate_round_keys(@Int(80) key) {\
 #                                                                             @Int(64)[32] round_keys;\
 #                                                                             for(Int(5) round = 0; round < 32; round = round + 1)    {\
 #                                                                                 round_keys[round][0: 63] = key[16:79];\
 #                                                                                 key = key <<< 61;\
-#                                                                                 key[76 : 79] = sBox[key[79:76]];\
+#                                                                                 key[76 : 79] = s[key[79:76]];\
 #                                                                                 key[15 : 19] = key[15 : 19] ^ round[0 : 5];\
 #                                                                             }\
 #                                                                             return round_keys;\
@@ -813,12 +747,13 @@ import subprocess
 
 #     def test_PRINCE_syntax(self):
 #         par = Parser()
-#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] s = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];\
+#                                                                         void enc(@Int(64)[11] RC, @Int(64) state, @Int(64) key_0, @Int(64) key_1) {\
 #                                                                             @Int(64) key_prime = (key_0 >>> 1) ^ (key_0 >> 63);\
 #                                                                                 state = state ^ key_1;\
 #                                                                                 state = state ^ RC[0];\
 #                                                                         }\
-#                                                                         @Int(64) sBox_layer(@Int(64) state, Sbox(4)[16] s)  {\
+#                                                                         @Int(64) sBox_layer(@Int(64) state)  {\
 #                                                                             for(Int(4) i = 0; i < 16; i = i + 1){\
 #                                                                                 state[(i * 4) : (i * 4) + 4] = s[state[(i * 4) : (i * 4) + 4]];\
 #                                                                             }\
@@ -923,15 +858,47 @@ import subprocess
 #                                                                     @Int(4) i;\
 #                                                                 }\
 #                                                                 ")), True)
+    # def test_sequence_sizes_bounds(self):
+#         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
+#                                                                             Int(8)[2][2] a = [[1,2],[1,2]];\
+#                                                                         }\
+#                                                                         ")), True)
+#         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
+#                                                                             Int(8)[1][2] a = [[1,2,3],[1,2]];\
+#                                                                         }\
+#                                                                         ")), False)
+#         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
+#                                                                             Int(8)[2][2] a = [[1,2],[1,2,3]];\
+#                                                                         }\
+#                                                                         ")), False)
+#         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
+#                                                                             Int(8)[2][2][2] a = [[[1,2],[1,2]],[[1,2],[1,2]]];\
+#                                                                         }\
+#                                                                         ")), True)
+#         par = Parser()
+#         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
+#                                                                             Int(8)[2][2][2] a = [[[1,2],[1,2]],[[1,2,4],[1,2]]];\
+#                                                                         }\
+#                                                                         ")), False)
+        # par = Parser()
+        # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
+        #                                                                     Int(8)[2][2][2][2] b = [[[[1,2],[1,2]],[[1,2],[1,2]]],[[[1,2],[1,2]],[[1,2],[1,2]]]];\
+        #                                                                 }\
+        #                                                                 ")), True);
 
-class test_translation(unittest.TestCase):
+# class test_translation(unittest.TestCase):
 
     def test_demo_code(self):
         par = Parser()
+        par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
-                                                                            Int(8)[2][2][2] a = [[[1,2,3,4,5],[1,2]],[[1,2,3,4,5],[1,2,3,4,5]]];\
+                                                                            Int(8)[2][2][2][2] b = [[[[1,2]],[[1,2],[1,2]]],[[[1,2],[1,2]],[[1,2],[1,2]]]];\
                                                                         }\
-                                                                        ")), True)
+                                                                        ")), True);
         print(par.semantic_analyser.IR.translate()['main'])
 
 
@@ -1164,7 +1131,7 @@ class test_translation(unittest.TestCase):
     #                                                                             state[target_bit] = temp[bit];\
     #                                                                         }\
     #                                                                     }\
-    #                                                                     void generate_round_keys(@Int(80) key, Sbox(4)[16] present, @Int(64)[32] round_keys) {\
+    #                                                                     void generate_round_keys(@Int(80) key, @Int(64)[32] round_keys) {\
     #                                                                             for(Int(8) round = 1; round < 33; round = round + 1)    {\
     #                                                                                     round_keys[round - 1][0: 63] = key[16:79];\
     #                                                                                     key = key <<< 61;\
@@ -1172,16 +1139,16 @@ class test_translation(unittest.TestCase):
     #                                                                                     key[15 : 19] = key[15 : 19] ^ round[0 : 5];\
     #                                                                                 }\
     #                                                                     }\
-    #                                                                     void sBox_layer(@Int(64) state, Sbox(4)[16] present)  {\
+    #                                                                     void sBox_layer(@Int(64) state)  {\
     #                                                                         for(Int(8) i = 0; i < 16; i = i + 1){\
     #                                                                             state[(i * 4) : (i * 4) + 3] = present[state[(i * 4) : (i * 4) + 3]];\
     #                                                                         }\
     #                                                                     }\
     #                                                                     void enc(@Int(80) key, @Int(64) state, @Int(64)[32] round_keys){\
-    #                                                                         generate_round_keys(key, present, round_keys);\
+    #                                                                         generate_round_keys(key, round_keys);\
     #                                                                         for(Int(8) round = 0; round < 31; round = round + 1) {\
     #                                                                             state = state ^ round_keys[round];\
-    #                                                                             sBox_layer(state,present);\
+    #                                                                             sBox_layer(state);\
     #                                                                             pLayer(state);\
     #                                                                         }\
     #                                                                         state = state ^ round_keys[31];\
@@ -1248,14 +1215,14 @@ class test_translation(unittest.TestCase):
     #                                                                         }\
     #                                                                             state = state ^ roundConstant;\
     #                                                                     }\
-    #                                                                     void subCells(@Int(64) state, Sbox(4)[16] led)  {\
+    #                                                                     void subCells(@Int(64) state)  {\
     #                                                                         for(Int(8) i = 0; i < 16; i = i + 1){\
     #                                                                             state[(i * 4) : (i * 4) + 3] = led[state[(i * 4) : (i * 4) + 3]];\
     #                                                                         }\
     #                                                                     }\
     #                                                                     void step(@Int(64) state, @Int(6) r, @Int(4)[16] MDS){\
     #                                                                         addConstants(state, r);\
-    #                                                                         subCells(state,led);\
+    #                                                                         subCells(state);\
     #                                                                         shift_row(state);\
     #                                                                         MixColumnSerial(state, MDS);\
     #                                                                     }\

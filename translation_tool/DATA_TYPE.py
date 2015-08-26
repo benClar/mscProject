@@ -103,7 +103,7 @@ class DATA_TYPE(Enum):
         return False
 
     def is_seq_type(type_input):
-        sequence_types = [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.SBOX_DECL, DATA_TYPE.SEQ_BS_BIT_VAL]
+        sequence_types = [DATA_TYPE.SEQ_INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_SEQ_INT_VAL, DATA_TYPE.SBOX_DECL, DATA_TYPE.SEQ_VAL, DATA_TYPE.SEQ_BS_BIT_VAL]
         if type_input in sequence_types:
             return True
         return False
