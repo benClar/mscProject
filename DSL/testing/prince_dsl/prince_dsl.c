@@ -5,7 +5,7 @@
 
 #include "prince_dsl.h"
 uint32_t prince_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & B & ~A) | (~C & ~B & A) | (~D & B & ~A) | (~D & C & B) | (~D & ~C & ~A) | (D & ~B & A));
+return ((~C & ~B & A) | (~D & ~C & ~B) | (~D & B & ~A) | (D & ~B & A) | (~D & C & B) | (C & B & ~A));
 }
 uint32_t prince_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
 return ((~B & ~A) | (~C & ~B) | (~D & ~C));
@@ -14,7 +14,7 @@ uint32_t prince_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
 return ((D & C) | (D & ~B) | (~B & A));
 }
 uint32_t prince_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & ~A) | (~D & ~B) | (D & B & ~A));
+return ((~D & ~B) | (D & B & ~A) | (C & ~A));
 }
 void prince(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -28,16 +28,16 @@ input[2] = temp_0_sbox_out[2];
 input[3] = temp_0_sbox_out[3];
 }
 uint32_t prince_inv_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & ~B & ~A) | (~D & ~C & ~A) | (~D & ~B) | (C & B & A));
+return ((~D & ~B) | (C & B & A) | (C & ~B & ~A) | (~D & ~C & ~A));
 }
 uint32_t prince_inv_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~B & ~A) | (~C & ~B) | (~D & ~C) | (D & ~B & A));
+return ((~C & ~B) | (~D & ~C) | (~D & ~B & ~A) | (D & ~B & A));
 }
 uint32_t prince_inv_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C & ~A) | (~B & A) | (C & ~B) | (D & B & ~A));
+return ((C & ~B) | (~B & A) | (D & C & ~A) | (D & B & ~A));
 }
 uint32_t prince_inv_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & B & ~A) | (~D & C) | (C & ~B & A) | (~C & ~B & ~A));
+return ((~C & ~B & ~A) | (C & ~B & A) | (~D & C) | (C & B & ~A));
 }
 void prince_inv(uint32_t input[4]){
 uint32_t temp_1_sbox_out[4];
@@ -554,10 +554,10 @@ output[63] = temp_37_rnge[4];
 uint8_t nibble = 0;
 nibble = 1;
 for(;nibble < 16;) { 
-if(inverse == 1) { 
+if(inverse == 0x1) { 
 target = ((target + 5) % 16);
 } 
-if(inverse == 0) { 
+if(inverse == 0x0) { 
 target = ((target + 13) % 16);
 } 
 uint32_t temp_43_rnge[((63 - (nibble * 4)) - ((63 - (nibble * 4)) - 3)) + 1];
@@ -642,7 +642,7 @@ r = 1;
 for(;r < 6;) { 
 sBox_layer(state);
 mPrime(state);
-shift_rows(state, 0);
+shift_rows(state, 0x0);
 state[0] = (RC[r][0] ^ key[0]) ^ state[0];
 state[1] = (RC[r][1] ^ key[1]) ^ state[1];
 state[2] = (RC[r][2] ^ key[2]) ^ state[2];
@@ -778,7 +778,7 @@ state[60] = (RC[r][60] ^ key[60]) ^ state[60];
 state[61] = (RC[r][61] ^ key[61]) ^ state[61];
 state[62] = (RC[r][62] ^ key[62]) ^ state[62];
 state[63] = (RC[r][63] ^ key[63]) ^ state[63];
-shift_rows(state, 1);
+shift_rows(state, 0x1);
 mPrime(state);
 sBox_layer_inv(state);
 r = (r + 1);

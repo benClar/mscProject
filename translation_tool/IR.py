@@ -1279,18 +1279,24 @@ class Bit_decl(object):
         else:
             raise InternalException("Unknown Bit Val Type")
 
-    def translate(self, sym_count):
+    def translate(self, sym_count, function_param=False):
         result = {'emit': "", 'result': ""}
         value = self.translate_value(sym_count)
         result['emit'] += value['emit']
         if self.node_type == DATA_TYPE.BS_BIT_DECL:
-            result['emit'] += self.translate_type() + self.ID.translate()['result'] + ";\n"
+            if function_param == False:
+                result['emit'] += self.translate_type() + self.ID.translate()['result'] + " = 0;\n"
+            else:
+                result['emit'] += self.translate_type() + self.ID.translate()['result'] + ";\n"
         elif self.node_type == DATA_TYPE.BIT_DECL:
-            result['emit'] += self.translate_type() + self.ID.translate()['result'] + ";\n"
+            if function_param == False:
+                result['emit'] += self.translate_type() + self.ID.translate()['result'] + " = 0;\n"
+            else:
+                result['emit'] += self.translate_type() + self.ID.translate()['result'] + ";\n"
         if self.body is not None:
             set_result = self.body.translate(sym_count)
             result['emit'] += set_result
-        return result
+        return result['emit']
 
     def translate_value(self, sym_count):
         result = {'emit': "", 'result': ""}

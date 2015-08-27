@@ -5,8 +5,8 @@
 
 #include "lfsr_dsl.h"
 uint32_t  generate_bit(uint32_t state[8]){ 
-uint32_t output;
-uint32_t input;
+uint32_t output = 0;
+uint32_t input = 0;
 output = state[7];
 uint32_t temp_0__bin[8] = {0};
 shift_right(temp_0__bin, state, 1, 8);

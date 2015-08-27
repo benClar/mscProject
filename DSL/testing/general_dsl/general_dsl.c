@@ -232,7 +232,9 @@ uint8_t temp_23_casted_bit_seq = 0;
 temp_23_casted_bit_seq |= 0x1 << 0;
 temp_23_casted_bit_seq |= 0x1 << 1;
 temp_23_casted_bit_seq |= 0x1 << 3;
-a = (temp_23_casted_bit_seq + 10);
+uint32_t temp_22__bin = 0;
+temp_22__bin = temp_23_casted_bit_seq + 10;
+a = temp_22__bin;
 return a;
 }
 uint8_t  int_index_set_10(){ 
@@ -248,7 +250,9 @@ uint32_t temp_27_mask_loop_init = 4;
 for(; temp_27_mask_loop_init < 32; temp_27_mask_loop_init++) {
 temp_26_bit_seq &= ~(0x1 << temp_27_mask_loop_init);
 }
-a = (temp_26_bit_seq + 10);
+uint32_t temp_24__bin = 0;
+temp_24__bin = temp_26_bit_seq + 10;
+a = temp_24__bin;
 return a;
 }
 uint8_t  int_index_set_11(){ 
