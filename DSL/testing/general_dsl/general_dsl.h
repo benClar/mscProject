@@ -16,4 +16,11 @@ uint8_t  int_index_set_13();
 uint32_t  (*int_index_set_14(uint32_t a[5][5][10][8]))[5][10][8];
 void  bs_arith_add(uint32_t *temp_31_bs_return);
 void  bs_arith_sub(uint32_t *temp_34_bs_return);
+void seq_bit_extraction(uint8_t input[2]);
+uint8_t  (*return_bits(uint8_t input[2]));
+uint8_t  seq_bit_arth();
+void int_seq_decl();
+void bs_seq_decl();
+void bs_seq_set(uint32_t a[2][2][8]);
+void int_seq_set(uint8_t  a[2][2]);
 

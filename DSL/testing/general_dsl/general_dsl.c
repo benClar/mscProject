@@ -361,4 +361,108 @@ temp_32_bs_return[5] = temp_33__bin[5];
 temp_32_bs_return[6] = temp_33__bin[6];
 temp_32_bs_return[7] = temp_33__bin[7];
 }
+void seq_bit_extraction(uint8_t input[2]){ 
+uint8_t a[2] = { 0 };
+a[0] |= (0x1 << 1);
+a[0] |= (0x0 << 0);
+a[1] |= (0x1 << 1);
+a[1] |= (0x1 << 0);
+uint8_t outer = 0;
+outer = 0;
+for(;outer < 2;) { 
+uint8_t inner = 0;
+inner = 0;
+for(;inner < 2;) { 
+uint8_t temp_37_bit_extracted = 0;
+temp_37_bit_extracted |= ((a[outer] >> inner) & 0x1 ) << 0;
+if(temp_37_bit_extracted) {
+input[outer] ^= (0x1 << inner);
+} else if(temp_37_bit_extracted) {
+input[outer] &= ~(0x1 << inner);
+}
+inner = (inner + 1);
+} 
+outer = (outer + 1);
+} 
+}
+uint8_t  (*return_bits(uint8_t input[2])){ 
+return input;
+}
+uint8_t  seq_bit_arth(){ 
+uint8_t  a[3] = { 0 };
+a[0] = 10;
+a[1] = 9;
+a[2] = 0;
+uint8_t  b[2] = { 0 };
+b[0] = 6;
+b[1] = 7;
+uint8_t  temp_39_extracted = 0;
+temp_39_extracted ^= (((a[0] >> 0) & 0x1) << 0);
+temp_39_extracted ^= (((a[0] >> 1) & 0x1) << 1);
+temp_39_extracted ^= (((a[0] >> 2) & 0x1) << 2);
+temp_39_extracted ^= (((a[0] >> 3) & 0x1) << 3);
+temp_39_extracted ^= (((a[0] >> 4) & 0x1) << 4);
+uint8_t  temp_40_extracted = 0;
+temp_40_extracted ^= (((b[0] >> 0) & 0x1) << 0);
+temp_40_extracted ^= (((b[0] >> 1) & 0x1) << 1);
+temp_40_extracted ^= (((b[0] >> 2) & 0x1) << 2);
+temp_40_extracted ^= (((b[0] >> 3) & 0x1) << 3);
+temp_40_extracted ^= (((b[0] >> 4) & 0x1) << 4);
+if((((temp_39_extracted + temp_40_extracted) >> 0) & 0x1) == 0 ){
+a[2] &= ~(0x1 <<0);
+} else if ((((temp_39_extracted + temp_40_extracted) >> 0) & 0x1) == 1 ){
+a[2] |= (0x1 << 0);
+}
+if((((temp_39_extracted + temp_40_extracted) >> 1) & 0x1) == 0 ){
+a[2] &= ~(0x1 <<1);
+} else if ((((temp_39_extracted + temp_40_extracted) >> 1) & 0x1) == 1 ){
+a[2] |= (0x1 << 1);
+}
+if((((temp_39_extracted + temp_40_extracted) >> 2) & 0x1) == 0 ){
+a[2] &= ~(0x1 <<2);
+} else if ((((temp_39_extracted + temp_40_extracted) >> 2) & 0x1) == 1 ){
+a[2] |= (0x1 << 2);
+}
+if((((temp_39_extracted + temp_40_extracted) >> 3) & 0x1) == 0 ){
+a[2] &= ~(0x1 <<3);
+} else if ((((temp_39_extracted + temp_40_extracted) >> 3) & 0x1) == 1 ){
+a[2] |= (0x1 << 3);
+}
+if((((temp_39_extracted + temp_40_extracted) >> 4) & 0x1) == 0 ){
+a[2] &= ~(0x1 <<4);
+} else if ((((temp_39_extracted + temp_40_extracted) >> 4) & 0x1) == 1 ){
+a[2] |= (0x1 << 4);
+}
+return a[2];
+}
+void int_seq_decl(){ 
+uint8_t  a[2][2][2] = {{{ 0 }}};
+a[0][0][0] = 0;
+a[0][0][1] = 9;
+a[0][1][0] = 0;
+a[0][1][1] = 9;
+a[1][0][0] = 0;
+a[1][0][1] = 9;
+a[1][1][0] = 0;
+a[1][1][1] = 9;
+}
+void bs_seq_decl(){ 
+uint32_t a[2][2][8] = {{{ 0 }}};
+int_to_bitsliced(a[0][0], 0, 8);
+int_to_bitsliced(a[0][1], 9, 8);
+int_to_bitsliced(a[1][0], 0, 8);
+int_to_bitsliced(a[1][1], 9, 8);
+}
+void bs_seq_set(uint32_t a[2][2][8]){ 
+int_to_bitsliced(a[0][0], 0, 8);
+int_to_bitsliced(a[0][1], 9, 8);
+int_to_bitsliced(a[1][0], 0, 8);
+int_to_bitsliced(a[1][1], 9, 8);
+}
+void int_seq_set(uint8_t  a[2][2]){ 
+a[0][0] = 0;
+a[0][1] = 9;
+a[1][0] = 0;
+a[1][1] = 9;
+}
 

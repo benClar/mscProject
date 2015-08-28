@@ -382,7 +382,7 @@ class TestSemanticAnalysis(unittest.TestCase):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("@Int(10) a; Int(10) b = 3 + 3 * (4 << a);")), True)
 
-    def test_semantic_demo(self):
+    def test_semantic_expr(self):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit a = 1;")), False)
         par = Parser()
@@ -403,6 +403,10 @@ class TestSemanticAnalysis(unittest.TestCase):
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) c = [True,False,True,False] + [True,False,True,True];")), True)
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("5 * [1,2,3,4];")), False)
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) b; b = [[True, False, True, True]] + [True, False, True, True];")), False);
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8) b; b = [[True, False, True, True]] ^ [True, False, True, True];")), False);
 
     def test_bit_decl(self):
         par = Parser()
@@ -525,11 +529,6 @@ class TestSemanticAnalysis(unittest.TestCase):
                                                                             Bit[4] op_2 = [False, False, False, True];\
                                                                             @Int(10) a = ((Int(10)) op_1) + ((@Int(10)) op_2);")), True)
 
-    def test_seq_operations(self):
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10) b = 10; Bit[2][10] a; a[1][1,2,3,4:5] = [((Bit[4]) (b + 10))[2]];")), True)
-
-
 class test_IR_generation(unittest.TestCase):
 
     def test_int_decl(self):
@@ -551,7 +550,7 @@ class test_IR_generation(unittest.TestCase):
 
     def test_bit_seq_decl(self):
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit[4] a = [[True,False],[True,False]];")), True)
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit[2][2] a = [[True,False],[True,False]];")), True)
         assert_equals(par.semantic_analyser.IR.IR[0].node_type, DATA_TYPE.SEQ_BIT_DECL)
         assert_equals(par.semantic_analyser.IR.IR[0].value.type, DATA_TYPE.SEQ_BIT_VAL)
         assert_equals(par.semantic_analyser.IR.IR[0].value.type, DATA_TYPE.SEQ_BIT_VAL)
@@ -648,18 +647,9 @@ class test_IR_generation(unittest.TestCase):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) a = 8; ((Bit[4]) a)[4][4] = True;")), False)  # NOQA
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) b = 4; Int(4)[5] a = [1,2,3,4,5]; a[b * 4: 4] = [10];")), True)  # NOQA
-        assert_equals(par.semantic_analyser.IR.IR[2].target.type, DATA_TYPE.SEQ_INT_VAL)
-        assert_equals(par.semantic_analyser.IR.IR[2].value.type, DATA_TYPE.SEQ_INT_VAL)
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) b = 4; Int(4)[5] a = [1,2,3,4,5];")), True)  # NOQA
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) b = 4; Int(4)[5] a = [1,2,3,4,5]; a[b * 4: 4] = 10;")), False)  # NOQA Must assign sequence to range value
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) b = 4; Int(4)[5] a = [1,2,3,4,5]; a[b * 4: 4] = [1,2,3];")), True)  # NOQA
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit b = True; Int(4)[5] a = [1,2,3,4,5]; a[b: 4] = 10;")), False)  # NOQA
-        par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Bit b = True; Int(4)[5] a = [1,2,3,4,5]; a[((Int(1)) b): 4] = [10];")), True)  # NOQA
-        assert_equals(par.semantic_analyser.IR.IR[2].target.indices[0][0].start.target.name, "b")
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) a = 8; ((Bit[4]) ((Int(8)) 5 * 5))[4] = True;")), False)  # NOQA
 
@@ -682,9 +672,9 @@ class test_IR_generation(unittest.TestCase):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4) a = 10; a[1] = 1;")), False)  # NOQA
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4)[5] a = [1,2,3,4,5]; a[1,2,3][5 : 8] = [True,False,True];")), True)  # NOQA
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4)[5] a = [1,2,3,4,5]; a[1][5 : 8] = [True,False,True];")), True)  # NOQA
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4)[5] a = [1,2,3,4,5]; a[1,2,3][5 : 8][4] = [True,False,True];")), False)  # NOQA
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(4)[5] a = [1,2,3,4,5]; a[1][5 : 8][4] = [True,False,True];")), False)  # NOQA
 
     def test_casting(self):
         par = Parser()
@@ -734,8 +724,7 @@ class test_IR_generation(unittest.TestCase):
                                                                             }\
                                                                             return state;\
                                                                         }\
-                                                                        @Int(64)[32] generate_round_keys(@Int(80) key) {\
-                                                                            @Int(64)[32] round_keys;\
+                                                                        @Int(64)[32] generate_round_keys(@Int(64)[32] round_keys, @Int(80) key) {\
                                                                             for(Int(5) round = 0; round < 32; round = round + 1)    {\
                                                                                 round_keys[round][0: 63] = key[16:79];\
                                                                                 key = key <<< 61;\
@@ -809,6 +798,11 @@ class test_IR_generation(unittest.TestCase):
                                                                         }")), True)
 
     def test_return_type(self):
+        par = Parser()
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(8)[2] feature_testing(Int(8)[2] a){\
+                                                                            return a;\
+                                                                        }\
+                                                                         ")), True);
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(20)[64][64] pLayer(Int(20)[64][64] state) {\
                                                                             return state;\
@@ -892,14 +886,10 @@ class test_IR_generation(unittest.TestCase):
 
 class test_translation(unittest.TestCase):
 
-    # def test_demo_code(self):
-    #     par = Parser()
-    #     assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void generate_round_keys(@Int(80) key, @Int(64)[32] round_keys){\
-    #                                                                         Int(8) round = 1;\
-    #                                                                             key[15 : 19] = key[15 : 19] ^ round[0 : 5];\
-    #                                                                     }\
-    #                                                                     ")), True);
-    #     print(par.semantic_analyser.IR.translate()['main'])
+    def test_demo_code(self):
+        par = Parser()
+
+        print(par.semantic_analyser.IR.translate()['main'])
 
 
     def test_general_operations(self):
@@ -983,7 +973,36 @@ class test_translation(unittest.TestCase):
                                                                             @Int(8) b = 39;\
                                                                             return a - b;\
                                                                         }\
-                                                                        ")), True)
+                                                                        void seq_bit_extraction(Bit[2][2] input){\
+                                                                            Bit[2][2] a = [[True, False], [True, True]];\
+                                                                            for(Int(8) outer = 0; outer < 2; outer = outer + 1)    {\
+                                                                                for(Int(8) inner = 0; inner < 2; inner = inner + 1)    {\
+                                                                                    input[outer][inner] = a[outer][inner];\
+                                                                                }\
+                                                                            }\
+                                                                        }\
+                                                                        Bit[2][2] return_bits(Bit[2][2] input){\
+                                                                            return input;\
+                                                                        }\
+                                                                        Int(8) seq_bit_arth(){\
+                                                                            Int(8)[3] a = [10, 9];\
+                                                                            Int(8)[2] b = [6, 7];\
+                                                                            a[2][0,1,2,3,4] = a[0][0,1,2,3,4] + b[0][0,1,2,3,4];\
+                                                                            return a[2];\
+                                                                        }\
+                                                                        void int_seq_decl(){\
+                                                                            Int(8)[2][2][2] a = [[[0, 9],[0, 9]],[[0, 9],[0, 9]]];\
+                                                                        }\
+                                                                        void bs_seq_decl(){\
+                                                                            @Int(8)[2][2] a = [[0, 9],[0, 9]];\
+                                                                        }\
+                                                                        void bs_seq_set(@Int(8)[2][2] a){\
+                                                                            a = [[0, 9],[0, 9]];\
+                                                                        }\
+                                                                        void int_seq_set(Int(8)[2][2] a){\
+                                                                             a = [[0, 9],[0, 9]];\
+                                                                        }\
+                                                                      ")), True)
         if Data_reader.write_test("general_dsl", "general_dsl", par.semantic_analyser.IR.translate()) is True:
             assert_equals(subprocess.call(['../DSL/testing/general_dsl/./run_tests.sh']), 0)
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("")), True)

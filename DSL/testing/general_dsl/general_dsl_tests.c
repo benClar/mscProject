@@ -38,6 +38,10 @@ int main() {
 	sput_run_test(general_test_14);
 	sput_enter_suite("Int operations tests");
 	sput_run_test(general_test_15);
+	sput_enter_suite("bit seq operations tests");
+	sput_run_test(bit_seq_extraction_test_16);
+	sput_enter_suite("bit seq operations tests");
+	sput_run_test(bit_seq_arith_test_17);
 	sput_finish_testing();
 	return sput_get_return_value();
 }
@@ -100,7 +104,7 @@ void general_test_14()	{
 	bs_arith_add(res);
 	for(int slice = 0; slice < 32; slice++)	{
 		for(int bit = 0; bit < 8; bit++)	{
-			sput_fail_unless(((res[bit] >> slice) & 0x1) == expected[bit],"General Test 13");		
+			sput_fail_unless(((res[bit] >> slice) & 0x1) == expected[bit],"General Test 14");		
 		}
 		printf("\n");
 	}
@@ -112,8 +116,24 @@ void general_test_15()	{
 	bs_arith_sub(res);
 	for(int slice = 0; slice < 32; slice++)	{
 		for(int bit = 0; bit < 8; bit++)	{
-			sput_fail_unless(((res[bit] >> slice) & 0x1) == expected[bit],"General Test 13");		
+			sput_fail_unless(((res[bit] >> slice) & 0x1) == expected[bit],"General Test 15");		
 		}
 		printf("\n");
 	}
 }
+
+void bit_seq_extraction_test_16(){
+	uint8_t input[2] = {0};
+	seq_bit_extraction(input);
+	sput_fail_unless(input[0] == 2,"Seq Bit Test 16");	
+	sput_fail_unless(input[1] == 3,"Seq bit Test 16");	
+}
+
+void bit_seq_arith_test_17()	{
+	sput_fail_unless(seq_bit_arth() == 16, "Seq Bit test 17");
+}
+
+// void bit_seq_arith_test_17()	{
+// 	uint32_t input[2][2][8] = {{{0}}};
+// 	sput_fail_unless(seq_bit_arth() == 16, "Seq Bit test 17");
+// }

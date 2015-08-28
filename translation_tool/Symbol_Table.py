@@ -54,6 +54,7 @@ class Symbol_Table(object):
         if ID not in self.symbols.peek():
             self.symbols.peek()[ID] = {}
             self.symbols.peek()[ID]['type'] = id_type
+            self.symbols.peek()[ID]['f_param'] = False
         else:
             raise SemanticException("Redeclaration of symbol")
 
