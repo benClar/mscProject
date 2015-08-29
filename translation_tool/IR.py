@@ -342,6 +342,10 @@ class Index_select(object):
     #     else:
     #         return "result"
 
+    @property
+    def size(self):
+        return self.target.size
+    
     def translate(self, sym_count, value=None):
         result = {'emit': "", 'result': ""}
         if value is not None:
@@ -354,6 +358,7 @@ class Index_select(object):
                 result['emit'] += sbox_lookup['emit']
                 result['result'] = sbox_lookup['result']
             else:
+                self.run_time_safety_checks(sym_count, result)
                 target_result = self.target.translate()
                 result['emit'] += target_result['emit']
                 extracted_sequence = self.extract_sequence(target_result['result'], sym_count)
@@ -363,6 +368,47 @@ class Index_select(object):
                 result['result'] = extracted_sequence['result']
             return result
             # result['emit'] += target + self.translate_selection_dim() + "[" + self.indices[-1][0].translate(sym_count) + "]"
+
+    def run_time_safety_checks(self, sym_count, result):
+        """Includes run time safety checks in index ranges for variables that cannot be checked at compile time.
+
+        Args:
+        sym_count: Number of temp vars in program.
+        result: storage for emitted code."""
+        if self.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE:
+            if self.indices[-1][-1].start.node_type != DATA_TYPE.INT_LITERAL or self.indices[-1][-1].finish.node_type != DATA_TYPE.INT_LITERAL:
+                start = self.indices[-1][-1].start.translate(sym_count)
+                end = self.indices[-1][-1].finish.translate(sym_count)
+                if self.indices[-1][-1].start.node_type != DATA_TYPE.INT_LITERAL:
+                    self.var_in_bounds(sym_count, self.indices[-1][-1].start, result, self.target.dimension(len(self.indices[-1]) - 1))
+                if self.indices[-1][-1].finish.node_type != DATA_TYPE.INT_LITERAL:
+                    self.var_in_bounds(sym_count, self.indices[-1][-1].finish, result, self.target.dimension(len(self.indices[-1]) - 1))
+                result['emit'] += end['emit']
+                result['emit'] += start['emit']
+                result['emit'] += "if(" + start['result'] + " > " + end['result'] + "){\n"
+                result['emit'] += 'fprintf(stderr, "Start of range cannot be larger than end for index select on ' + self.target.translate()['result']+ ' \\n");\n'
+                result['emit'] += "exit(1);\n"
+                result['emit'] += "}\n"
+        for i, dim in enumerate(self.indices):
+            for index in dim:
+                if index.node_type != DATA_TYPE.INT_LITERAL and index.node_type != DATA_TYPE.INDEX_RANGE:
+                    self.var_in_bounds(sym_count, index, result, self.target.dimension(i))
+
+    def var_in_bounds(self, sym_count, var, result, bound):
+        """Checks that given variable is inside bounds of target variable
+
+        Args:
+        Sym_count: Number of temp vars in program.
+        var: Index variable to be bound checked.
+        result: storage for emitted code
+        dim: dimension that var relates to."""
+        var = var.translate(sym_count)
+        result['emit'] += var['emit']
+        result['emit'] += "if(" + var['result'] + " >= " + bound + "){\n"
+        result['emit'] += 'fprintf(stderr, "Index out of bounds for selection on ' + self.target.translate()['result'] + '\\n");\n'
+        result['emit'] += "exit(1);\n"
+        result['emit'] += "}\n"
+
 
     def sbox_lookup_translate(self, sym_count):
         result = {'emit': "", 'result': ""}
@@ -377,6 +423,7 @@ class Index_select(object):
         result = {'emit': "", 'result': ""}
         # index_result = self.translate_selection_dim(sym_count)
         # result['emit'] += index_result['emit']
+        self.run_time_safety_checks(sym_count, result)
         if self.type == DATA_TYPE.BS_BIT_VAL:
             if 'res_size' in value:
                 assert int(value['res_size']) == 1, "Assuming this is only a single element bitsliced integer"
@@ -793,7 +840,8 @@ class Set(object):
         elif self.target.type == DATA_TYPE.BS_SEQ_INT_VAL:
             return self.implicit_cast_to_bs_seq(sym_count)
         elif self.target.type == DATA_TYPE.SEQ_INT_VAL:
-            return self.value.translate(sym_count, {'result': self.target.translate()['result'], 'res_size': [int(i.translate()['result']) for i in self.target.size]})
+            print(self.target.size)
+            return self.value.translate(sym_count, {'result': self.target.translate(sym_count)['result'], 'res_size': [int(i.translate(sym_count)['result']) for i in self.target.size]})
         else:
             raise ParseException(str(self.value.type) + " being assigned to a " + str(self.target.type) + " : Cast needed")
 
@@ -1584,6 +1632,24 @@ class Name(object):
         result["emit"] = ""
         result["result"] = self.name
         return result
+
+    def dimension(self, dim):
+        if self.type == DATA_TYPE.INT_VAL or self.type == DATA_TYPE.BS_INT_VAL:
+            return self.constraints.translate()['result']
+        elif self.type == DATA_TYPE.SEQ_INT_VAL or self.type == DATA_TYPE.BS_SEQ_INT_VAL:
+            if dim == len(self.size):
+                return self.constraints.translate()['result']
+            elif dim < len(self.size):
+                return self.size[dim].translate()['result']
+        elif self.type == DATA_TYPE.SEQ_BIT_VAL or self.type == DATA_TYPE.SEQ_BS_BIT_VAL:
+            if dim < len(self.size):
+                return self.size[dim].translate()['result']
+            else:
+                raise ParseException("Internal error: that dimension doesn't exist")
+        else:
+            raise ParseException("Unsupported bounds check: " + str(self.type))
+
+
 
     # def translate_lhs(self, target):
     #     assert self.type == target.type, "Should always be aligned in type by this point by set operation"

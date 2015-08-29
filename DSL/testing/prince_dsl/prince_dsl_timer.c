@@ -11,8 +11,8 @@ int main() {
 	// mPrime_time();
 	// sBox_layer_time();
 	// shift_rows_time();
-	lastRounds_time();
-	firstRounds_time();
+	// lastRounds_time();
+	// firstRounds_time();
 }
 
 void cipher_constant_time()	{

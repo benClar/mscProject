@@ -5,16 +5,16 @@
 
 #include "prince_dsl.h"
 uint32_t prince_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & B & ~A) | (D & ~B & A) | (~D & ~C & ~B) | (~D & B & ~A) | (~C & ~B & A) | (~D & C & B));
+return ((C & B & ~A) | (~D & B & ~A) | (~D & ~C & ~A) | (~C & ~B & A) | (~D & C & B) | (D & ~B & A));
 }
 uint32_t prince_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~B & ~A) | (~D & ~C) | (~C & ~B));
+return ((~B & ~A) | (~C & ~B) | (~D & ~C));
 }
 uint32_t prince_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C) | (~B & A) | (D & ~B));
+return ((D & ~B) | (~B & A) | (D & C));
 }
 uint32_t prince_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & ~A) | (D & B & ~A) | (~D & ~B));
+return ((C & ~A) | (~D & ~B) | (D & B & ~A));
 }
 void prince(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -28,16 +28,16 @@ input[2] = temp_0_sbox_out[2];
 input[3] = temp_0_sbox_out[3];
 }
 uint32_t prince_inv_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & B & A) | (~D & ~B) | (~D & ~C & ~A) | (C & ~B & ~A));
+return ((~D & ~B) | (C & ~B & ~A) | (~D & ~C & ~A) | (C & B & A));
 }
 uint32_t prince_inv_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~B & ~A) | (~D & ~C) | (D & ~B & A) | (~C & ~B));
+return ((~D & ~B & ~A) | (~C & ~B) | (~D & ~C) | (D & ~B & A));
 }
 uint32_t prince_inv_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~B & A) | (D & B & ~A) | (C & ~B));
+return ((C & ~B) | (D & B & ~A) | (~B & A));
 }
 uint32_t prince_inv_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~C & ~B & ~A) | (C & B & ~A) | (C & ~B & A) | (~D & C));
+return ((C & B & ~A) | (~D & ~B & ~A) | (~C & ~B & ~A) | (C & ~B & A) | (~D & C));
 }
 void prince_inv(uint32_t input[4]){
 uint32_t temp_1_sbox_out[4];
@@ -511,15 +511,39 @@ void sBox_layer(uint32_t state[64]){
 uint8_t i = 0;
 i = 0;
 for(;i < 16;) { 
-uint32_t temp_14_rnge[(((i * 4) + 3) - (i * 4)) + 1];
-extract_bs_range(temp_14_rnge, state, (i * 4), ((i * 4) + 3));
-prince(temp_14_rnge);
-uint8_t temp_18_init = 0;
-uint32_t temp_19_rnge_size = 0;
-temp_19_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
-uint8_t temp_24_rng_start = (i * 4);
-for(temp_18_init = 0; temp_18_init < temp_19_rnge_size; temp_18_init++, temp_24_rng_start++){
-state[temp_24_rng_start] = temp_14_rnge[temp_18_init];
+if((i * 4) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if(((i * 4) + 3) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if((i * 4) > ((i * 4) + 3)){
+fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
+exit(1);
+}
+uint32_t temp_20_rnge[(((i * 4) + 3) - (i * 4)) + 1];
+extract_bs_range(temp_20_rnge, state, (i * 4), ((i * 4) + 3));
+prince(temp_20_rnge);
+if((i * 4) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if(((i * 4) + 3) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if((i * 4) > ((i * 4) + 3)){
+fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
+exit(1);
+}
+uint8_t temp_30_init = 0;
+uint32_t temp_31_rnge_size = 0;
+temp_31_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
+uint8_t temp_36_rng_start = (i * 4);
+for(temp_30_init = 0; temp_30_init < temp_31_rnge_size; temp_30_init++, temp_36_rng_start++){
+state[temp_36_rng_start] = temp_20_rnge[temp_30_init];
 }
 i = (i + 1);
 } 
@@ -528,15 +552,39 @@ void sBox_layer_inv(uint32_t state[64]){
 uint8_t i = 0;
 i = 0;
 for(;i < 16;) { 
-uint32_t temp_26_rnge[(((i * 4) + 3) - (i * 4)) + 1];
-extract_bs_range(temp_26_rnge, state, (i * 4), ((i * 4) + 3));
-prince_inv(temp_26_rnge);
-uint8_t temp_30_init = 0;
-uint32_t temp_31_rnge_size = 0;
-temp_31_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
-uint8_t temp_36_rng_start = (i * 4);
-for(temp_30_init = 0; temp_30_init < temp_31_rnge_size; temp_30_init++, temp_36_rng_start++){
-state[temp_36_rng_start] = temp_26_rnge[temp_30_init];
+if((i * 4) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if(((i * 4) + 3) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if((i * 4) > ((i * 4) + 3)){
+fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
+exit(1);
+}
+uint32_t temp_44_rnge[(((i * 4) + 3) - (i * 4)) + 1];
+extract_bs_range(temp_44_rnge, state, (i * 4), ((i * 4) + 3));
+prince_inv(temp_44_rnge);
+if((i * 4) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if(((i * 4) + 3) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if((i * 4) > ((i * 4) + 3)){
+fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
+exit(1);
+}
+uint8_t temp_54_init = 0;
+uint32_t temp_55_rnge_size = 0;
+temp_55_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
+uint8_t temp_60_rng_start = (i * 4);
+for(temp_54_init = 0; temp_54_init < temp_55_rnge_size; temp_54_init++, temp_60_rng_start++){
+state[temp_60_rng_start] = temp_44_rnge[temp_54_init];
 }
 i = (i + 1);
 } 
@@ -544,13 +592,13 @@ i = (i + 1);
 void shift_rows(uint32_t state[64], uint8_t inverse){ 
 uint8_t target = 0;
 uint32_t output[64] = {0};
-uint32_t temp_37_rnge[(63 - 59) + 1];
-extract_bs_range(temp_37_rnge, state, 59, 63);
-output[59] = temp_37_rnge[0];
-output[60] = temp_37_rnge[1];
-output[61] = temp_37_rnge[2];
-output[62] = temp_37_rnge[3];
-output[63] = temp_37_rnge[4];
+uint32_t temp_61_rnge[(63 - 59) + 1];
+extract_bs_range(temp_61_rnge, state, 59, 63);
+output[59] = temp_61_rnge[0];
+output[60] = temp_61_rnge[1];
+output[61] = temp_61_rnge[2];
+output[62] = temp_61_rnge[3];
+output[63] = temp_61_rnge[4];
 uint8_t nibble = 0;
 nibble = 1;
 for(;nibble < 16;) { 
@@ -560,14 +608,38 @@ target = ((target + 5) % 16);
 if(inverse == 0x0) { 
 target = ((target + 13) % 16);
 } 
-uint32_t temp_43_rnge[((63 - (nibble * 4)) - ((63 - (nibble * 4)) - 3)) + 1];
-extract_bs_range(temp_43_rnge, state, ((63 - (nibble * 4)) - 3), (63 - (nibble * 4)));
-uint8_t temp_49_init = 0;
-uint32_t temp_50_rnge_size = 0;
-temp_50_rnge_size = ((63 - (target * 4))-((63 - (target * 4)) - 3)) + 1;
-uint8_t temp_59_rng_start = ((63 - (target * 4)) - 3);
-for(temp_49_init = 0; temp_49_init < temp_50_rnge_size; temp_49_init++, temp_59_rng_start++){
-output[temp_59_rng_start] = temp_43_rnge[temp_49_init];
+if(((63 - (nibble * 4)) - 3) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if((63 - (nibble * 4)) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if(((63 - (nibble * 4)) - 3) > (63 - (nibble * 4))){
+fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
+exit(1);
+}
+uint32_t temp_77_rnge[((63 - (nibble * 4)) - ((63 - (nibble * 4)) - 3)) + 1];
+extract_bs_range(temp_77_rnge, state, ((63 - (nibble * 4)) - 3), (63 - (nibble * 4)));
+if(((63 - (target * 4)) - 3) >= 64){
+fprintf(stderr, "Index out of bounds for selection on output\n");
+exit(1);
+}
+if((63 - (target * 4)) >= 64){
+fprintf(stderr, "Index out of bounds for selection on output\n");
+exit(1);
+}
+if(((63 - (target * 4)) - 3) > (63 - (target * 4))){
+fprintf(stderr, "Start of range cannot be larger than end for index select on output \n");
+exit(1);
+}
+uint8_t temp_93_init = 0;
+uint32_t temp_94_rnge_size = 0;
+temp_94_rnge_size = ((63 - (target * 4))-((63 - (target * 4)) - 3)) + 1;
+uint8_t temp_103_rng_start = ((63 - (target * 4)) - 3);
+for(temp_93_init = 0; temp_93_init < temp_94_rnge_size; temp_93_init++, temp_103_rng_start++){
+output[temp_103_rng_start] = temp_77_rnge[temp_93_init];
 }
 nibble = (nibble + 1);
 } 

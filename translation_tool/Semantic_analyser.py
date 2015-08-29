@@ -517,15 +517,15 @@ class Semantic_analyser(object):
             if len(ir_indices[dim_n]) > 1 or ir_indices[dim_n][0].node_type == DATA_TYPE.INDEX_RANGE:
                 raise SemanticException("Cannot use lists or ranges on sequences")
         if self.sym_table.dimension(node.ID) > len(ir_indices):
-            return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices)
+            return Index_select(Name(node.ID, target_id['type'], size=self.sym_table.id(node.ID)['size'], constraints=target_id['constraints']), ir_indices)
         elif self.sym_table.dimension(node.ID) == len(ir_indices):            
             if self.is_range(ir_indices[-1]):
-                return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, target_id['type'])
+                return Index_select(Name(node.ID, target_id['type'], size=self.sym_table.id(node.ID)['size'],  constraints=target_id['constraints']), ir_indices, target_id['type'])
             else:
                 if target_id['type'] == DATA_TYPE.SBOX_DECL:
-                     return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, DATA_TYPE.SEQ_BS_BIT_VAL)
+                     return Index_select(Name(node.ID, target_id['type'], size=self.sym_table.id(node.ID)['size'],  constraints=target_id['constraints']), ir_indices, DATA_TYPE.SEQ_BS_BIT_VAL)
                 else:
-                    return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, DATA_TYPE.seq_to_index_sel(target_id['type']))
+                    return Index_select(Name(node.ID, target_id['type'], size=self.sym_table.id(node.ID)['size'],  constraints=target_id['constraints']), ir_indices, DATA_TYPE.seq_to_index_sel(target_id['type']))
         elif self.sym_table.dimension(node.ID) < len(ir_indices):
             if (target_id['type'] == DATA_TYPE.BS_SEQ_INT_VAL or target_id['type'] == DATA_TYPE.SEQ_INT_VAL) and (len(ir_indices) == self.sym_table.dimension(node.ID) + 1):
                 if self.is_range(ir_indices[-1]):
@@ -534,12 +534,12 @@ class Semantic_analyser(object):
                         selection_type = DATA_TYPE.SEQ_BS_BIT_VAL
                     elif target_id['type'] == DATA_TYPE.SEQ_INT_VAL:
                         selection_type = DATA_TYPE.SEQ_BIT_VAL
-                    return Index_select(Name(node.ID, target_id['type'], constraints=target_id['constraints']), ir_indices, selection_type)
+                    return Index_select(Name(node.ID, target_id['type'], size=self.sym_table.id(node.ID)['size'],  constraints=target_id['constraints']), ir_indices, selection_type)
                 else:
                     if target_id['type'] == DATA_TYPE.BS_SEQ_INT_VAL:
-                        return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BS_BIT_VAL)
+                        return Index_select(Name(node.ID, target_id['type'], size=self.sym_table.id(node.ID)['size'],  constraints=target_id['constraints']), ir_indices, DATA_TYPE.BS_BIT_VAL)
                     elif target_id['type'] == DATA_TYPE.SEQ_INT_VAL:
-                        return Index_select(Name(node.ID, target_id['type']), ir_indices, DATA_TYPE.BIT_VAL)    # Selecting a bit value of an integer element in an BS integer array
+                        return Index_select(Name(node.ID, target_id['type'], size=self.sym_table.id(node.ID)['size'],  constraints=target_id['constraints']), ir_indices, DATA_TYPE.BIT_VAL)    # Selecting a bit value of an integer element in an BS integer array
             else:
                 raise SemanticException(str(target_id['type']) + "[]" * len(ir_indices) + " cannot be selected from " + str(target_id['type']) + (self.sym_table.dimension(node.ID) * "[]"))
 

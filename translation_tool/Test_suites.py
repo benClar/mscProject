@@ -886,10 +886,56 @@ class test_IR_generation(unittest.TestCase):
 
 class test_translation(unittest.TestCase):
 
-    def test_demo_code(self):
-        par = Parser()
+    # def test_demo_code(self):
+    #     par = Parser()
 
-        print(par.semantic_analyser.IR.translate()['main'])
+    #     par.analyse_tree_test(par.parse_test_AST_semantic("void Error_5(){\
+    #                                                         Int(8) a = 0;\
+    #                                                         Int(8) b = 10;\
+    #                                                         Int(8)[10] c;\
+    #                                                         c[b][0:3] = a[0:3];\
+    #                                                     }\
+    #                                                     "))
+    #     print(par.semantic_analyser.IR.translate()['main'])
+
+
+    def test_run_time_error(self):
+        par = Parser()
+        if par.analyse_tree_test(par.parse_test_AST_semantic("void Error_1(){\
+                                                            Int(8) a = 7;\
+                                                            Int(8) b = 9;\
+                                                            b[0,1,2,3,4] = a[a,b];\
+                                                        }\
+                                                        void Non_Error_2(){\
+                                                            Int(8) a = 5;\
+                                                            Int(8) b = 7;\
+                                                            b[0,1,2,3,4] = a[a,b];\
+                                                        }\
+                                                        void Error_3(){\
+                                                            Int(8) a = 5;\
+                                                            Int(8) b = 2;\
+                                                            b[0,1,2,3,4] = a[a:b];\
+                                                        }\
+                                                        void Error_4(){\
+                                                            Int(8) a = 0;\
+                                                            Int(8) b = 10;\
+                                                            b[a:b] = a[0:3];\
+                                                        }\
+                                                        void Error_5(){\
+                                                            Int(8) a = 0;\
+                                                            Int(8) b = 10;\
+                                                            Int(8)[10] c;\
+                                                            c[b][0:3] = a[0:3];\
+                                                        }\
+                                                        void Error_6(){\
+                                                            Int(8) a = 0;\
+                                                            Int(8) b = 10;\
+                                                            Int(8)[10][10] c;\
+                                                            c[8][8][b] = a[0];\
+                                                        }\
+                                                        ")) is True:
+            if Data_reader.write_test("runtime_checks", "run_time_errors_dsl", par.semantic_analyser.IR.translate()) is True:
+                assert_equals(subprocess.call(['../DSL/testing/runtime_checks/./run_tests.sh']), 0)
 
 
     def test_general_operations(self):
@@ -1225,10 +1271,10 @@ class test_translation(unittest.TestCase):
                                                                             for(Int(8) row = 0; row < 4; row = row + 1)  {\
                                                                                 roundConstant[row * 16 : (row * 16) + 3] = row[0:3];\
                                                                                 if(row == 0 || row == 2)    {\
-                                                                                    roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[3:5];\
+                                                                                    roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[3,4,5];\
                                                                                 }\
                                                                                 if(row == 1 || row == 3) {\
-                                                                                    roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[0:2];\
+                                                                                    roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[0,1,2];\
                                                                                 }\
                                                                                 roundConstant[(row * 16) + 8 : (row * 16) + 15 ] = 0;\
                                                                             }\

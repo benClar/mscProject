@@ -1,14 +1,14 @@
 #!/bin/bash
 
-echo "###V1: LED###"
-make "eval" -C DSL/testing/v1/led_dsl/
-DSL/testing/v1/led_dsl/./evalOut
-echo "###V1: PRINCE###"
-make "eval" -C DSL/testing/v1/prince_dsl/
-DSL/testing/v1/prince_dsl/./evalOut
-echo "###V1: PRESENT###"
-make "eval" -C DSL/testing/v1/present_dsl/
-DSL/testing/v1/present_dsl/./evalOut
+# echo "###V1: LED###"
+# make "eval" -C DSL/testing/v1/led_dsl/
+# DSL/testing/v1/led_dsl/./evalOut
+# echo "###V1: PRINCE###"
+# make "eval" -C DSL/testing/v1/prince_dsl/
+# DSL/testing/v1/prince_dsl/./evalOut
+# echo "###V1: PRESENT###"
+# make "eval" -C DSL/testing/v1/present_dsl/
+# DSL/testing/v1/present_dsl/./evalOut
 echo "###V2: LED###"
 make "eval" -C DSL/testing/v1/present_dsl/
 DSL/testing/led_dsl/./evalOut
@@ -21,15 +21,15 @@ DSL/testing/present_dsl/./evalOut
 echo "###V2: LFSR###"
 make "eval" -C DSL/testing/lfsr_dsl/
 DSL/testing/lfsr_dsl/./evalOut
-echo "###HandWritten: LED###"
-make "eval" -C ciphers/LED/
-ciphers/LED/./evalOut
-echo "###HandWritten: PRINCE###"
-make "eval" -C ciphers/PRINCE/ARR/
-ciphers/PRINCE/ARR/./evalOut
-echo "###HandWritten: PRESENT###"
-make "eval" -C ciphers/PRESENT/v2/
-ciphers/PRESENT/v2/./evalOut
-echo "###HandWritten: LFSR###"
-make "eval" -C ciphers/LFSR/handwritten/
+# echo "###HandWritten: LED###"
+# make "eval" -C ciphers/LED/
+# ciphers/LED/./evalOut
+# echo "###HandWritten: PRINCE###"
+# make "eval" -C ciphers/PRINCE/ARR/
+# ciphers/PRINCE/ARR/./evalOut
+# echo "###HandWritten: PRESENT###"
+# make "eval" -C ciphers/PRESENT/v2/
+# ciphers/PRESENT/v2/./evalOut
+# echo "###HandWritten: LFSR###"
+# make "eval" -C ciphers/LFSR/handwritten/
 ciphers/LFSR/handwritten/./evalOut

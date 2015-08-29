@@ -29,6 +29,10 @@ r = 0;
 for(;r < 32;) { 
 uint32_t temp_3_call;
 temp_3_call = generate_bit(state);
+if(r >= 32){
+fprintf(stderr, "Index out of bounds for selection on rndm_bits\n");
+exit(1);
+}
 rndm_bits[r] = temp_3_call;
 r = (r + 1);
 } 

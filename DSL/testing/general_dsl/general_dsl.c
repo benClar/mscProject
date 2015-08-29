@@ -373,8 +373,24 @@ for(;outer < 2;) {
 uint8_t inner = 0;
 inner = 0;
 for(;inner < 2;) { 
+if(outer >= 2){
+fprintf(stderr, "Index out of bounds for selection on a\n");
+exit(1);
+}
+if(inner >= 2){
+fprintf(stderr, "Index out of bounds for selection on a\n");
+exit(1);
+}
 uint8_t temp_37_bit_extracted = 0;
 temp_37_bit_extracted |= ((a[outer] >> inner) & 0x1 ) << 0;
+if(outer >= 2){
+fprintf(stderr, "Index out of bounds for selection on input\n");
+exit(1);
+}
+if(inner >= 2){
+fprintf(stderr, "Index out of bounds for selection on input\n");
+exit(1);
+}
 if(temp_37_bit_extracted) {
 input[outer] ^= (0x1 << inner);
 } else if(temp_37_bit_extracted) {

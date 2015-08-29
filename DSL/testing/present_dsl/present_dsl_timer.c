@@ -6,9 +6,9 @@
 #include "present_dsl_timer.h"
 
 int main() {
-	single_run();
+	// single_run();
 	// cipher_constant_time();
-	// cipher_time();
+	cipher_time();
 	// pLayer_time();
 	// generate_round_keys_time();
 	// sBox_layer_time();
@@ -25,7 +25,7 @@ void single_run()	{
 	start =  t_info.resident_size;
 	enc(key, state, round_keys);
 	task_info(mach_task_self(),TASK_BASIC_INFO, (task_info_t)&t_info,&t_info_count);
-	finish =  t_info.[;
+	// finish =  t_info.[;
 	printf("%llu\n", finish - start);
 }
 

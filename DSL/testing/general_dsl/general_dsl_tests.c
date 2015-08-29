@@ -133,7 +133,3 @@ void bit_seq_arith_test_17()	{
 	sput_fail_unless(seq_bit_arth() == 16, "Seq Bit test 17");
 }
 
-// void bit_seq_arith_test_17()	{
-// 	uint32_t input[2][2][8] = {{{0}}};
-// 	sput_fail_unless(seq_bit_arth() == 16, "Seq Bit test 17");
-// }

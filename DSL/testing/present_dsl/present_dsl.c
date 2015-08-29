@@ -5,16 +5,16 @@
 
 #include "present_dsl.h"
 uint32_t present_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~C & ~A) | (D & C & ~B & A) | (D & B & ~A) | (~D & ~C & A) | (~D & C & ~B & ~A) | (~D & B & A));
+return ((~D & C & ~B & ~A) | (~D & B & A) | (~D & ~C & A) | (D & B & ~A) | (D & C & ~B & A) | (D & ~C & ~A));
 }
 uint32_t present_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & B & ~A) | (~D & ~C & B) | (D & ~B & A) | (D & ~C & ~A) | (D & C & A));
+return ((~D & B & ~A) | (D & C & A) | (~D & ~C & B) | (~C & B & ~A) | (D & ~C & ~A) | (D & ~B & A));
 }
 uint32_t present_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~B & A) | (~D & ~C & ~B) | (~C & ~B & A) | (~C & B & ~A) | (~D & C & B & A) | (D & C & ~B));
+return ((D & C & ~B) | (~D & ~C & ~A) | (~C & ~B & A) | (~D & C & B & A) | (~C & B & ~A) | (D & ~B & A));
 }
 uint32_t present_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~C & B & A) | (~D & C & ~A) | (D & ~C & A) | (D & ~C & B) | (~D & ~B & ~A) | (~D & B & A) | (~D & C & B));
+return ((~D & C & ~A) | (D & ~C & A) | (~D & ~B & ~A) | (D & ~C & B) | (~C & B & A) | (~D & C & B));
 }
 void present(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -101,6 +101,14 @@ target_bit = ((16 * bit) % 63);
 if(bit == 63) { 
 target_bit = 63;
 } 
+if(bit >= 64){
+fprintf(stderr, "Index out of bounds for selection on temp\n");
+exit(1);
+}
+if(target_bit >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
 state[target_bit] = temp[bit];
 bit = (bit + 1);
 } 
@@ -111,6 +119,10 @@ round = 1;
 for(;round < 33;) { 
 uint32_t temp_5_rnge[(79 - 16) + 1];
 extract_bs_range(temp_5_rnge, key, 16, 79);
+if((round - 1) >= 32){
+fprintf(stderr, "Index out of bounds for selection on round_keys\n");
+exit(1);
+}
 round_keys[(round - 1)][0] = temp_5_rnge[0];
 round_keys[(round - 1)][1] = temp_5_rnge[1];
 round_keys[(round - 1)][2] = temp_5_rnge[2];
@@ -175,112 +187,112 @@ round_keys[(round - 1)][60] = temp_5_rnge[60];
 round_keys[(round - 1)][61] = temp_5_rnge[61];
 round_keys[(round - 1)][62] = temp_5_rnge[62];
 round_keys[(round - 1)][63] = temp_5_rnge[63];
-uint32_t temp_7__bin[80] = {0};
-rotate_right(temp_7__bin, key, 61, 80);
-key[0] = temp_7__bin[0];
-key[1] = temp_7__bin[1];
-key[2] = temp_7__bin[2];
-key[3] = temp_7__bin[3];
-key[4] = temp_7__bin[4];
-key[5] = temp_7__bin[5];
-key[6] = temp_7__bin[6];
-key[7] = temp_7__bin[7];
-key[8] = temp_7__bin[8];
-key[9] = temp_7__bin[9];
-key[10] = temp_7__bin[10];
-key[11] = temp_7__bin[11];
-key[12] = temp_7__bin[12];
-key[13] = temp_7__bin[13];
-key[14] = temp_7__bin[14];
-key[15] = temp_7__bin[15];
-key[16] = temp_7__bin[16];
-key[17] = temp_7__bin[17];
-key[18] = temp_7__bin[18];
-key[19] = temp_7__bin[19];
-key[20] = temp_7__bin[20];
-key[21] = temp_7__bin[21];
-key[22] = temp_7__bin[22];
-key[23] = temp_7__bin[23];
-key[24] = temp_7__bin[24];
-key[25] = temp_7__bin[25];
-key[26] = temp_7__bin[26];
-key[27] = temp_7__bin[27];
-key[28] = temp_7__bin[28];
-key[29] = temp_7__bin[29];
-key[30] = temp_7__bin[30];
-key[31] = temp_7__bin[31];
-key[32] = temp_7__bin[32];
-key[33] = temp_7__bin[33];
-key[34] = temp_7__bin[34];
-key[35] = temp_7__bin[35];
-key[36] = temp_7__bin[36];
-key[37] = temp_7__bin[37];
-key[38] = temp_7__bin[38];
-key[39] = temp_7__bin[39];
-key[40] = temp_7__bin[40];
-key[41] = temp_7__bin[41];
-key[42] = temp_7__bin[42];
-key[43] = temp_7__bin[43];
-key[44] = temp_7__bin[44];
-key[45] = temp_7__bin[45];
-key[46] = temp_7__bin[46];
-key[47] = temp_7__bin[47];
-key[48] = temp_7__bin[48];
-key[49] = temp_7__bin[49];
-key[50] = temp_7__bin[50];
-key[51] = temp_7__bin[51];
-key[52] = temp_7__bin[52];
-key[53] = temp_7__bin[53];
-key[54] = temp_7__bin[54];
-key[55] = temp_7__bin[55];
-key[56] = temp_7__bin[56];
-key[57] = temp_7__bin[57];
-key[58] = temp_7__bin[58];
-key[59] = temp_7__bin[59];
-key[60] = temp_7__bin[60];
-key[61] = temp_7__bin[61];
-key[62] = temp_7__bin[62];
-key[63] = temp_7__bin[63];
-key[64] = temp_7__bin[64];
-key[65] = temp_7__bin[65];
-key[66] = temp_7__bin[66];
-key[67] = temp_7__bin[67];
-key[68] = temp_7__bin[68];
-key[69] = temp_7__bin[69];
-key[70] = temp_7__bin[70];
-key[71] = temp_7__bin[71];
-key[72] = temp_7__bin[72];
-key[73] = temp_7__bin[73];
-key[74] = temp_7__bin[74];
-key[75] = temp_7__bin[75];
-key[76] = temp_7__bin[76];
-key[77] = temp_7__bin[77];
-key[78] = temp_7__bin[78];
-key[79] = temp_7__bin[79];
-uint32_t temp_8_rnge[(79 - 76) + 1];
-extract_bs_range(temp_8_rnge, key, 76, 79);
-present(temp_8_rnge);
-key[76] = temp_8_rnge[0];
-key[77] = temp_8_rnge[1];
-key[78] = temp_8_rnge[2];
-key[79] = temp_8_rnge[3];
-uint32_t temp_9__bin[(19 - 15) + 1] = {0};
-uint32_t temp_10_rnge[(19 - 15) + 1];
-extract_bs_range(temp_10_rnge, key, 15, 19);
-uint8_t  temp_11_extracted = 0;
-uint8_t temp_12_int_rng_start  = 0;
-uint8_t  temp_14_target_bit = 0;
-for(;temp_12_int_rng_start < 5;temp_12_int_rng_start++, temp_14_target_bit++){
-temp_11_extracted |= ((round >> temp_12_int_rng_start)  << temp_14_target_bit);
+uint32_t temp_8__bin[80] = {0};
+rotate_right(temp_8__bin, key, 61, 80);
+key[0] = temp_8__bin[0];
+key[1] = temp_8__bin[1];
+key[2] = temp_8__bin[2];
+key[3] = temp_8__bin[3];
+key[4] = temp_8__bin[4];
+key[5] = temp_8__bin[5];
+key[6] = temp_8__bin[6];
+key[7] = temp_8__bin[7];
+key[8] = temp_8__bin[8];
+key[9] = temp_8__bin[9];
+key[10] = temp_8__bin[10];
+key[11] = temp_8__bin[11];
+key[12] = temp_8__bin[12];
+key[13] = temp_8__bin[13];
+key[14] = temp_8__bin[14];
+key[15] = temp_8__bin[15];
+key[16] = temp_8__bin[16];
+key[17] = temp_8__bin[17];
+key[18] = temp_8__bin[18];
+key[19] = temp_8__bin[19];
+key[20] = temp_8__bin[20];
+key[21] = temp_8__bin[21];
+key[22] = temp_8__bin[22];
+key[23] = temp_8__bin[23];
+key[24] = temp_8__bin[24];
+key[25] = temp_8__bin[25];
+key[26] = temp_8__bin[26];
+key[27] = temp_8__bin[27];
+key[28] = temp_8__bin[28];
+key[29] = temp_8__bin[29];
+key[30] = temp_8__bin[30];
+key[31] = temp_8__bin[31];
+key[32] = temp_8__bin[32];
+key[33] = temp_8__bin[33];
+key[34] = temp_8__bin[34];
+key[35] = temp_8__bin[35];
+key[36] = temp_8__bin[36];
+key[37] = temp_8__bin[37];
+key[38] = temp_8__bin[38];
+key[39] = temp_8__bin[39];
+key[40] = temp_8__bin[40];
+key[41] = temp_8__bin[41];
+key[42] = temp_8__bin[42];
+key[43] = temp_8__bin[43];
+key[44] = temp_8__bin[44];
+key[45] = temp_8__bin[45];
+key[46] = temp_8__bin[46];
+key[47] = temp_8__bin[47];
+key[48] = temp_8__bin[48];
+key[49] = temp_8__bin[49];
+key[50] = temp_8__bin[50];
+key[51] = temp_8__bin[51];
+key[52] = temp_8__bin[52];
+key[53] = temp_8__bin[53];
+key[54] = temp_8__bin[54];
+key[55] = temp_8__bin[55];
+key[56] = temp_8__bin[56];
+key[57] = temp_8__bin[57];
+key[58] = temp_8__bin[58];
+key[59] = temp_8__bin[59];
+key[60] = temp_8__bin[60];
+key[61] = temp_8__bin[61];
+key[62] = temp_8__bin[62];
+key[63] = temp_8__bin[63];
+key[64] = temp_8__bin[64];
+key[65] = temp_8__bin[65];
+key[66] = temp_8__bin[66];
+key[67] = temp_8__bin[67];
+key[68] = temp_8__bin[68];
+key[69] = temp_8__bin[69];
+key[70] = temp_8__bin[70];
+key[71] = temp_8__bin[71];
+key[72] = temp_8__bin[72];
+key[73] = temp_8__bin[73];
+key[74] = temp_8__bin[74];
+key[75] = temp_8__bin[75];
+key[76] = temp_8__bin[76];
+key[77] = temp_8__bin[77];
+key[78] = temp_8__bin[78];
+key[79] = temp_8__bin[79];
+uint32_t temp_9_rnge[(79 - 76) + 1];
+extract_bs_range(temp_9_rnge, key, 76, 79);
+present(temp_9_rnge);
+key[76] = temp_9_rnge[0];
+key[77] = temp_9_rnge[1];
+key[78] = temp_9_rnge[2];
+key[79] = temp_9_rnge[3];
+uint32_t temp_10__bin[(19 - 15) + 1] = {0};
+uint32_t temp_11_rnge[(19 - 15) + 1];
+extract_bs_range(temp_11_rnge, key, 15, 19);
+uint8_t  temp_12_extracted = 0;
+uint8_t temp_13_int_rng_start  = 0;
+uint8_t  temp_15_target_bit = 0;
+for(;temp_13_int_rng_start < 5;temp_13_int_rng_start++, temp_15_target_bit++){
+temp_12_extracted |= ((round >> temp_13_int_rng_start)  << temp_15_target_bit);
 }
-uint32_t temp_15_casted_bs[(19 - 15) + 1];
-int_to_bitsliced(temp_15_casted_bs, temp_11_extracted, (19 - 15) + 1);
-XOR(temp_9__bin, temp_10_rnge, temp_15_casted_bs, 80);
-key[15] = temp_9__bin[0];
-key[16] = temp_9__bin[1];
-key[17] = temp_9__bin[2];
-key[18] = temp_9__bin[3];
-key[19] = temp_9__bin[4];
+uint32_t temp_16_casted_bs[(19 - 15) + 1];
+int_to_bitsliced(temp_16_casted_bs, temp_12_extracted, (19 - 15) + 1);
+XOR(temp_10__bin, temp_11_rnge, temp_16_casted_bs, 80);
+key[15] = temp_10__bin[0];
+key[16] = temp_10__bin[1];
+key[17] = temp_10__bin[2];
+key[18] = temp_10__bin[3];
+key[19] = temp_10__bin[4];
 round = (round + 1);
 } 
 }
@@ -288,15 +300,39 @@ void sBox_layer(uint32_t state[64]){
 uint8_t i = 0;
 i = 0;
 for(;i < 16;) { 
-uint32_t temp_17_rnge[(((i * 4) + 3) - (i * 4)) + 1];
-extract_bs_range(temp_17_rnge, state, (i * 4), ((i * 4) + 3));
-present(temp_17_rnge);
-uint8_t temp_21_init = 0;
-uint32_t temp_22_rnge_size = 0;
-temp_22_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
-uint8_t temp_27_rng_start = (i * 4);
-for(temp_21_init = 0; temp_21_init < temp_22_rnge_size; temp_21_init++, temp_27_rng_start++){
-state[temp_27_rng_start] = temp_17_rnge[temp_21_init];
+if((i * 4) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if(((i * 4) + 3) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if((i * 4) > ((i * 4) + 3)){
+fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
+exit(1);
+}
+uint32_t temp_24_rnge[(((i * 4) + 3) - (i * 4)) + 1];
+extract_bs_range(temp_24_rnge, state, (i * 4), ((i * 4) + 3));
+present(temp_24_rnge);
+if((i * 4) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if(((i * 4) + 3) >= 64){
+fprintf(stderr, "Index out of bounds for selection on state\n");
+exit(1);
+}
+if((i * 4) > ((i * 4) + 3)){
+fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
+exit(1);
+}
+uint8_t temp_34_init = 0;
+uint32_t temp_35_rnge_size = 0;
+temp_35_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
+uint8_t temp_40_rng_start = (i * 4);
+for(temp_34_init = 0; temp_34_init < temp_35_rnge_size; temp_34_init++, temp_40_rng_start++){
+state[temp_40_rng_start] = temp_24_rnge[temp_34_init];
 }
 i = (i + 1);
 } 
