@@ -726,6 +726,8 @@ class Semantic_analyser(object):
             if len(node.condition) > 1:
                 raise InternalException("Internal Error: If stmt has more than one condition token")
             if_stmt = If_stmt(self.expr_type_is(node.condition[0]))
+            if if_stmt.condition.type != DATA_TYPE.BIT_VAL:
+                raise SemanticException("If conditional is type " + str(if_stmt.condition.type))
             for stmt in node.body:
                 if_stmt.add_stmt(self.analyse_sub_stmt(stmt))
             self.sym_table.leave_scope()
@@ -764,7 +766,8 @@ class Semantic_analyser(object):
         """Checks if operands are valid with operator
 
         Args:
-        expression: current expression to be checked"""
+        expression: current expression to be checked.
+        IR_expression: IR nodes making up expression."""
         if expression['OP'] is DATA_TYPE.ARITH_OP:
             return self.arith_expr_valid(expression, IR_expression)
         elif expression['OP'] is DATA_TYPE.SHIFT_OP:
@@ -772,7 +775,7 @@ class Semantic_analyser(object):
         elif expression['OP'] is DATA_TYPE.BITWISE_OP:
             return self.bitwise_expr_valid(expression, IR_expression)
         elif expression['OP'] is DATA_TYPE.COMP_OP:
-            return self.comp_expr_valid(expression)
+            return self.comp_expr_valid(expression, IR_expression)
         elif expression['OP'] is DATA_TYPE.LOG_OP:
             return self.log_expr_valid(expression)
         else:
@@ -783,14 +786,28 @@ class Semantic_analyser(object):
             return True
         return False
 
-    def comp_expr_valid(self, expression):
-        if expression['OPERAND_0'] == expression['OPERAND_2']:
-            return True
-        elif DATA_TYPE.is_int_val(expression['OPERAND_0']) and DATA_TYPE.is_int_val(expression['OPERAND_2']):
-            return True
+    def comp_expr_valid(self, expression, IR_expressions):
+        """Checks if comparison expression is valid.
+        Args:
+        expression: Types in current expression."""
+        valid_operands_types = {DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
+                                DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.SEQ_BIT_VAL],
+                                DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.SEQ_BIT_VAL]}
+        try:
+            if expression['OPERAND_0'] in valid_operands_types[expression['OPERAND_2']]:
+                if expression['OPERAND_0'] == DATA_TYPE.BIT_VAL:
+                    if IR_expressions[1].operator != "!=" and IR_expressions[1].operator != "==":
+                        raise SemanticException("Bit values can only be compared for equality, " + IR_expressions[1].operator + " Used")
+                return True
+        except KeyError:
+            return False
         return False
 
     def bitwise_expr_valid(self, expression, IR_expression):
+        """Checks if bitwise expression is valid.
+        Args:
+        expression: Types in current expression.
+        IR_expression: IR nodes making up expression."""
         if DATA_TYPE.is_int_val(expression['OPERAND_0']) and DATA_TYPE.is_int_val(expression['OPERAND_2']):
             self.expr_seq_bit_dims(IR_expression)
             return True
@@ -800,6 +817,10 @@ class Semantic_analyser(object):
         return False
 
     def shift_expr_valid(self, expression, IR_expression):
+        """Checks if shift expression is valid.
+        Args:
+        expression: Types in current expression.
+        IR_expression: IR nodes making up expression."""
         valid_shift_operands = [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL, DATA_TYPE.SEQ_BIT_VAL]
         if (expression['OPERAND_2'] == DATA_TYPE.INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL) and (expression['OPERAND_0'] in valid_shift_operands):
             self.expr_seq_bit_dims(IR_expression)
@@ -807,15 +828,26 @@ class Semantic_analyser(object):
         return False
 
     def arith_expr_valid(self, expression, IR_expression):
+        """Checks if arithmetic expression is valid.
+        Args:
+        expression: Types in current expression.
+        IR_expression: IR nodes making up expression."""
         valid_operands_types = {DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL],
                                 DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL],
-                                DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL],
-                                DATA_TYPE.BIT_VAL: [],
-                                DATA_TYPE.SEQ_INT_VAL:[]}
-        if expression['OPERAND_0'] in valid_operands_types[expression['OPERAND_2']]:
-            self.expr_seq_bit_dims(IR_expression)
-            return True
+                                DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL]}
+        try:
+            if expression['OPERAND_0'] in valid_operands_types[expression['OPERAND_2']]:
+                self.expr_seq_bit_dims(IR_expression)
+                self.validate_bs_int_arith(expression, IR_expression)
+                return True
+        except KeyError:
+            return False
         return False
+
+    def validate_bs_int_arith(self, expression, IR_expression):
+        if expression['OPERAND_0'] == DATA_TYPE.BS_INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL:
+            if IR_expression[1].operator == "/" or IR_expression[1].operator == "%":
+                raise SemanticException("Cannot use " +  IR_expression[1].operator + " operator on " + str(DATA_TYPE.BS_INT_VAL))
 
     def expr_seq_bit_dims(self, IR_expression):
         """Validates that the dimensions of the sequence of bits being combined in expression are valid
@@ -828,6 +860,10 @@ class Semantic_analyser(object):
 
 
     def reduce_sub_expr(self, expression):
+        """Determines result type of current expression.
+
+        Args:
+        expression: Types making up current expression"""
         if expression['OP'] is DATA_TYPE.ARITH_OP:
             return {'OPERAND_0': self.reduce_arith_op(expression)}
         if expression['OP'] is DATA_TYPE.SHIFT_OP:

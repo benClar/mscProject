@@ -23,4 +23,5 @@ void int_seq_decl();
 void bs_seq_decl();
 void bs_seq_set(uint32_t a[2][2][8]);
 void int_seq_set(uint8_t  a[2][2]);
+void  bs_mult_sub(uint32_t *temp_43_bs_return);
 

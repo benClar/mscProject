@@ -5,16 +5,16 @@
 
 #include "prince_dsl.h"
 uint32_t prince_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & B & ~A) | (~D & B & ~A) | (~D & ~C & ~A) | (~C & ~B & A) | (~D & C & B) | (D & ~B & A));
+return ((C & B & ~A) | (~C & ~B & A) | (~D & B & ~A) | (~D & C & B) | (~D & ~C & ~B) | (D & ~B & A));
 }
 uint32_t prince_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~B & ~A) | (~C & ~B) | (~D & ~C));
+return ((~C & ~B) | (~D & ~C) | (~B & ~A));
 }
 uint32_t prince_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~B) | (~B & A) | (D & C));
+return ((D & C) | (D & ~B) | (~B & A));
 }
 uint32_t prince_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & ~A) | (~D & ~B) | (D & B & ~A));
+return ((D & B & ~A) | (~D & ~B) | (C & ~A));
 }
 void prince(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -28,16 +28,16 @@ input[2] = temp_0_sbox_out[2];
 input[3] = temp_0_sbox_out[3];
 }
 uint32_t prince_inv_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~B) | (C & ~B & ~A) | (~D & ~C & ~A) | (C & B & A));
+return ((C & B & A) | (C & ~B & ~A) | (~D & ~B) | (~D & ~C & ~A));
 }
 uint32_t prince_inv_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~B & ~A) | (~C & ~B) | (~D & ~C) | (D & ~B & A));
+return ((D & ~B & A) | (~D & ~B & ~A) | (~D & ~C) | (~C & ~B));
 }
 uint32_t prince_inv_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & ~B) | (D & B & ~A) | (~B & A));
+return ((D & B & ~A) | (C & ~B) | (~B & A));
 }
 uint32_t prince_inv_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & B & ~A) | (~D & ~B & ~A) | (~C & ~B & ~A) | (C & ~B & A) | (~D & C));
+return ((C & ~B & A) | (~C & ~B & ~A) | (C & B & ~A) | (~D & C));
 }
 void prince_inv(uint32_t input[4]){
 uint32_t temp_1_sbox_out[4];
@@ -384,7 +384,7 @@ state[61] = state[61] ^ key_prime[61];
 state[62] = state[62] ^ key_prime[62];
 state[63] = state[63] ^ key_prime[63];
 }
-void m0(uint32_t state[16], uint32_t output[16]){ 
+void  m0(uint32_t *temp_5_bs_return, uint32_t state[16], uint32_t output[16]){ 
 output[15] = ((state[11] ^ state[7]) ^ state[3]);
 output[14] = ((state[14] ^ state[6]) ^ state[2]);
 output[13] = ((state[13] ^ state[9]) ^ state[1]);
@@ -401,8 +401,24 @@ output[3] = ((state[15] ^ state[7]) ^ state[3]);
 output[2] = ((state[14] ^ state[10]) ^ state[2]);
 output[1] = ((state[13] ^ state[9]) ^ state[5]);
 output[0] = ((state[8] ^ state[4]) ^ state[0]);
+temp_5_bs_return[0] = output[0];
+temp_5_bs_return[1] = output[1];
+temp_5_bs_return[2] = output[2];
+temp_5_bs_return[3] = output[3];
+temp_5_bs_return[4] = output[4];
+temp_5_bs_return[5] = output[5];
+temp_5_bs_return[6] = output[6];
+temp_5_bs_return[7] = output[7];
+temp_5_bs_return[8] = output[8];
+temp_5_bs_return[9] = output[9];
+temp_5_bs_return[10] = output[10];
+temp_5_bs_return[11] = output[11];
+temp_5_bs_return[12] = output[12];
+temp_5_bs_return[13] = output[13];
+temp_5_bs_return[14] = output[14];
+temp_5_bs_return[15] = output[15];
 }
-void m1(uint32_t state[16], uint32_t output[16]){ 
+void  m1(uint32_t *temp_7_bs_return, uint32_t state[16], uint32_t output[16]){ 
 output[15] = ((state[15] ^ state[11]) ^ state[7]);
 output[14] = ((state[10] ^ state[6]) ^ state[2]);
 output[13] = ((state[13] ^ state[5]) ^ state[1]);
@@ -419,93 +435,105 @@ output[3] = ((state[11] ^ state[7]) ^ state[3]);
 output[2] = ((state[14] ^ state[6]) ^ state[2]);
 output[1] = ((state[13] ^ state[9]) ^ state[1]);
 output[0] = ((state[12] ^ state[8]) ^ state[4]);
+temp_7_bs_return[0] = output[0];
+temp_7_bs_return[1] = output[1];
+temp_7_bs_return[2] = output[2];
+temp_7_bs_return[3] = output[3];
+temp_7_bs_return[4] = output[4];
+temp_7_bs_return[5] = output[5];
+temp_7_bs_return[6] = output[6];
+temp_7_bs_return[7] = output[7];
+temp_7_bs_return[8] = output[8];
+temp_7_bs_return[9] = output[9];
+temp_7_bs_return[10] = output[10];
+temp_7_bs_return[11] = output[11];
+temp_7_bs_return[12] = output[12];
+temp_7_bs_return[13] = output[13];
+temp_7_bs_return[14] = output[14];
+temp_7_bs_return[15] = output[15];
 }
 void mPrime(uint32_t state[64]){ 
 uint32_t output[16] = {0};
-uint32_t temp_5_rnge[(15 - 0) + 1];
-extract_bs_range(temp_5_rnge, state, 0, 15);
-m0(temp_5_rnge, output);
-uint32_t temp_6_rnge[(15 - 0) + 1];
-extract_bs_range(temp_6_rnge, output, 0, 15);
-state[0] = temp_6_rnge[0];
-state[1] = temp_6_rnge[1];
-state[2] = temp_6_rnge[2];
-state[3] = temp_6_rnge[3];
-state[4] = temp_6_rnge[4];
-state[5] = temp_6_rnge[5];
-state[6] = temp_6_rnge[6];
-state[7] = temp_6_rnge[7];
-state[8] = temp_6_rnge[8];
-state[9] = temp_6_rnge[9];
-state[10] = temp_6_rnge[10];
-state[11] = temp_6_rnge[11];
-state[12] = temp_6_rnge[12];
-state[13] = temp_6_rnge[13];
-state[14] = temp_6_rnge[14];
-state[15] = temp_6_rnge[15];
-uint32_t temp_7_rnge[(31 - 16) + 1];
-extract_bs_range(temp_7_rnge, state, 16, 31);
-m1(temp_7_rnge, output);
-uint32_t temp_8_rnge[(15 - 0) + 1];
-extract_bs_range(temp_8_rnge, output, 0, 15);
-state[16] = temp_8_rnge[0];
-state[17] = temp_8_rnge[1];
-state[18] = temp_8_rnge[2];
-state[19] = temp_8_rnge[3];
-state[20] = temp_8_rnge[4];
-state[21] = temp_8_rnge[5];
-state[22] = temp_8_rnge[6];
-state[23] = temp_8_rnge[7];
-state[24] = temp_8_rnge[8];
-state[25] = temp_8_rnge[9];
-state[26] = temp_8_rnge[10];
-state[27] = temp_8_rnge[11];
-state[28] = temp_8_rnge[12];
-state[29] = temp_8_rnge[13];
-state[30] = temp_8_rnge[14];
-state[31] = temp_8_rnge[15];
-uint32_t temp_9_rnge[(47 - 32) + 1];
-extract_bs_range(temp_9_rnge, state, 32, 47);
-m1(temp_9_rnge, output);
+uint32_t temp_9_call[16];
 uint32_t temp_10_rnge[(15 - 0) + 1];
-extract_bs_range(temp_10_rnge, output, 0, 15);
-state[32] = temp_10_rnge[0];
-state[33] = temp_10_rnge[1];
-state[34] = temp_10_rnge[2];
-state[35] = temp_10_rnge[3];
-state[36] = temp_10_rnge[4];
-state[37] = temp_10_rnge[5];
-state[38] = temp_10_rnge[6];
-state[39] = temp_10_rnge[7];
-state[40] = temp_10_rnge[8];
-state[41] = temp_10_rnge[9];
-state[42] = temp_10_rnge[10];
-state[43] = temp_10_rnge[11];
-state[44] = temp_10_rnge[12];
-state[45] = temp_10_rnge[13];
-state[46] = temp_10_rnge[14];
-state[47] = temp_10_rnge[15];
-uint32_t temp_11_rnge[(63 - 48) + 1];
-extract_bs_range(temp_11_rnge, state, 48, 63);
-m0(temp_11_rnge, output);
-uint32_t temp_12_rnge[(15 - 0) + 1];
-extract_bs_range(temp_12_rnge, output, 0, 15);
-state[48] = temp_12_rnge[0];
-state[49] = temp_12_rnge[1];
-state[50] = temp_12_rnge[2];
-state[51] = temp_12_rnge[3];
-state[52] = temp_12_rnge[4];
-state[53] = temp_12_rnge[5];
-state[54] = temp_12_rnge[6];
-state[55] = temp_12_rnge[7];
-state[56] = temp_12_rnge[8];
-state[57] = temp_12_rnge[9];
-state[58] = temp_12_rnge[10];
-state[59] = temp_12_rnge[11];
-state[60] = temp_12_rnge[12];
-state[61] = temp_12_rnge[13];
-state[62] = temp_12_rnge[14];
-state[63] = temp_12_rnge[15];
+extract_bs_range(temp_10_rnge, state, 0, 15);
+m0(temp_9_call, temp_10_rnge, output);
+state[0] = temp_9_call[0];
+state[1] = temp_9_call[1];
+state[2] = temp_9_call[2];
+state[3] = temp_9_call[3];
+state[4] = temp_9_call[4];
+state[5] = temp_9_call[5];
+state[6] = temp_9_call[6];
+state[7] = temp_9_call[7];
+state[8] = temp_9_call[8];
+state[9] = temp_9_call[9];
+state[10] = temp_9_call[10];
+state[11] = temp_9_call[11];
+state[12] = temp_9_call[12];
+state[13] = temp_9_call[13];
+state[14] = temp_9_call[14];
+state[15] = temp_9_call[15];
+uint32_t temp_11_call[16];
+uint32_t temp_12_rnge[(31 - 16) + 1];
+extract_bs_range(temp_12_rnge, state, 16, 31);
+m1(temp_11_call, temp_12_rnge, output);
+state[16] = temp_11_call[0];
+state[17] = temp_11_call[1];
+state[18] = temp_11_call[2];
+state[19] = temp_11_call[3];
+state[20] = temp_11_call[4];
+state[21] = temp_11_call[5];
+state[22] = temp_11_call[6];
+state[23] = temp_11_call[7];
+state[24] = temp_11_call[8];
+state[25] = temp_11_call[9];
+state[26] = temp_11_call[10];
+state[27] = temp_11_call[11];
+state[28] = temp_11_call[12];
+state[29] = temp_11_call[13];
+state[30] = temp_11_call[14];
+state[31] = temp_11_call[15];
+uint32_t temp_13_call[16];
+uint32_t temp_14_rnge[(47 - 32) + 1];
+extract_bs_range(temp_14_rnge, state, 32, 47);
+m1(temp_13_call, temp_14_rnge, output);
+state[32] = temp_13_call[0];
+state[33] = temp_13_call[1];
+state[34] = temp_13_call[2];
+state[35] = temp_13_call[3];
+state[36] = temp_13_call[4];
+state[37] = temp_13_call[5];
+state[38] = temp_13_call[6];
+state[39] = temp_13_call[7];
+state[40] = temp_13_call[8];
+state[41] = temp_13_call[9];
+state[42] = temp_13_call[10];
+state[43] = temp_13_call[11];
+state[44] = temp_13_call[12];
+state[45] = temp_13_call[13];
+state[46] = temp_13_call[14];
+state[47] = temp_13_call[15];
+uint32_t temp_15_call[16];
+uint32_t temp_16_rnge[(63 - 48) + 1];
+extract_bs_range(temp_16_rnge, state, 48, 63);
+m0(temp_15_call, temp_16_rnge, output);
+state[48] = temp_15_call[0];
+state[49] = temp_15_call[1];
+state[50] = temp_15_call[2];
+state[51] = temp_15_call[3];
+state[52] = temp_15_call[4];
+state[53] = temp_15_call[5];
+state[54] = temp_15_call[6];
+state[55] = temp_15_call[7];
+state[56] = temp_15_call[8];
+state[57] = temp_15_call[9];
+state[58] = temp_15_call[10];
+state[59] = temp_15_call[11];
+state[60] = temp_15_call[12];
+state[61] = temp_15_call[13];
+state[62] = temp_15_call[14];
+state[63] = temp_15_call[15];
 }
 void sBox_layer(uint32_t state[64]){ 
 uint8_t i = 0;
@@ -523,9 +551,9 @@ if((i * 4) > ((i * 4) + 3)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
 exit(1);
 }
-uint32_t temp_20_rnge[(((i * 4) + 3) - (i * 4)) + 1];
-extract_bs_range(temp_20_rnge, state, (i * 4), ((i * 4) + 3));
-prince(temp_20_rnge);
+uint32_t temp_24_rnge[(((i * 4) + 3) - (i * 4)) + 1];
+extract_bs_range(temp_24_rnge, state, (i * 4), ((i * 4) + 3));
+prince(temp_24_rnge);
 if((i * 4) >= 64){
 fprintf(stderr, "Index out of bounds for selection on state\n");
 exit(1);
@@ -538,12 +566,12 @@ if((i * 4) > ((i * 4) + 3)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
 exit(1);
 }
-uint8_t temp_30_init = 0;
-uint32_t temp_31_rnge_size = 0;
-temp_31_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
-uint8_t temp_36_rng_start = (i * 4);
-for(temp_30_init = 0; temp_30_init < temp_31_rnge_size; temp_30_init++, temp_36_rng_start++){
-state[temp_36_rng_start] = temp_20_rnge[temp_30_init];
+uint8_t temp_34_init = 0;
+uint32_t temp_35_rnge_size = 0;
+temp_35_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
+uint8_t temp_40_rng_start = (i * 4);
+for(temp_34_init = 0; temp_34_init < temp_35_rnge_size; temp_34_init++, temp_40_rng_start++){
+state[temp_40_rng_start] = temp_24_rnge[temp_34_init];
 }
 i = (i + 1);
 } 
@@ -564,9 +592,9 @@ if((i * 4) > ((i * 4) + 3)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
 exit(1);
 }
-uint32_t temp_44_rnge[(((i * 4) + 3) - (i * 4)) + 1];
-extract_bs_range(temp_44_rnge, state, (i * 4), ((i * 4) + 3));
-prince_inv(temp_44_rnge);
+uint32_t temp_48_rnge[(((i * 4) + 3) - (i * 4)) + 1];
+extract_bs_range(temp_48_rnge, state, (i * 4), ((i * 4) + 3));
+prince_inv(temp_48_rnge);
 if((i * 4) >= 64){
 fprintf(stderr, "Index out of bounds for selection on state\n");
 exit(1);
@@ -579,12 +607,12 @@ if((i * 4) > ((i * 4) + 3)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
 exit(1);
 }
-uint8_t temp_54_init = 0;
-uint32_t temp_55_rnge_size = 0;
-temp_55_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
-uint8_t temp_60_rng_start = (i * 4);
-for(temp_54_init = 0; temp_54_init < temp_55_rnge_size; temp_54_init++, temp_60_rng_start++){
-state[temp_60_rng_start] = temp_44_rnge[temp_54_init];
+uint8_t temp_58_init = 0;
+uint32_t temp_59_rnge_size = 0;
+temp_59_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
+uint8_t temp_64_rng_start = (i * 4);
+for(temp_58_init = 0; temp_58_init < temp_59_rnge_size; temp_58_init++, temp_64_rng_start++){
+state[temp_64_rng_start] = temp_48_rnge[temp_58_init];
 }
 i = (i + 1);
 } 
@@ -592,13 +620,13 @@ i = (i + 1);
 void shift_rows(uint32_t state[64], uint8_t inverse){ 
 uint8_t target = 0;
 uint32_t output[64] = {0};
-uint32_t temp_61_rnge[(63 - 59) + 1];
-extract_bs_range(temp_61_rnge, state, 59, 63);
-output[59] = temp_61_rnge[0];
-output[60] = temp_61_rnge[1];
-output[61] = temp_61_rnge[2];
-output[62] = temp_61_rnge[3];
-output[63] = temp_61_rnge[4];
+uint32_t temp_65_rnge[(63 - 59) + 1];
+extract_bs_range(temp_65_rnge, state, 59, 63);
+output[59] = temp_65_rnge[0];
+output[60] = temp_65_rnge[1];
+output[61] = temp_65_rnge[2];
+output[62] = temp_65_rnge[3];
+output[63] = temp_65_rnge[4];
 uint8_t nibble = 0;
 nibble = 1;
 for(;nibble < 16;) { 
@@ -620,8 +648,8 @@ if(((63 - (nibble * 4)) - 3) > (63 - (nibble * 4))){
 fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
 exit(1);
 }
-uint32_t temp_77_rnge[((63 - (nibble * 4)) - ((63 - (nibble * 4)) - 3)) + 1];
-extract_bs_range(temp_77_rnge, state, ((63 - (nibble * 4)) - 3), (63 - (nibble * 4)));
+uint32_t temp_81_rnge[((63 - (nibble * 4)) - ((63 - (nibble * 4)) - 3)) + 1];
+extract_bs_range(temp_81_rnge, state, ((63 - (nibble * 4)) - 3), (63 - (nibble * 4)));
 if(((63 - (target * 4)) - 3) >= 64){
 fprintf(stderr, "Index out of bounds for selection on output\n");
 exit(1);
@@ -634,12 +662,12 @@ if(((63 - (target * 4)) - 3) > (63 - (target * 4))){
 fprintf(stderr, "Start of range cannot be larger than end for index select on output \n");
 exit(1);
 }
-uint8_t temp_93_init = 0;
-uint32_t temp_94_rnge_size = 0;
-temp_94_rnge_size = ((63 - (target * 4))-((63 - (target * 4)) - 3)) + 1;
-uint8_t temp_103_rng_start = ((63 - (target * 4)) - 3);
-for(temp_93_init = 0; temp_93_init < temp_94_rnge_size; temp_93_init++, temp_103_rng_start++){
-output[temp_103_rng_start] = temp_77_rnge[temp_93_init];
+uint8_t temp_97_init = 0;
+uint32_t temp_98_rnge_size = 0;
+temp_98_rnge_size = ((63 - (target * 4))-((63 - (target * 4)) - 3)) + 1;
+uint8_t temp_107_rng_start = ((63 - (target * 4)) - 3);
+for(temp_97_init = 0; temp_97_init < temp_98_rnge_size; temp_97_init++, temp_107_rng_start++){
+output[temp_107_rng_start] = temp_81_rnge[temp_97_init];
 }
 nibble = (nibble + 1);
 } 
