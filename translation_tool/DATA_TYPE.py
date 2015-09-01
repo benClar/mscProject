@@ -120,6 +120,13 @@ class DATA_TYPE(Enum):
             return True
         return False
 
+    def is_operand(type_input):
+        operand_type = [DATA_TYPE.INDEX_SELECT, DATA_TYPE.INT_LITERAL, DATA_TYPE.ID]
+        if type_input in operand_type:
+            return True
+        return False
+
+
     def val_to_decl(type_input):
         if type_input == DATA_TYPE.BS_INT_VAL:
             return DATA_TYPE.BS_INT_DECL

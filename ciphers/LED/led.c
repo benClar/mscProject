@@ -142,15 +142,12 @@ void enc(uint32_t state[64], uint32_t key[64], uint32_t MDS[16][4], uint32_t RC[
     state[62] ^= key[62];
     state[63] ^= key[63];
 }
-
 void step(uint32_t curr_state[64], uint32_t rc[6], uint32_t MDS[16][4]) {
     addConstants(curr_state,rc);
     subCells(curr_state);
     shiftRow(curr_state);
     mixColumnsSerial(curr_state, MDS);
 }
-
-
 void mixColumnsSerial(uint32_t curr_state[64], uint32_t mds[16][4])   {
     int col = 0,col_row;
     uint32_t column[4][4];
@@ -187,7 +184,6 @@ void mixColumnsSerial(uint32_t curr_state[64], uint32_t mds[16][4])   {
         }
     }
 }                
-
 void gm_bs_2(uint32_t g[8], uint32_t a[4], uint32_t b[4]){
     g[0] = 0;
     g[1] = 0;
@@ -240,7 +236,6 @@ void gm_bs_2(uint32_t g[8], uint32_t a[4], uint32_t b[4]){
         }
     }
 }
-
 void addConstants(uint32_t state[64], uint32_t r_cnst[6])   {
     uint32_t cnst[64] = {0};
     uint32_t row_temp[4] = {0};
@@ -334,7 +329,6 @@ void addConstants(uint32_t state[64], uint32_t r_cnst[6])   {
     state[62] ^= cnst[62];
     state[63] ^= cnst[63];
 }
-
 void shiftRow(uint32_t curr_state[64])   {
     uint32_t row[16];
     int curr_row;
@@ -375,7 +369,6 @@ void shiftRow(uint32_t curr_state[64])   {
         curr_state[(curr_row * 16) + 15] = output[15];
     }
 }
-
 uint32_t sbox_1(uint32_t input[4])  {
     return (~input[A] & ~input[C] & ~input[D] ) | (~input[A] & input[C] & input[D] ) | (input[A] & ~input[B] & input[D]) | (input[A] & ~input[B] & input[C]) | (~input[A] & input[B] & input[C]);
 }
@@ -391,15 +384,12 @@ uint32_t sbox_3(uint32_t input[4])  {
 uint32_t sbox_4(uint32_t input[4])  {
     return (~input[A] & input[C] & input[D] ) | ( input[A] & input[C] & ~input[D] ) | (input[A] & ~input[B] & ~input[D] ) | (~input[A] & ~input[B] & input[D]) | ( ~input[A] & input[B] & ~input[C] & ~input[D]) | (input[A] & input[B] & ~input[C] & input[D]);
 }
-
-
 void sBox_array_input(uint32_t output[4], uint32_t input[4])   {
     output[0] = sbox_1(input);
     output[1] = sbox_2(input);
     output[2] = sbox_3(input);
     output[3] = sbox_4(input);
 }
-
 void subCells(uint32_t curr_state[64])   {
     int nibble_ele,bit_ele;
     uint32_t nibble[4];

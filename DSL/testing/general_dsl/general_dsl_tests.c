@@ -8,40 +8,40 @@
 
 int main() {
 	sput_start_testing();
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_1);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_2);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_3);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_4);	
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_5);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_6);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_7);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_8);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_9);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_10);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_11);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_12);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_13);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_14);
-	// sput_enter_suite("Int operations tests");
-	// sput_run_test(general_test_15);
-	// sput_enter_suite("bit seq operations tests");
-	// sput_run_test(bit_seq_extraction_test_16);
-	// sput_enter_suite("bit seq operations tests");
-	// sput_run_test(bit_seq_arith_test_17);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_1);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_2);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_3);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_4);	
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_5);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_6);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_7);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_8);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_9);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_10);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_11);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_12);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_13);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_14);
+	sput_enter_suite("Int operations tests");
+	sput_run_test(general_test_15);
+	sput_enter_suite("bit seq operations tests");
+	sput_run_test(bit_seq_extraction_test_16);
+	sput_enter_suite("bit seq operations tests");
+	sput_run_test(bit_seq_arith_test_17);
 	sput_enter_suite("bit seq operations tests");
 	sput_run_test(bs_seq_mult_test_18);
 	sput_finish_testing();
@@ -136,12 +136,11 @@ void bit_seq_arith_test_17()	{
 }
 
 void bs_seq_mult_test_18()	{
-	uint32_t expected[32] = {0,0,1,1,1,1,0,1,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint32_t expected[32] = {0,0,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0,0xffffffff,0,0,0,0,0xffffffff,0xffffffff,0xffffffff,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t res[32] = {0};
 	bs_mult_sub(res);
-	// for(int bit = 0; bit < 32; bit++)	{
-	rprint(res, 32);
-		// sput_fail_unless(  ==  expected[bit], "Seq Bit test 17");
-	// }
+	for(int bit = 0; bit < 32; bit++)	{
+		sput_fail_unless(res[bit] ==  expected[bit], "Seq Bit test 17");
+	}
 }
 

@@ -46,9 +46,9 @@ void bitslice_mult(uint32_t *output, uint32_t *operand_1, uint32_t *operand_2, i
 	}
 	uint32_t temp[width];
 	uint32_t p[width][width];
-	for(int outter= 0; outter < width; outter++)	{
+	for(int outer= 0; outer < width; outer++)	{
 		for(int inner= 0; inner < width; inner++)	{
-			p[outter][inner] = 0;
+			p[outer][inner] = 0;
 		}
 	}
 

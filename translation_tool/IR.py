@@ -133,7 +133,7 @@ class Function_decl(object):
                     result['result'] += statement['result']
                 else:
                     result['result'] += statement
-                if DATA_TYPE.is_op_type(stmt.node_type):
+                if DATA_TYPE.is_op_type(stmt.node_type) or DATA_TYPE.is_operand(stmt.node_type):
                     result['result'] += ";\n"
                 # except TypeError:
                     # result['result'] += stmt.translate(sym_count)['emit']
@@ -494,11 +494,6 @@ class Index_select(object):
         else:
             for i, bit in enumerate(self.indices[-1]):
                 self.set_bit(result, self.target.translate()['result'], str(i), bit.translate()['result'], value['result'], selection_dims)
-                # result['emit'] += "if(((" + value['result'] + " >> " + str(i) + ") & 0x1) == 0 ){\n"
-                # result['emit'] += self.target.translate()['result'] + " &= ~(0x1 <<" + bit.translate()['result'] +");\n"
-                # result['emit'] += "} else if (((" + value['result'] + " >> " + str(i) + ") & 0x1) == 1 ){\n"
-                # result['emit'] += self.target.translate()['result'] + " |= (0x1 << " + bit.translate()['result'] +");\n"
-                # result['emit'] += "}\n"
         return result
 
     def set_bit(self, result, target, source_bit, target_bit, value, selection_dim):
@@ -1339,6 +1334,10 @@ class Seq_val(object):
                 return Int_literal('0')
 
     def get_seq_size(self, seq):
+        """Returns size of sequence.
+
+        Args:
+        Seq: Sequence to analyse"""
         index = None
         for index, ele in enumerate(seq):
             if ele.node_type == DATA_TYPE.SEQ_VAL:
@@ -1719,7 +1718,8 @@ class Call(object):
             result['emit'] += function_result['result'] + ", "
         for p in params:
                 result['emit'] += p + ", "
-        result['emit'] = result['emit'][:-2]
+        if len(params) != 0:
+            result['emit'] = result['emit'][:-2]
         result['emit'] += ");\n"
         result['result'] = function_result['result']
         return result
