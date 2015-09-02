@@ -5,16 +5,16 @@
 
 #include "prince_dsl.h"
 uint32_t prince_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & B & ~A) | (~C & ~B & A) | (~D & B & ~A) | (~D & C & B) | (~D & ~C & ~B) | (D & ~B & A));
+return ((~C & ~B & A) | (~D & B & ~A) | (~D & ~C & ~A) | (D & ~B & A) | (C & B & ~A) | (~D & C & B));
 }
 uint32_t prince_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~C & ~B) | (~D & ~C) | (~B & ~A));
+return ((~C & ~B) | (~B & ~A) | (~D & ~C));
 }
 uint32_t prince_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C) | (D & ~B) | (~B & A));
+return ((D & C) | (~B & A) | (D & ~B));
 }
 uint32_t prince_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & B & ~A) | (~D & ~B) | (C & ~A));
+return ((D & B & ~A) | (C & ~A) | (~D & ~B));
 }
 void prince(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -28,16 +28,16 @@ input[2] = temp_0_sbox_out[2];
 input[3] = temp_0_sbox_out[3];
 }
 uint32_t prince_inv_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & B & A) | (C & ~B & ~A) | (~D & ~B) | (~D & ~C & ~A));
+return ((~D & ~C & ~A) | (C & B & A) | (~D & ~B) | (C & ~B & ~A));
 }
 uint32_t prince_inv_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~B & A) | (~D & ~B & ~A) | (~D & ~C) | (~C & ~B));
+return ((~C & ~B) | (D & ~B & A) | (~D & ~C) | (~D & ~B & ~A));
 }
 uint32_t prince_inv_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
 return ((D & B & ~A) | (C & ~B) | (~B & A));
 }
 uint32_t prince_inv_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & ~B & A) | (~C & ~B & ~A) | (C & B & ~A) | (~D & C));
+return ((C & B & ~A) | (~D & C) | (~C & ~B & ~A) | (C & ~B & A));
 }
 void prince_inv(uint32_t input[4]){
 uint32_t temp_1_sbox_out[4];

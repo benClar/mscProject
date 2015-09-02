@@ -810,11 +810,26 @@ class Set(object):
                     self.translate_bs_int_set(result, value_result, sym_count)
                 elif self.target.type == DATA_TYPE.BS_SEQ_INT_VAL or self.target.type == DATA_TYPE.SEQ_INT_VAL:
                     pass
+                elif self.target.type == DATA_TYPE.SEQ_BIT_VAL:
+                    self.translate_seq_seq_bit_val(result, value_result, sym_count)
                 else:
                     raise ParseException("Unrecognised Target type " + str(self.target.node_type))
         else:
             raise ParseException("Unrecognised set type " + str(self.target.node_type))
         return result['emit']
+
+    def translate_seq_seq_bit_val(self, result, value_result, sym_count):
+        """ID set of integer to bit sequence.
+
+        Args:
+        result: Storage for code.
+        value_result: Value to set.
+        sym_count: Temporary vars in program"""
+        if self.value.type == DATA_TYPE.INT_VAL:
+            result['emit'] += self.target.translate(sym_count)['result'] + " = " + value_result['result'] + " & " + str(int("0b" + int(self.target.size[-1].translate(sym_count)['result']) * "1", 2)) + ";\n"
+        else:
+            raise ParseException("Unrecognised bit seq set type: " + str(self.target.type))
+        print(result)
 
 
     def translate_optimised_bitwise_set(self, sym_count):
@@ -1036,9 +1051,11 @@ class Seq_decl(object):
             if self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
                 value = self.value.translate_bitsliced_seq_val(sym_count, self.translate_size_as_list(sym_count), self.ID.translate()['result'])
                 result['emit'] += value['emit']
-            else:
+            elif self.value.node_type == DATA_TYPE.SEQ_VAL:
                 value = self.value.translate(sym_count, {'result': self.ID.translate()['result'], 'res_size': self.translate_size_as_list(sym_count)})
                 result['emit'] += value['emit']
+            else:
+                return self.body.translate(sym_count)
         return result['emit']
 
     def translate_size_as_list(self, sym_count):

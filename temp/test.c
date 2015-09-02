@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
+#include <rdtsc.h>
+#include <time.h>
 
 void bitslice_add(uint32_t *output, uint32_t *operand_1, uint32_t *operand_2, int width)	{
 	int bit;
@@ -46,12 +48,5 @@ void bitslice_mult(uint32_t *output, uint32_t *operand_1, uint32_t *operand_2, i
 
 
 int main(){
-	uint32_t a[32] = {1,1,1,0,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	uint32_t b[32] = {1,1,1,0,1,1,1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	uint32_t res[32] = {0};
-	bitslice_mult(res, a, b, 32);
-	for(int i = 31; i >= 0; i--)	{
-		printf("%d",res[i]);
-	}
-	printf("\n");
+	rdtsc();
 }

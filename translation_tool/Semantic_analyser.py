@@ -307,13 +307,18 @@ class Semantic_analyser(object):
                 decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID)
             else:
                 decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value))
-                decl.value.dim_s = self.seq_expr_dimension(decl.value)
-                if decl.value.dim_s != len(decl.size):
-                    # Checking Dimensions match
-                    raise SemanticException((str(decl.value.type) + "[]" * self.seq_value_dimension(decl.value)) +
-                                         " Cannot be assigned to " + str(decl.value.type) + ("[]" * len(decl.size)))
-                if decl.value.type != DATA_TYPE.SEQ_BIT_VAL:
-                    raise SemanticException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
+                if decl.value.node_type == DATA_TYPE.SEQ_BIT_VAL:
+                    decl.value.dim_s = self.seq_expr_dimension(decl.value)
+                    if decl.value.dim_s != len(decl.size):
+                        # Checking Dimensions match
+                        raise SemanticException((str(decl.value.type) + "[]" * self.seq_value_dimension(decl.value)) +
+                                             " Cannot be assigned to " + str(decl.value.type) + ("[]" * len(decl.size)))
+                else:
+                    if self.can_assign_type(DATA_TYPE.SEQ_BIT_VAL, decl.value.type) is False:
+                        raise SemanticException(str(decl.value.type) + " Cannot be assigned to " + str(decl.node_type))
+                    if decl.value.type == DATA_TYPE.INT_VAL:
+                        if len(decl.size) > 1:
+                            raise SemanticException(str(DATA_TYPE.INT_VAL) + "cannot be assigned to a " + str(DATA_TYPE.SEQ_BIT_VAL) + ("[]" * len(decl.size)))
             if node.ID is not None:
                 self.sym_table.add_id(node.ID, decl.ID.type, len(decl.size))
                 self.sym_table.id(node.ID)['size'] = decl.size

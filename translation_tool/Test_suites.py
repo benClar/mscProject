@@ -916,7 +916,9 @@ class test_translation(unittest.TestCase):
         par = Parser()
 
         par.analyse_tree_test(par.parse_test_AST_semantic("void Error_5(){\
-                                                            Error_5();\
+        													Int(8) b = 10;\
+                                                            Bit[5] a;\
+                                                            a = b + b;\
                                                         }\
                                                         "))
         print(par.semantic_analyser.IR.translate()['main'])
