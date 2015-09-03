@@ -583,4 +583,10 @@ temp_41_bs_return[29] = temp_42__bin[29];
 temp_41_bs_return[30] = temp_42__bin[30];
 temp_41_bs_return[31] = temp_42__bin[31];
 }
+void int_to_seq_bit_cast(){ 
+uint8_t b = 0;
+b = 10;
+uint8_t a =  0 ;
+a = (b + b) & 31;
+}
 

@@ -886,8 +886,8 @@ import subprocess
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
 #                                                                             Int(8)[1][2] a = [[1,2,3],[1,2]];\
-#                                                                         }\
-#                                                                         ")), False)
+                                                                        # }\
+                                                                        # ")), False)
 #         par = Parser()
 #         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("void range_set()    {\
 #                                                                             Int(8)[2][2] a = [[1,2],[1,2,3]];\
@@ -909,19 +909,18 @@ import subprocess
 #                                                                         }\
 #                                                                         ")), True);
 
-class test_translation(unittest.TestCase):
-    """Unit tests Checking translations are valid"""
+# class test_translation(unittest.TestCase):
+#     """Unit tests Checking translations are valid"""
 
-    def test_demo_code(self):
-        par = Parser()
+#     def test_demo_code(self):
+#         par = Parser()
 
-        par.analyse_tree_test(par.parse_test_AST_semantic("void Error_5(){\
-        													Int(8) b = 10;\
-                                                            Bit[5] a;\
-                                                            a = b + b;\
-                                                        }\
-                                                        "))
-        print(par.semantic_analyser.IR.translate()['main'])
+#         par.analyse_tree_test(par.parse_test_AST_semantic("void Error_5(){\
+#         													@Int(8) a = 0b0111111111;\
+#                                                             a = (4 * a);\
+#                                                         }\
+#                                                         "))
+#         print(par.semantic_analyser.IR.translate()['main'])
 
 
     # def test_run_time_error(self):
@@ -1078,6 +1077,11 @@ class test_translation(unittest.TestCase):
     #                                                                         @Int(32) b = 390;\
     #                                                                         return a * b;\
     #                                                                     }\
+    #                                                                     void int_to_seq_bit_cast()    {\
+    #                                                                         Int(8) b = 10;\
+    #                                                                         Bit[5] a;\
+    #                                                                         a = b + b;\
+    #                                                                         }\
     #                                                                   ")), True)
     #     if Data_reader.write_test("general_dsl", "general_dsl", par.semantic_analyser.IR.translate()) is True:
     #         assert_equals(subprocess.call(['../DSL/testing/general_dsl/./run_tests.sh']), 0)

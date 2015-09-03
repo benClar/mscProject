@@ -1,15 +1,9 @@
 Sbox(4)[16] led = [0xc, 0x5, 0x6, 0xB, 0x9, 0x0, 0xa, 0xd, 0x3, 0xe, 0xf, 0x8, 0x4, 0x7, 0x1, 0x2];
 @Int(4) gmMult(@Int(4) a, @Int(4) b) {
-    @Int(4) output;
-    @Int(4) a_out = a;
-    @Int(4) b_out = b;
-    @Int(4) GF_R = 0x13;
-    @Int(4) t;
+    @Int(4) output = 0, a_out = a, b_out = b, GF_R = 0x13, t, mask;
     @Int(1) f;
     @Int(1) high = 0;
-    @Int(4) mask;
     Int(8) bit = 0;
-    output = 0;
     for(Int(8) degree = 0; degree < 4; degree = degree + 1) {
         f = 0;
         t = b_out & 0x1;
@@ -51,23 +45,23 @@ void addConstants(@Int(64) state, @Int(6) constant)  {
     for(Int(8) row = 0; row < 4; row = row + 1)  {
         roundConstant[row * 16 : (row * 16) + 3] = row[0:3];
         if(row == 0 || row == 2)    {
-            roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[3:5];
+            roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[3,4,5];
         }
         if(row == 1 || row == 3) {
-            roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[0:2];
+            roundConstant[(row * 16) + 4 : (row * 16) + 6] = constant[0,1,2];
         }
         roundConstant[(row * 16) + 8 : (row * 16) + 15 ] = 0;
     }
         state = state ^ roundConstant;
 }
-void subCells(@Int(64) state, Sbox(4)[16] led)  {
+void subCells(@Int(64) state)  {
     for(Int(8) i = 0; i < 16; i = i + 1){
         state[(i * 4) : (i * 4) + 3] = led[state[(i * 4) : (i * 4) + 3]];
     }
 }
 void step(@Int(64) state, @Int(6) r, @Int(4)[16] MDS){
     addConstants(state, r);
-    subCells(state,led);
+    subCells(state);
     shift_row(state);
     MixColumnSerial(state, MDS);
 }

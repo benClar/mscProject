@@ -322,6 +322,8 @@ class Cast(object):
     def int_val_to_seq_bit(value, sym_count):
         return value.translate(sym_count)
 
+    # def int_to_
+
 
 
 class Index_select(object):
@@ -491,9 +493,15 @@ class Index_select(object):
         result['emit'] += selection_dims['emit']
         if self.is_range():
             self.range_int_bit_set(value, result, selection_dims, sym_count)
-        else:
+        elif len(self.indices[-1]) > 1:
+            # Integer value as target
             for i, bit in enumerate(self.indices[-1]):
                 self.set_bit(result, self.target.translate()['result'], str(i), bit.translate()['result'], value['result'], selection_dims)
+        else:
+            # Multi-dimensional Sequence of bits as target
+            final_dim = self.indices[-1][-1].translate()
+            result['emit'] += final_dim['emit']
+            result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[" + final_dim['result'] + "]" + " = " + value['result'] + " & " + str(int("0b" + int(self.target.size[-1].translate(sym_count)['result']) * "1", 2)) + ";\n"
         return result
 
     def set_bit(self, result, target, source_bit, target_bit, value, selection_dim):

@@ -1,4 +1,4 @@
-#include "../LIB/BS_LIB.h"
+#include "BS_LIB.h"
 
 void led(uint32_t input[4]);
 uint32_t led_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D);
