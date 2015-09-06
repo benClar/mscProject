@@ -466,7 +466,7 @@ class TestSemanticAnalysis(unittest.TestCase):
         par = Parser()
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1]; ")), True)
         par = Parser()
-        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1,2,3,4] ^ [1,2,3,4];")), True)
+        assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = [1,2,3,4] ^ [1,2,3,4];")), False)
         par = Parser()
         # assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("Int(10)[2] a = ([1,2,3,4] ^ [1,2,3,4]) ^ ([1,2,3,4] ^ [1,2,3,4]);")), True)
         # par = Parser()
@@ -919,14 +919,16 @@ class test_IR_generation(unittest.TestCase):
                                                                         ")), True);
 
 class test_translation(unittest.TestCase):
-#     """Unit tests Checking translations are valid"""
+    """Unit tests Checking translations are valid"""
 
-#     def test_demo_code(self):
-#         par = Parser()
-
-#         par.analyse_tree_test(par.parse_test_AST_semantic("Sbox(4)[16] prince = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,16];\
-#                                                         "))
-        # print(par.semantic_analyser.IR.translate()['main'])
+    # def test_demo_code(self):
+    #     par = Parser()
+    #     par.analyse_tree_test(par.parse_test_AST_semantic("void test(){\
+    #                                                         @Int(8) a;\
+    #                                                         a[1,2,3] = [True, False, True];\
+    #                                                     }\
+    #                                                     "))
+    #     print(par.semantic_analyser.IR.translate()['main'])
 
 
     def test_run_time_error(self):
@@ -1088,7 +1090,17 @@ class test_translation(unittest.TestCase):
                                                                             Bit[5] a;\
                                                                             a = b + b;\
                                                                             }\
-                                                                      ")), True)
+                                                                      @Int(8) bs_bit_expr_cast()  {\
+                                                                        @Int(8) a;\
+                                                                        a[0] = (True ^ False) ^ False;\
+                                                                        return a;\
+                                                                        }\
+                                                                        void bit_to_bs_bit_set()  {\
+                                                                            @Int(8) a;\
+                                                                            Int(8) b;\
+                                                                            a[1] = b[0] ^ (b[1] & b[3]);\
+                                                                        }\
+                                                                    ")), True)
         if Data_reader.write_test("general_dsl", "general_dsl", par.semantic_analyser.IR.translate()) is True:
             assert_equals(subprocess.call(['../DSL/testing/general_dsl/./run_tests.sh']), 0)
         assert_equals(par.analyse_tree_test(par.parse_test_AST_semantic("")), True)

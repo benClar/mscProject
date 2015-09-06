@@ -853,7 +853,11 @@ class Semantic_analyser(object):
             return len(params)
 
     def value_matches_expected(self, result_value, expected_value):
-        """Lookup for allowed assignment types"""
+        """Lookup for allowed assignment types.
+
+        Args:
+        result_value: Type of result
+        expected_value: Expected type of result"""
         # Value type -> Allowed to be [ these value types ]
         allowed_values = {DATA_TYPE.INT_DECL: [DATA_TYPE.INT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BIT_VAL],
                           DATA_TYPE.BIT_DECL: [DATA_TYPE.BIT_VAL],
@@ -959,12 +963,21 @@ class Semantic_analyser(object):
         Args:
         expression: Types in current expression.
         IR_expression: IR nodes making up expression."""
-        if DATA_TYPE.is_int_val(expression['OPERAND_0']) and DATA_TYPE.is_int_val(expression['OPERAND_2']):
-            self.expr_seq_bit_dims(IR_expression)
-            return True
-        elif self.value_matches_expected(expression['OPERAND_0'], expression['OPERAND_2']):
-            self.expr_seq_bit_dims(IR_expression)
-            return True
+        valid_operands_types = {DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
+                                DATA_TYPE.BS_INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
+                                DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
+                                DATA_TYPE.SEQ_BS_BIT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.BS_INT_VAL, DATA_TYPE.SEQ_BS_BIT_VAL],
+                                DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.BIT_VAL],
+                                DATA_TYPE.BIT_VAL: [DATA_TYPE.BS_BIT_VAL, DATA_TYPE.BIT_VAL]}
+        try:
+            if DATA_TYPE.is_int_val(expression['OPERAND_0']) and DATA_TYPE.is_int_val(expression['OPERAND_2']):
+                self.expr_seq_bit_dims(IR_expression)
+                return True
+            elif expression['OPERAND_0'] in valid_operands_types[expression['OPERAND_2']]:
+                self.expr_seq_bit_dims(IR_expression)
+                return True
+        except KeyError:
+            return False
         return False
 
     def shift_expr_valid(self, expression, IR_expression):

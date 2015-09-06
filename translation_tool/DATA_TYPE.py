@@ -195,7 +195,9 @@ class DATA_TYPE(Enum):
         allowed_operands = {DATA_TYPE.BS_INT_VAL: [DATA_TYPE.SEQ_BS_BIT_VAL],
                             DATA_TYPE.SEQ_BS_BIT_VAL: [DATA_TYPE.BS_INT_VAL],
                             DATA_TYPE.SEQ_BIT_VAL: [DATA_TYPE.SEQ_BIT_VAL, DATA_TYPE.INT_VAL],
-                            DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BIT_VAL]}
+                            DATA_TYPE.INT_VAL: [DATA_TYPE.INT_VAL, DATA_TYPE.BIT_VAL],
+                            DATA_TYPE.BIT_VAL: [DATA_TYPE.BIT_VAL],
+                            DATA_TYPE.BS_BIT_VAL: [DATA_TYPE.BS_BIT_VAL]}
         if oper_1 in allowed_operands[oper_2]:
             return False
         return True

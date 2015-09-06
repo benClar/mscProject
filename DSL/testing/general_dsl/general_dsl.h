@@ -25,4 +25,6 @@ void bs_seq_set(uint32_t a[2][2][8]);
 void int_seq_set(uint8_t  a[2][2]);
 void  bs_mult_sub(uint32_t *temp_43_bs_return);
 void int_to_seq_bit_cast();
+void  bs_bit_expr_cast(uint32_t *temp_49_bs_return);
+void bit_to_bs_bit_set();
 

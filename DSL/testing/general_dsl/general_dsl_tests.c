@@ -44,6 +44,8 @@ int main() {
 	sput_run_test(bit_seq_arith_test_17);
 	sput_enter_suite("bit seq operations tests");
 	sput_run_test(bs_seq_mult_test_18);
+	sput_enter_suite("bit seq operations tests");
+	sput_run_test(bs_bit_cast_test_19);
 	sput_finish_testing();
 	return sput_get_return_value();
 }
@@ -140,7 +142,13 @@ void bs_seq_mult_test_18()	{
 	uint32_t res[32] = {0};
 	bs_mult_sub(res);
 	for(int bit = 0; bit < 32; bit++)	{
-		sput_fail_unless(res[bit] ==  expected[bit], "Seq Bit test 17");
+		sput_fail_unless(res[bit] ==  expected[bit], "Seq Bit test 18");
 	}
+}
+
+void bs_bit_cast_test_19()	{
+	uint32_t output[8] = {0};
+	bs_bit_expr_cast(output);
+	sput_fail_unless(output[0] == 0xffffffff, "Bit cast 19");
 }
 

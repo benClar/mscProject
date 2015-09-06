@@ -311,12 +311,23 @@ class Cast(object):
 
     def bit_to_bs_bit(value, sym_count):
         result = {'emit': '', 'result': ''}
-        if value.translate()['result'] == "0x1":
+        val_out = value.translate(sym_count)
+        if val_out['result'] == "0x1":
             result['result'] = "0xffffffff"
-        elif value.translate()['result'] == "0x0":
+        elif val_out['result'] == "0x0":
             result['result'] = "0x0"
         else:
-            raise ParseException("Internal error: Unknown bit value")
+            result['result'] = Target_factory.name(sym_count, "casted_bit")
+            result['emit'] += val_out['emit']
+            result['emit'] += "uint32_t " + result['result'] + " = 0;\n"
+            result['emit'] += "if(" + val_out['result'] + " == 0x1){\n"
+            result['emit'] += result['result'] + " = 0xffffffff;\n"
+            result['emit'] += "} else if(" + val_out['result'] + " != 0x0){\n"
+            result['emit'] += 'fprintf(stderr, "Unrecognised bit value to cast.\\n");\n'
+            result['emit'] += "exit(1);\n"
+            result['emit'] += "}\n"
+        # else:
+        #     raise ParseException("Internal error: Unknown bit value")
         return result
 
     def int_val_to_seq_bit(value, sym_count):
@@ -460,9 +471,16 @@ class Index_select(object):
         result: storage for emitted code.
         sym_count: Number of temp vars in program
         value: value that index operator target should be set to"""
-        if self.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE and self.indices[-1][-1].is_literal():
-            result['emit'] += self.literal_range_set(value, sym_count)
+        if self.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE:
+            if self.indices[-1][-1].is_literal():
+                result['emit'] += self.literal_range_set(value, sym_count)
+            else:
+                self.list_lhs_seq_bs_bit(result, value, sym_count)
         else:
+            pass
+   
+
+    def list_lhs_seq_bs_bit(self, result, value, sym_count):
             temp_init = Target_factory.name(sym_count, "init")
             temp_term = self.indices[-1][-1].translate_size(sym_count)
             result['emit'] += "uint8_t " + temp_init + " = 0;\n"
@@ -475,7 +493,7 @@ class Index_select(object):
             selection_dims = self.translate_selection_dim(sym_count)
             result['emit'] += selection_dims['emit']
             result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[" + temp_starting_ele + "] = " + value['result'] + "[" + temp_init + "];\n"
-            result['emit'] += "}\n"    
+            result['emit'] += "}\n" 
 
     def set_seq_int_val(self, value, sym_count):
         result = {'emit': "", 'result': ""}
@@ -840,7 +858,7 @@ class Set(object):
             result['emit'] += self.target.translate(sym_count)['result'] + " = " + value_result['result'] + " & " + str(int("0b" + int(self.target.size[-1].translate(sym_count)['result']) * "1", 2)) + ";\n"
         else:
             raise ParseException("Unrecognised bit seq set type: " + str(self.target.type))
-        print(result)
+        # print(result)
 
 
     def translate_optimised_bitwise_set(self, sym_count):
@@ -861,7 +879,7 @@ class Set(object):
         elif self.target.type == DATA_TYPE.BS_SEQ_INT_VAL:
             return self.implicit_cast_to_bs_seq(sym_count)
         elif self.target.type == DATA_TYPE.SEQ_INT_VAL:
-            print(self.target.size)
+            # print(self.target.size)
             return self.value.translate(sym_count, {'result': self.target.translate(sym_count)['result'], 'res_size': [int(i.translate(sym_count)['result']) for i in self.target.size]})
         else:
             raise ParseException(str(self.value.type) + " being assigned to a " + str(self.target.type) + " : Cast needed")
@@ -1966,20 +1984,6 @@ class Binary_operation(object):
         """Translates bitwise operations on sequences of bits"""
         result['result'] += operand_1['result'] + " " + self.operator + " " + operand_2['result']
         return result
-    # def extract_seq_bit(operand, sym_count):
-    #     result = {'emit':"", 'result':""}
-    #     result['result'] += Target_factory.name(sym_count, "bit_seq")
-    #     result['emit'] += "uint64_t " + result['result'] + "= 0;\n"
-    #     if operand[-1][-1].node_type == DATA_TYPE.INDEX_SELECT:
-    #         pass
-    #     else:
-    #         for bit, ele in enumerate(self.operand[-1]):
-    #             ele_res = ele.translate(sym_count)
-    #             result['emit'] += ele_res['emit']
-    #             result['emit'] += result['result'] + "|= (" + operand.target.translate(sym_count) " << " + ele['result'] + ") & 0x1;\n"
-    #     return operand
-
-
 
     def seq_bit_shift(self, result, operand_1, operand_2, sym_count):
         """Translates shift or rotate of a subset of bits of an int value"""
@@ -2118,6 +2122,11 @@ class Binary_operation(object):
             return self.bs_bit_compute_operation(sym_count)
 
     def implicit_cast(self, sym_count, target, size=None):
+        """Casts operand to correct value
+
+        Args:
+        Sym_count: Temp var count for program
+        target: target operand that requires cast."""
         result = {'emit': "", 'result': ""}
         operand_for_cast = self.get_operand_for_cast()
         if self.type == DATA_TYPE.SEQ_BS_BIT_VAL:
@@ -2132,6 +2141,13 @@ class Binary_operation(object):
                 cast_res = Cast.int_to_bs_cast(sym_count, target, size)
                 result['result'] = cast_res['result']
                 result['emit'] = cast_res['emit']
+            else:
+                raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
+        elif self.type == DATA_TYPE.BS_BIT_VAL:
+            if operand_for_cast.type == DATA_TYPE.BIT_VAL:
+                cast_res = Cast.bit_to_bs_bit(operand_for_cast, sym_count)
+                result['result'] = cast_res['result']
+                result['emit'] += cast_res['emit']
             else:
                 raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
         else:
@@ -2167,6 +2183,17 @@ class Binary_operation(object):
         result = {'emit': "", 'result': ""}
         operand_1 = self.left.translate(sym_count)
         operand_2 = self.right.translate(sym_count)
+        if self.needs_cast(self.left.type, self.right.type):
+            if self.left.type != self.type:
+                cast_target = operand_1['result']
+            elif self.right.type != self.type:
+                cast_target = operand_2['result']
+            cast = self.implicit_cast(sym_count, cast_target)
+            result['emit'] += cast['emit']
+            if self.left.type != self.type:
+                operand_1['result'] = cast['result']
+            elif self.right.type != self.type:
+                operand_2['result'] = cast['result']
         result['emit'] += operand_1['emit'] + operand_2['emit']
         result['result'] = "(" + operand_1['result'] + " " + self.operator + " " + operand_2['result'] + ")"
         return result

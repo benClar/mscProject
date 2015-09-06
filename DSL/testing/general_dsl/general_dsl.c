@@ -589,4 +589,41 @@ b = 10;
 uint8_t a =  0 ;
 a = (b + b) & 31;
 }
+void  bs_bit_expr_cast(uint32_t *temp_45_bs_return){ 
+uint32_t a[8] = {0};
+uint32_t temp_48_casted_bit = 0;
+if(((0x1 ^ 0x0) ^ 0x0) == 0x1){
+temp_48_casted_bit = 0xffffffff;
+} else if(((0x1 ^ 0x0) ^ 0x0) != 0x0){
+fprintf(stderr, "Unrecognised bit value to cast.\n");
+exit(1);
+}
+a[0] = temp_48_casted_bit;
+temp_45_bs_return[0] = a[0];
+temp_45_bs_return[1] = a[1];
+temp_45_bs_return[2] = a[2];
+temp_45_bs_return[3] = a[3];
+temp_45_bs_return[4] = a[4];
+temp_45_bs_return[5] = a[5];
+temp_45_bs_return[6] = a[6];
+temp_45_bs_return[7] = a[7];
+}
+void bit_to_bs_bit_set(){ 
+uint32_t a[8] = {0};
+uint8_t b = 0;
+uint8_t  temp_51_extracted = 0;
+temp_51_extracted = (b >> 0) & 0x1;
+uint8_t  temp_53_extracted = 0;
+temp_53_extracted = (b >> 1) & 0x1;
+uint8_t  temp_54_extracted = 0;
+temp_54_extracted = (b >> 3) & 0x1;
+uint32_t temp_55_casted_bit = 0;
+if((temp_51_extracted ^ (temp_53_extracted & temp_54_extracted)) == 0x1){
+temp_55_casted_bit = 0xffffffff;
+} else if((temp_51_extracted ^ (temp_53_extracted & temp_54_extracted)) != 0x0){
+fprintf(stderr, "Unrecognised bit value to cast.\n");
+exit(1);
+}
+a[1] = temp_55_casted_bit;
+}
 

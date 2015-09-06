@@ -20,3 +20,4 @@ void general_test_15();
 void bit_seq_extraction_test_16();
 void bit_seq_arith_test_17();
 void bs_seq_mult_test_18();
+void bs_bit_cast_test_19();
