@@ -5,9 +5,9 @@
 #include "poster_tests.h"
 
 int main()	{
-	// sbox_demo();
+	sbox_demo();
 	// int_extraction();
-	bs_bitwise_demo();
+	// bs_bitwise_demo();
 }
 
 void bs_bitwise_demo()	{

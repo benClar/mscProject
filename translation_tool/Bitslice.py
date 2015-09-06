@@ -10,9 +10,9 @@ class Bitslice(object):
     def translate(file_name):
         Bitslice.validate(file_name.split("."))
         print(file_name)
-        with open(file_name, "rU") as f:
-            # print(f.read())
-            return Bitslice.translation_tool.parse(f.read())
+        # with open(file_name, "rU") as f:
+        # print(f.read())
+        return Bitslice.translation_tool.parse(Data_reader.read_file(file_name))
 
     def validate(name):
         if len(name) != 2 or name[1] != "dsl":

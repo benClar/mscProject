@@ -322,9 +322,6 @@ class Cast(object):
     def int_val_to_seq_bit(value, sym_count):
         return value.translate(sym_count)
 
-    # def int_to_
-
-
 
 class Index_select(object):
 
@@ -336,13 +333,6 @@ class Index_select(object):
             self._type = self.target.type
         else:
             self._type = output_type
-
-    # @property
-    # def name(self):
-    #     if target.type == DATA_TYPE.ID:
-    #         return target.type.name
-    #     else:
-    #         return "result"
 
     @property
     def size(self):
@@ -422,6 +412,11 @@ class Index_select(object):
         return result
 
     def translate_as_lhs(self, sym_count, value):
+        """Translted index operator as l-value.
+
+        Args:
+        sym_count: Number of temp vars in program
+        value: value that index operator target should be set to"""
         result = {'emit': "", 'result': ""}
         # index_result = self.translate_selection_dim(sym_count)
         # result['emit'] += index_result['emit']
@@ -433,22 +428,7 @@ class Index_select(object):
             else:
                 result['emit'] += self.target.translate()['result'] + self.translate_selection_dim(sym_count)['result'] + "[" + self.indices[-1][-1].translate()['result'] + "]" + " = " + value['result'] + ";\n"
         elif self.type == DATA_TYPE.SEQ_BS_BIT_VAL:
-            if self.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE and self.indices[-1][-1].is_literal():
-                result['emit'] += self.literal_range_set(value, sym_count)
-            else:
-                temp_init = Target_factory.name(sym_count, "init")
-                temp_term = self.indices[-1][-1].translate_size(sym_count)
-                result['emit'] += "uint8_t " + temp_init + " = 0;\n"
-                result['emit'] += temp_term['emit']
-                starting_ele = self.indices[-1][-1].start.translate(sym_count)  # Getting translation of starting element of range
-                result['emit'] += starting_ele['emit']
-                temp_starting_ele = Target_factory.name(sym_count, "rng_start")
-                result['emit'] += "uint8_t " + temp_starting_ele + " = " + starting_ele['result'] + ";\n"  # Assigning starting element of range to temp variable for incrementing
-                result['emit'] += "for(" + temp_init + " = 0; " + temp_init + " < " + temp_term['result'] + "; " + temp_init + "++, " + temp_starting_ele + "++){\n"
-                selection_dims = self.translate_selection_dim(sym_count)
-                result['emit'] += selection_dims['emit']
-                result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[" + temp_starting_ele + "] = " + value['result'] + "[" + temp_init + "];\n"
-                result['emit'] += "}\n"
+            self.translate_seq_bit_val_lhs(result, value, sym_count)
         elif self.type == DATA_TYPE.BS_INT_VAL:
             if int(self.constraints.translate()['result']) > 1:
                 temp_starting_ele = Target_factory.name(sym_count, "bs_int_start")
@@ -472,6 +452,30 @@ class Index_select(object):
         else:
             raise ParseException("Unsupported extraction on LHS " + str(self.type))
         return result
+
+    def translate_seq_bit_val_lhs(self, result, value, sym_count):
+        """Translates seq bit val index operator as l-value.
+
+        Args:
+        result: storage for emitted code.
+        sym_count: Number of temp vars in program
+        value: value that index operator target should be set to"""
+        if self.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE and self.indices[-1][-1].is_literal():
+            result['emit'] += self.literal_range_set(value, sym_count)
+        else:
+            temp_init = Target_factory.name(sym_count, "init")
+            temp_term = self.indices[-1][-1].translate_size(sym_count)
+            result['emit'] += "uint8_t " + temp_init + " = 0;\n"
+            result['emit'] += temp_term['emit']
+            starting_ele = self.indices[-1][-1].start.translate(sym_count)  # Getting translation of starting element of range
+            result['emit'] += starting_ele['emit']
+            temp_starting_ele = Target_factory.name(sym_count, "rng_start")
+            result['emit'] += "uint8_t " + temp_starting_ele + " = " + starting_ele['result'] + ";\n"  # Assigning starting element of range to temp variable for incrementing
+            result['emit'] += "for(" + temp_init + " = 0; " + temp_init + " < " + temp_term['result'] + "; " + temp_init + "++, " + temp_starting_ele + "++){\n"
+            selection_dims = self.translate_selection_dim(sym_count)
+            result['emit'] += selection_dims['emit']
+            result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[" + temp_starting_ele + "] = " + value['result'] + "[" + temp_init + "];\n"
+            result['emit'] += "}\n"    
 
     def set_seq_int_val(self, value, sym_count):
         result = {'emit': "", 'result': ""}
@@ -513,8 +517,7 @@ class Index_select(object):
                 source_bit: bit position that target bit should be set to.
                 target_bit: bit position that should be set in target bit.
                 value: holds series of bits being copied to target.
-                selection_dim: Any requied dimensions to access value
-            """
+                selection_dim: Any requied dimensions to access value"""
             result['emit'] += "if(((" + value + " >> " + source_bit + ") & 0x1) == 0 ){\n"
             result['emit'] += target + selection_dim['result'] + " &= ~(0x1 <<" + target_bit + ");\n"
             result['emit'] += "} else if (((" + value + " >> " + source_bit + ") & 0x1) == 1 ){\n"

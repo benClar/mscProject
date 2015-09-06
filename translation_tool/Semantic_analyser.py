@@ -359,6 +359,8 @@ class Semantic_analyser(object):
                 if DATA_TYPE.is_seq_type(decl.value.type) and not DATA_TYPE.is_op_type(decl.value.node_type):
                     # Checking elements in range
                     self.seq_val_matches_dimensions(decl.value.dim_s, decl.size, decl.value)
+                if node.node_type == DATA_TYPE.SBOX_DECL:
+                    self.sbox_semantics(decl)
             if decl.constraints.node_type != DATA_TYPE.INT_LITERAL:
                 raise SemanticException("Must use an Integer literal to declare word length")
             if node.ID is not None:
@@ -369,6 +371,19 @@ class Semantic_analyser(object):
         except SemanticException as details:
             Semantic_analysis_errors.semantic_err(node, details)
             return False
+
+    def sbox_semantics(self, node):
+        """Implements sbox semantic rules.
+
+        Args:
+        node: IR node representing sbox declaration."""
+        if len(node.value.value) != int(node.size[-1].value):
+            raise SemanticException("Sbox should have " + node.size[-1].value + " members")
+        for minterm in node.value.value:
+            if minterm.node_type != DATA_TYPE.INT_LITERAL:
+                raise SemanticException("Only integer literals can be used as sbox members")
+            if len(bin(int(minterm.value))[2:]) > int(node.constraints.value):
+                raise SemanticException("Expected width is " + node.constraints.value + ". " + minterm.value + " has a width of " + str(len(bin(int(minterm.value))[2:])))
 
     def analyse_bit_seq(self, node):
         """Analysing sequence of bits declaration

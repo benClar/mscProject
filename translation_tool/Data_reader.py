@@ -1,6 +1,6 @@
 class Data_reader(object):
 
-    def read_file(self, filename):
+    def read_file(filename):
         return open(filename).read()
 
     def write_test(location, name, output):

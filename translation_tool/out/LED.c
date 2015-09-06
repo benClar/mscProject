@@ -5,16 +5,16 @@
 
 #include "LED.h"
 uint32_t led_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~C & ~A) | (~D & C & ~B & ~A) | (D & C & ~B & A) | (D & B & ~A) | (~D & B & A) | (~D & ~C & A));
+return ((~D & C & ~B & ~A) | (D & C & ~B & A) | (D & B & ~A) | (~D & B & A) | (~D & ~C & A) | (D & ~C & ~A));
 }
 uint32_t led_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~C & ~A) | (~C & B & ~A) | (~D & B & ~A) | (~D & ~C & B) | (D & C & A) | (D & ~B & A));
+return ((~D & ~C & B) | (D & C & A) | (D & ~B & A) | (~D & B & ~A) | (D & ~C & ~B) | (D & ~C & ~A));
 }
 uint32_t led_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~C & ~B & A) | (~C & B & ~A) | (~D & ~C & ~B) | (D & C & ~B) | (~D & C & B & A) | (D & ~B & A));
+return ((D & C & ~B) | (D & ~B & A) | (~C & ~B & A) | (~D & C & B & A) | (~C & B & ~A) | (~D & ~C & ~A));
 }
 uint32_t led_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~C & A) | (~D & C & B) | (D & ~C & B) | (~D & C & ~A) | (~D & ~B & ~A) | (~D & B & A));
+return ((~D & C & B) | (D & ~C & A) | (~D & ~B & ~A) | (D & ~C & B) | (~D & C & ~A) | (~D & B & A));
 }
 void led(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];

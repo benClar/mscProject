@@ -338,6 +338,20 @@ class if_stmt_syn_node(object):
         self._condition = value
 
 
+class stmt_syn_node(object):
+
+    node_type = None
+
+    
+
+class decl_syn_node(object):
+
+    node_type = None
+
+class operand_syn_node(object):
+
+    node_type = None
+
 class return_stmt_syn_node(object):
 
     node_type = DATA_TYPE.RETURN_STMT
