@@ -626,4 +626,25 @@ exit(1);
 }
 a[1] = temp_55_casted_bit;
 }
+void  bit_seq_expr_to_bs(uint32_t *temp_56_bs_return){ 
+uint32_t a[3][8] = {{ 0 }};
+uint8_t temp_57_casted_bit_seq = 0;
+temp_57_casted_bit_seq |= 0x1 << 0;
+uint8_t temp_58_casted_bit_seq = 0;
+temp_58_casted_bit_seq |= 0x1 << 1;
+temp_58_casted_bit_seq |= 0x1 << 2;
+uint32_t temp_59_cast_bs_seq[3];
+int_to_bitsliced(temp_59_cast_bs_seq, temp_57_casted_bit_seq ^ temp_58_casted_bit_seq, 3);
+a[0][1] = temp_59_cast_bs_seq[0];
+a[0][2] = temp_59_cast_bs_seq[1];
+a[0][3] = temp_59_cast_bs_seq[2];
+temp_56_bs_return[0] = a[0][0];
+temp_56_bs_return[1] = a[0][1];
+temp_56_bs_return[2] = a[0][2];
+temp_56_bs_return[3] = a[0][3];
+temp_56_bs_return[4] = a[0][4];
+temp_56_bs_return[5] = a[0][5];
+temp_56_bs_return[6] = a[0][6];
+temp_56_bs_return[7] = a[0][7];
+}
 

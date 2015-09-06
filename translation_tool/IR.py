@@ -276,15 +276,26 @@ class Cast(object):
         return result
 
     def bit_seq_val_to_int_val(result, target, sym_count):
+        """Creates variable to represent bit sequence.
+
+        Args:
+        target: target of set.
+        sym_count: number of temp vars in sequence"""
         result['result'] += Target_factory.name(sym_count, "casted_bit_seq")
         result['emit'] += Target_factory.type_decl_lookup[Target_factory.round_up_constraints(len(target.value))] + result['result'] + " = 0;\n"
         for pos, bit in enumerate(reversed(target.value)):
-            if bit.translate()['result'] == "0x1":
+            bit_res = bit.translate(sym_count)
+            result['emit'] += bit_res['emit']
+            if bit_res['result'] == "0x1":
                 result['emit'] += result['result'] + " |= 0x1 << " + str(pos) + ";\n"
-            elif bit.translate()['result'] == "0x0":
+            elif bit_res['result'] == "0x0":
                 pass
             else:
-                raise InternalException("Unknown Value in Bit Sequence " + str(bit.translate()['result']))
+                result['emit'] += "if(" + bit_res['result'] + " == 0x1){\n"
+                result['emit'] += result['result'] + " |= 0x1 << " + str(pos) + ";\n"
+                result['emit'] += "}\n"
+            # else:
+            #     raise InternalException("Unknown Value in Bit Sequence " + str(bit_res['result']))
 
     def int_to_bs_cast(sym_count, target, size=None):
         result = {'emit': "", 'result': ""}
@@ -477,8 +488,12 @@ class Index_select(object):
             else:
                 self.list_lhs_seq_bs_bit(result, value, sym_count)
         else:
-            pass
-   
+            selection_dims = self.translate_selection_dim(sym_count)
+            result['emit'] += selection_dims['emit']
+            for i, index in enumerate(self.indices[-1]):
+                ele = index.translate(sym_count)
+                result['emit'] += ele['emit']
+                result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[" + ele['result'] + "]" + " = " + value['result'] + "[" + str(i) + "]" + ";\n"
 
     def list_lhs_seq_bs_bit(self, result, value, sym_count):
             temp_init = Target_factory.name(sym_count, "init")
