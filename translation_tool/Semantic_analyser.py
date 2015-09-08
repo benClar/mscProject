@@ -437,7 +437,7 @@ class Semantic_analyser(object):
         size = []
         for size_param in node.size:
             size.append(self.expr_type_is(size_param))
-            if size[-1].type != DATA_TYPE.INT_VAL:
+            if size[-1].node_type != DATA_TYPE.INT_LITERAL:
                 raise SemanticException("Sequence Size Parameter Must be Literal Integers")
         return size
 
