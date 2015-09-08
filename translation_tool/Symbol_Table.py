@@ -5,6 +5,7 @@ from Stack import Stack
 import traceback
 import sys
 from Translation_exceptions import SemanticException, InternalException
+
 class Symbol_Table(object):
 
     def __init__(self):
@@ -22,6 +23,10 @@ class Symbol_Table(object):
 
     def leave_scope(self):
         self.symbols.pop()
+
+    @property
+    def global_scope(self):
+        return self._symbols.stack[0]
 
     @property
     def f_table(self):
@@ -51,7 +56,7 @@ class Symbol_Table(object):
         raise SemanticException("Tried to update nonexistent ID " + ID)
 
     def add_id(self, ID, id_type, size=None):
-        if ID not in self.symbols.peek() and ID not in self.f_table.keys():
+        if ID not in self.symbols.peek() and ID not in self.global_scope and ID not in self.f_table.keys():
             self.symbols.peek()[ID] = {}
             self.symbols.peek()[ID]['type'] = id_type
             self.symbols.peek()[ID]['f_param'] = False

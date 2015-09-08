@@ -78,6 +78,7 @@ class Function_decl(object):
 
     @property
     def node_type(self):
+        """Accessor for node_type"""
         return self._node_type
 
     @property
@@ -85,6 +86,10 @@ class Function_decl(object):
         return self._ID
 
     def translate(self, sym_count):
+        """Translates node.
+
+        Args:
+        sym_count"""
         ret = ""
         ret += self.translate_header(sym_count)
         body_result = self.translate_body(sym_count)
@@ -94,6 +99,9 @@ class Function_decl(object):
         return ret
 
     def translate_header(self, sym_count):
+        """Translates the header of the function node
+        Args:
+        sym_count: Count of temp vars in the program"""
         if self.return_value == DATA_TYPE.VOID:
             return "void " + self.translate_name() + self.translate_parameters(sym_count)
         elif self.return_value.node_type == DATA_TYPE.BS_INT_DECL:
@@ -103,6 +111,7 @@ class Function_decl(object):
             return self.return_value.translate_type() + " " + self.translate_name() + self.translate_parameters(sym_count) + self.translate_dimensions()
 
     def translate_dimensions(self):
+        """Translate any required dimensions for header"""
         ret = ""
         return_type = self.return_value.ID.type
         if DATA_TYPE.is_seq_type(return_type):
@@ -119,6 +128,10 @@ class Function_decl(object):
         return ret
 
     def translate_body(self, sym_count):
+        """Translates statements making up the body of function.
+
+        Args:
+        sym_count: Count of temp vars in program"""
         result = {'emit': "", 'result': ""}
         result['result'] += "{ \n"
         for stmt in self.body:
@@ -141,6 +154,12 @@ class Function_decl(object):
         return result
 
     def translate_parameters(self, sym_count, bs_bit_return=None):
+        """Translates parameter declarations in function header
+
+        Args:
+        sym_count: count of temp vars in program.
+        bs_bit_return: True if function returns a bit variable."""
+
         ret = "("
         if bs_bit_return is not None:
             ret += bs_bit_return + ", "
@@ -158,6 +177,7 @@ class Function_decl(object):
         return ret
 
     def translate_name(self):
+        """Translates function name, adding any extra syntax if arrays are being returns."""
         try:
             return_type = self.return_value.ID.type
         except AttributeError:
@@ -182,16 +202,26 @@ class If_stmt(object):
 
     @property
     def condition(self):
+        """Accessor for condition field"""
         return self._condition
 
     @property
     def body(self):
+        """Accessor for body"""
         return self._body
 
     def add_stmt(self, stmt):
+        """Adds stament to function.
+
+        Args:
+        stmt:adds new statement to if statement sequentially."""
         self._body.append(stmt)
 
     def translate(self, sym_count):
+        """translates if statement.
+
+        Args:
+        sym_count: count of temp vars in program"""
         result = {'emit': "", 'result': ""}
         condition_result = self.condition.translate(sym_count)
         result['emit'] += condition_result['emit']
@@ -201,6 +231,10 @@ class If_stmt(object):
         return result['emit']
 
     def translate_body(self, sym_count):
+        """Translates body of if statement
+
+        Args:
+        sym_count: count of temp vars in program."""
         ret = ""
         for stmt in self.body:
             ret += stmt.translate(sym_count)
@@ -208,6 +242,7 @@ class If_stmt(object):
 
 
 class Element_range(object):
+    """Stores element ranges"""
 
     node_type = DATA_TYPE.INDEX_RANGE
 
@@ -218,18 +253,25 @@ class Element_range(object):
 
     @property
     def start(self):
+        """Starting element in range"""
         return self._start
 
     @property
     def finish(self):
+        """Ending element in range"""
         return self._finish
 
     def is_literal(self):
+        """Returns true if range is made up of literals"""
         if self.start.node_type == DATA_TYPE.INT_LITERAL and self.finish.node_type == DATA_TYPE.INT_LITERAL:
             return True
         return False
 
     def translate_size(self, sym_count):
+        """translates size of range.
+
+        Args:
+        sym_count: Number of temp vars in program."""
         result = {'emit': "", 'result': ""}
         result['result'] = Target_factory.name(sym_count, "rnge_size")
         start = self.start.translate(sym_count)
@@ -240,7 +282,9 @@ class Element_range(object):
         result['emit'] += result['result'] + " = (" + end['result'] + "-" + start['result'] + ") + 1;\n"
         return result
 
+
 class Cast(object):
+    """Stores cast operations and provides helper functions for casting."""
 
     def __init__(self, c_op, c_target):
         self._cast_target = c_target
@@ -248,25 +292,35 @@ class Cast(object):
         self.node_type = DATA_TYPE.CAST
 
     def translate(self):
+        """Translates cast operation"""
         return self.operation.translate(self.target)
 
     @property
     def type(self):
+        """type of cast"""
         return self._cast_op.type
 
     @property
     def target(self):
+        """Target of cast"""
         return self._cast_target
 
     @property
     def operation(self):
+        """Cast operation node: stores details of cast"""
         return self._cast_op
 
     @property
     def constraints(self):
+        """Any constraints specified in cast"""
         return self._cast_op.constraints
 
     def bit_seq_to_int_val(target, sym_count):
+        """Casts bit sequence to int value.
+
+        Args:
+        target: target node for cast.
+        sym_count: count of temporary targets in cast."""
         result = {'emit': "", 'result': ""}
         # if target.node_type
         if DATA_TYPE.is_op_type(target.node_type):
@@ -298,13 +352,25 @@ class Cast(object):
             #     raise InternalException("Unknown Value in Bit Sequence " + str(bit_res['result']))
 
     def int_to_bs_cast(sym_count, target, size=None):
+        """Translates integers to bitsliced integers.
+        Args:
+            sym_count: count of temp vars in program.
+            target: target of cast.
+            size: bit width of cast."""
         result = {'emit': "", 'result': ""}
         result['result'] = Target_factory.name(sym_count, "casted_bs")
         result['emit'] += "uint32_t " + result['result'] + "[" + size + "]" + ";\n"
         result['emit'] += "int_to_bitsliced(" + result['result'] + ", " + target + ", " + size + ");\n"
         return result
 
-    def bitslice_literal(sym_count, value, size, target = None):
+    def bitslice_literal(sym_count, value, size, target=None):
+        """Optimised bit-sliced of an integer literal.
+
+        Args:
+            sym_count: Count of temporary vars in program.
+            value: value to be cast.
+            size: size of cast.
+            target: target variable for the cast result to be stored."""
         result = {'emit': "", 'result': ""}
         if target is None:
             result['result'] = Target_factory.name(sym_count, "casted_bs")
@@ -321,6 +387,10 @@ class Cast(object):
         return result
 
     def bit_to_bs_bit(value, sym_count):
+        """Casts standard bit to bit-sliced bit
+        Args:
+            value: Value to be cast
+            sym_count: number of temporary vars in program"""
         result = {'emit': '', 'result': ''}
         val_out = value.translate(sym_count)
         if val_out['result'] == "0x1":
@@ -342,10 +412,15 @@ class Cast(object):
         return result
 
     def int_val_to_seq_bit(value, sym_count):
+        """Casts integer value to sequence of bits
+        Args:
+            value: value to be cast.
+            sym_count: number of temporary vars in progam."""
         return value.translate(sym_count)
 
 
 class Index_select(object):
+    """Node storing index selection operator on targets"""
 
     def __init__(self, target, indices, output_type=None):
         self.target = target
@@ -358,38 +433,37 @@ class Index_select(object):
 
     @property
     def size(self):
+        """Size of the index select node target"""
         return self.target.size
-    
-    def translate(self, sym_count, value=None):
+
+    def translate(self, sym_count):
+        """Translates index select node as r-value.
+
+        Args:
+            sym_count: count of temporary variables in program"""
         result = {'emit': "", 'result': ""}
-        if value is not None:
-            # Assignment
-            result['emit'] += self.translate_assignment_target(sym_count, value)
-            return result
+        if self.target.type == DATA_TYPE.SBOX_DECL:
+            sbox_lookup = self.sbox_lookup_translate(sym_count)
+            result['emit'] += sbox_lookup['emit']
+            result['result'] = sbox_lookup['result']
         else:
-            if self.target.type == DATA_TYPE.SBOX_DECL:
-                sbox_lookup = self.sbox_lookup_translate(sym_count)
-                result['emit'] += sbox_lookup['emit']
-                result['result'] = sbox_lookup['result']
-            else:
-                self.run_time_safety_checks(sym_count, result)
-                target_result = self.target.translate()
-                result['emit'] += target_result['emit']
-                extracted_sequence = self.extract_sequence(target_result['result'], sym_count)
-                if 'res_size' in extracted_sequence:
-                    result['res_size'] = extracted_sequence['res_size']
-                result['emit'] += extracted_sequence['emit']
-                result['result'] = extracted_sequence['result']
-            return result
-            # result['emit'] += target + self.translate_selection_dim() + "[" + self.indices[-1][0].translate(sym_count) + "]"
+            self.run_time_safety_checks(sym_count, result)
+            target_result = self.target.translate()
+            result['emit'] += target_result['emit']
+            extracted_sequence = self.extract_sequence(target_result['result'], sym_count)
+            if 'res_size' in extracted_sequence:
+                result['res_size'] = extracted_sequence['res_size']
+            result['emit'] += extracted_sequence['emit']
+            result['result'] = extracted_sequence['result']
+        return result
 
     def run_time_safety_checks(self, sym_count, result):
         """Includes run time safety checks in index ranges for variables that cannot be checked at compile time.
 
         Args:
-        sym_count: Number of temp vars in program.
-        result: storage for emitted code."""
-        if self.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE:
+            sym_count: Number of temp vars in program.
+            result: storage for emitted code."""
+        if self.is_range():
             if self.indices[-1][-1].start.node_type != DATA_TYPE.INT_LITERAL or self.indices[-1][-1].finish.node_type != DATA_TYPE.INT_LITERAL:
                 start = self.indices[-1][-1].start.translate(sym_count)
                 end = self.indices[-1][-1].finish.translate(sym_count)
@@ -412,10 +486,10 @@ class Index_select(object):
         """Checks that given variable is inside bounds of target variable
 
         Args:
-        Sym_count: Number of temp vars in program.
-        var: Index variable to be bound checked.
-        result: storage for emitted code
-        dim: dimension that var relates to."""
+            Sym_count: Number of temp vars in program.
+            var: Index variable to be bound checked.
+            result: storage for emitted code
+            dim: dimension that var relates to."""
         var = var.translate(sym_count)
         result['emit'] += var['emit']
         result['emit'] += "if(" + var['result'] + " >= " + bound + "){\n"
@@ -425,6 +499,10 @@ class Index_select(object):
 
 
     def sbox_lookup_translate(self, sym_count):
+        """Translate sbox lookup, placing bits through boolean functions.
+
+        Args:
+            sym_count: count of temp vars in program"""
         result = {'emit': "", 'result': ""}
         assert len(self.indices) == 1, "Sbox looks can only ever be one dimensional"
         index_result = self.indices[-1][-1].translate(sym_count)
@@ -437,8 +515,8 @@ class Index_select(object):
         """Translted index operator as l-value.
 
         Args:
-        sym_count: Number of temp vars in program
-        value: value that index operator target should be set to"""
+            sym_count: Number of temp vars in program
+            value: value that index operator target should be set to"""
         result = {'emit': "", 'result': ""}
         # index_result = self.translate_selection_dim(sym_count)
         # result['emit'] += index_result['emit']
@@ -482,7 +560,7 @@ class Index_select(object):
         result: storage for emitted code.
         sym_count: Number of temp vars in program
         value: value that index operator target should be set to"""
-        if self.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE:
+        if self.is_range():
             if self.indices[-1][-1].is_literal():
                 result['emit'] += self.literal_range_set(value, sym_count)
             else:
@@ -496,21 +574,32 @@ class Index_select(object):
                 result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[" + ele['result'] + "]" + " = " + value['result'] + "[" + str(i) + "]" + ";\n"
 
     def list_lhs_seq_bs_bit(self, result, value, sym_count):
-            temp_init = Target_factory.name(sym_count, "init")
-            temp_term = self.indices[-1][-1].translate_size(sym_count)
-            result['emit'] += "uint8_t " + temp_init + " = 0;\n"
-            result['emit'] += temp_term['emit']
-            starting_ele = self.indices[-1][-1].start.translate(sym_count)  # Getting translation of starting element of range
-            result['emit'] += starting_ele['emit']
-            temp_starting_ele = Target_factory.name(sym_count, "rng_start")
-            result['emit'] += "uint8_t " + temp_starting_ele + " = " + starting_ele['result'] + ";\n"  # Assigning starting element of range to temp variable for incrementing
-            result['emit'] += "for(" + temp_init + " = 0; " + temp_init + " < " + temp_term['result'] + "; " + temp_init + "++, " + temp_starting_ele + "++){\n"
-            selection_dims = self.translate_selection_dim(sym_count)
-            result['emit'] += selection_dims['emit']
-            result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[" + temp_starting_ele + "] = " + value['result'] + "[" + temp_init + "];\n"
-            result['emit'] += "}\n" 
+        """Translate a list of indexes on bitsliced bit as left hand side.
+
+        Args:
+        result:storage for emitted code
+        value: value that is to be assigned to.
+        sym_count:count of temp vars in program"""
+        temp_init = Target_factory.name(sym_count, "init")
+        temp_term = self.indices[-1][-1].translate_size(sym_count)
+        result['emit'] += "uint8_t " + temp_init + " = 0;\n"
+        result['emit'] += temp_term['emit']
+        starting_ele = self.indices[-1][-1].start.translate(sym_count)  # Getting translation of starting element of range
+        result['emit'] += starting_ele['emit']
+        temp_starting_ele = Target_factory.name(sym_count, "rng_start")
+        result['emit'] += "uint8_t " + temp_starting_ele + " = " + starting_ele['result'] + ";\n"  # Assigning starting element of range to temp variable for incrementing
+        result['emit'] += "for(" + temp_init + " = 0; " + temp_init + " < " + temp_term['result'] + "; " + temp_init + "++, " + temp_starting_ele + "++){\n"
+        selection_dims = self.translate_selection_dim(sym_count)
+        result['emit'] += selection_dims['emit']
+        result['emit'] += self.target.translate()['result'] + selection_dims['result'] + "[" + temp_starting_ele + "] = " + value['result'] + "[" + temp_init + "];\n"
+        result['emit'] += "}\n" 
 
     def set_seq_int_val(self, value, sym_count):
+        """Sets a sequence of integers to passed in value.
+
+        Args:
+        value: value to set
+        sym_count: temp vars in program."""
         result = {'emit': "", 'result': ""}
         selection_dims = self.translate_selection_dim(sym_count)
         result['emit'] += selection_dims['emit']
@@ -525,6 +614,11 @@ class Index_select(object):
         return result
 
     def set_seq_bit_val(self, value, sym_count):
+        """Sets sequence of bits to passed in value.
+
+        Args:
+            value: Value to be set.
+            sym_count: count of temp vars in program. """
         result = {'emit': "", 'result': ""}
         selection_dims = self.translate_selection_dim(sym_count)
         result['emit'] += selection_dims['emit']
@@ -558,7 +652,13 @@ class Index_select(object):
             result['emit'] += "}\n"
 
     def range_int_bit_set(self, value, result, selection_dims, sym_count):
-        """Sets bits in an integer range"""
+        """Sets bits in an integer range
+
+        Args:
+            value: value to set int bit to
+            result: for storing code
+            selection_dims: any dimensions required to select correct element
+            sym_count: temp vars in program"""
         selection_dims = self.translate_selection_dim(sym_count)
         result['emit'] += selection_dims['emit']
         int_start_rng = self.indices[-1][-1].start.translate(sym_count)
@@ -576,6 +676,10 @@ class Index_select(object):
         result['emit'] += "}\n"
 
     def set_int_bit_val(self, value, sym_count):
+        """Sets  bit in standard in.
+        Args:
+            value: value that int bit is to be set to.
+            sym_count: count of vars in program"""
         result = {'emit': "", 'result': ""}
         selection_dims = self.translate_selection_dim(sym_count)
         result['emit'] += selection_dims['emit']
@@ -592,6 +696,11 @@ class Index_select(object):
 
 
     def literal_range_set(self, value, sym_count):
+        """Optimised set when literals have been used for range selectiong.
+
+        Args:
+            value:Value that selection is to be set to
+            sym_count: count of temporary variables in program"""
         result = {'emit': "", 'result': ""}
         start_ele = int(self.indices[-1][-1].start.translate()['result'])
         end_ele = int(self.indices[-1][-1].finish.translate()['result']) + 1
@@ -602,6 +711,11 @@ class Index_select(object):
         return result['emit']
 
     def extract_sequence(self, target, sym_count):
+        """Extracts sequence from target
+
+        Args:
+            target: Target that sequence is to be extracted from.
+            sym_count: count of temporary variables in program."""
         assert self.target.node_type == DATA_TYPE.ID, "Assumption target is just an ID at this point"
         if self.type == DATA_TYPE.BS_BIT_VAL:
             return self.extract_bs_int_bits(target, sym_count)
@@ -621,6 +735,11 @@ class Index_select(object):
             raise ParseException("Unsupport seq type extraction " + str(self.type) + " from " + str(self.target.type))
 
     def sequence_select(self, target, sym_count):
+        """ Extracts sequence from int sequence
+
+        Args:
+            target: target of sequence select.
+            sym_count: count of temp vars in program"""
         result = {'emit': "", 'result': ""}
         sel_dim = self.translate_selection_dim(sym_count)
         fin_index = self.indices[-1][-1].translate(sym_count)
@@ -630,11 +749,15 @@ class Index_select(object):
         return result
 
     def extract_seq_bit(self, target, sym_count):
-        """Index operation functionality on sequences of bits"""
+        """Index operation functionality on sequences of bits
+
+        Args:
+            target: target for bit select 
+            sym_count: count of temp vars in program"""
         result = {'emit': "", 'result': ""}
         result['result'] += Target_factory.name(sym_count, "bit_extracted")
         result['emit'] += Target_factory.type_decl_lookup[Target_factory.round_up_constraints(len(self.indices[-1]))] + result['result'] + " = 0;\n"
-        if self.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE:
+        if self.is_range():
             pass
         else:
             self.extract_list_bits(result, target, sym_count)
@@ -654,12 +777,17 @@ class Index_select(object):
             result['emit'] += result['result'] + " |= ((" + target + selection_dim['result'] + " >> " + ins_translated['result'] + ") & 0x1 ) << " + str(pos) + ";\n"
 
     def extract_int_bits(self, target, sym_count):
+        """extract bits from integers.
+
+        Args:
+            target: target for extraction
+            sym_count: count of temp vars in program"""
         result = {'emit': "", 'result': ""}
         result['result'] = Target_factory.name(sym_count, "extracted")
         result['emit'] += Target_factory.type_decl_lookup[self.target.constraints.translate()['result']] + " " + result['result'] + " = 0;\n"
         selection_dim = self.translate_selection_dim(sym_count)
         result['emit'] += selection_dim['emit']
-        if self.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE:
+        if self.is_range():
             start_range_target = Target_factory.name(sym_count, "int_rng_start")
             end_range_target = Target_factory.name(sym_count, "int_rng_start")
             start_val = self.indices[-1][-1].start.translate()
@@ -681,6 +809,13 @@ class Index_select(object):
         return result
 
     def extract_int_bit_seq(self, target, temp_target, sym_count, selection_dim):
+        """List index notation on integer values
+
+        Args:
+            target: node that holds value for extraction
+            temp_target: target for extraction to be stored in
+            sym_count: count for number of temp vars in program
+            selection_dims: any required selection dimensions for extraction"""
         result = {'emit': "", 'result': ""}
         for i, bit in enumerate(self.indices[-1]):
             index_res = bit.translate(sym_count)
@@ -732,13 +867,21 @@ class Index_select(object):
         return result
 
     def extract_range(self, sym_count, target):
-
+        """Extract range from passed in value
+        Args:
+            sym_count: count of temp vars in program.
+            target: target node for extraction."""
         if self.type == DATA_TYPE.SEQ_BS_BIT_VAL:
             return self.extract_bs_range(sym_count, target)
         else:
             raise ParseException("Unknown range type to create temporary variable for extraction " + self.type)
 
     def extract_bs_range(self, sym_count, target):
+        """Extracts subset of bits from bitsliced integer.
+
+        Args:
+            sym_count: count of temporary variables in program
+            target: target node for extraction """
         result = {'emit': "", 'result': "", 'res_size': ""}
         result['result'] = Target_factory.name(sym_count, "rnge")
         range_start = self.indices[-1][0].start.translate(sym_count)
@@ -753,12 +896,14 @@ class Index_select(object):
         return result
 
     def is_sequence(self):
+        """ returns true if result of node is a sequence"""
         if len(self.indices[-1]) > 1:
             return True
         return False
 
     def is_range(self):
-        if self.indices[-1][0].node_type == DATA_TYPE.INDEX_RANGE:
+        """Returns true if  """
+        if self.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE:
             assert len(self.indices[-1]) == 1, "Only single range contained in selection"
             return True
         else:
@@ -1405,21 +1550,6 @@ class Seq_val(object):
                 self.get_seq_size(ele.value)
         self.indiv_size.append(index + 1)
 
-    # def translate_int_literal_seq(self, sym_count, result):
-    #     temp_name = Target_factory.name(sym_count, "seq_val")
-    #     seq_dimension = self.translate_seq_size()
-    #     temp_dimension = ""
-    #     for dim in seq_dimension:
-    #         temp_dimension += "[" + str(dim) + "]"
-    #     result['emit'] += Target_factory.type_decl_lookup[self.get_constraints()] + " " + temp_name + temp_dimension + ";\n"
-    #     select_elements = itertools.product(*map(range, seq_dimension))
-    #     for element in select_elements:
-    #         element_l = list(element)
-    #         result['emit'] += temp_name + self.list_to_index(element_l) + " = " + self.get_value(self.value, element_l).translate()['result'] + ";\n"
-    #     result['result'] = temp_name
-    #     result['res_size'] = seq_dimension
-    #     return result
-
     def list_to_index(self, index_sel):
         index_str = ""
         for ele in index_sel:
@@ -1433,11 +1563,6 @@ class Seq_val(object):
         else:
             current_dim = dimension.pop(0)
             return self.get_value(seq_value[current_dim], dimension)
-
-    # def translate_sequence_assignment(self, sym_count, dimension):
-    #     for ele in self.value:
-
-
 
     def translate_seq_size(self):
         dimensions = []
@@ -2068,8 +2193,6 @@ class Binary_operation(object):
     def bitslice_bitwise(self, sym_count, target=None):
         result = {'emit': "", 'result': ""}
         if target is not None:
-            # print(left)
-            # print(right)
             left = self.left.translate(sym_count)
             right = self.right.translate(sym_count)
             if self.left.node_type == DATA_TYPE.ID and self.right.node_type == DATA_TYPE.ID:
@@ -2103,7 +2226,6 @@ class Binary_operation(object):
                     operand_1['result'] = cast['result']
                 elif self.right.type != self.type:
                     operand_2['result'] = cast['result']
-        # assert self.right.type == DATA_TYPE.INT_VAL, "Righthand side of shift needs to be integer"
         operation_size = self.get_bs_res_size(operand_1, operand_2)
         result['emit'] += function + temp_target['result'] + ", " + operand_1['result'] + ", " + operand_2['result']\
             + ", " + operation_size + ");\n"
@@ -2342,6 +2464,3 @@ class Cast_operation(object):
     @property
     def type(self):
         return self._type
-
-# if __name__ == "__main__":
-#     print(Target_factory.name(1))

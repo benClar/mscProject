@@ -268,6 +268,10 @@ class Semantic_analyser(object):
             Semantic_analysis_errors.semantic_err(node, details)
             return False
 
+    def validate_scope(self, node):
+        if len(self.sym_table._symbols.stack) == 1 and (node.node_type != DATA_TYPE.SBOX_DECL and node.node_type != DATA_TYPE.FUNC_DECL):
+            raise SemanticException("Only Sbox declarations are valid at the global scope")
+
     def analyse_bit_decl(self, node):
         """Anlyses bit declaration statement.
 
@@ -355,7 +359,7 @@ class Semantic_analyser(object):
                 if DATA_TYPE.is_seq_type(decl.value.node_type) and decl.value.dim_s != len(decl.size):
                     # Checking Dimensions match
                     raise SemanticException((str(decl.value.type) + "[]" * self.seq_value_dimension(decl.value)) +
-                                         "Cannot be assigned to " + str(decl.value.type) + ("[]" * len(decl.size)))
+                                        "Cannot be assigned to " + str(decl.value.type) + ("[]" * len(decl.size)))
                 if DATA_TYPE.is_seq_type(decl.value.type) and not DATA_TYPE.is_op_type(decl.value.node_type):
                     # Checking elements in range
                     self.seq_val_matches_dimensions(decl.value.dim_s, decl.size, decl.value)
@@ -519,6 +523,7 @@ class Semantic_analyser(object):
                 IR_expression.append(self.analyse_func_call(expr))
                 expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
             elif expr.node_type == DATA_TYPE.CAST:
+                raise SemanticException("Explicit Casts have not been implemented")
                 IR_expression.append(self.analyse_cast(expr))
                 expr_types["OPERAND_" + str(len(expr_types))] = IR_expression[-1].type
             elif expr.node_type == DATA_TYPE.INDEX_SELECT:
@@ -1143,18 +1148,19 @@ class Semantic_analyser(object):
             raise SemanticException("Error in sub statement")
         return stmt
 
-    def analyse(self, AST):
+    def analyse(self, AST, prod=False):
         correct = True
         result = None
         for node in AST.tree:
             try:
+                if prod is True:
+                    # Disallows global scope declarations on live runs,
+                    # allowing testing to work without having to declare functions
+                    self.validate_scope(node)
                 result = Semantic_analyser.node_type_lookup[node.node_type](self, node)
             except SemanticException as details:
-                if node.node_type == DATA_TYPE.EXPR:
-                    Semantic_analysis_errors.semantic_err(node, details)
-                    result = False
-                else:
-                    raise SemanticException(details)
+                Semantic_analysis_errors.semantic_err(node, details)
+                result = False
             if result is not False:
                 self.IR.add(result)
             else:

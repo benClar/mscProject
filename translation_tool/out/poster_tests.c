@@ -5,8 +5,8 @@
 #include "poster_tests.h"
 
 int main()	{
-	sbox_demo();
-	// int_extraction();
+	// sbox_demo();
+	int_extraction();
 	// bs_bitwise_demo();
 }
 
