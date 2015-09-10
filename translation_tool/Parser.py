@@ -142,7 +142,7 @@ class Parser(object):
         self.seq_decl = Group(self.seq_("decl") + Group(self.ID)("ID") + Optional(self.eq_set + Group(self.expr))("value"))
         self.seq_decl.setParseAction(self.AST.seq_decl)
 
-        self.decl = self.bit_decl | self.int_decl | self.seq_decl
+        self.decl = self.bit_decl ^ self.int_decl ^ self.seq_decl
 
         # ###### Statements
 

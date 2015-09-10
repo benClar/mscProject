@@ -414,7 +414,7 @@ class Semantic_analyser(object):
             if node.ID is not None:
                 self.sym_table.add_id(node.ID, decl.ID.type, len(decl.size))
                 self.sym_table.id(node.ID)['size'] = decl.size
-                self.sym_table.id(node.ID)['constraints'] = None
+                self.sym_table.id(node.ID)['constraints'] = decl.size[-1]
             return decl
         except SemanticException as details:
             Semantic_analysis_errors.semantic_err(node, details)
@@ -553,11 +553,9 @@ class Semantic_analyser(object):
         ID = Name(node.ID, self.sym_table.id_type(node.ID))
         node_type = self.sym_table.id_type(node.ID)
         if DATA_TYPE.is_seq_type(node_type):
-            if node_type == DATA_TYPE.BS_SEQ_INT_VAL or node_type == DATA_TYPE.SEQ_INT_VAL:
-                ID.constraints = self.sym_table.id(node.ID)['constraints']
-                ID.size = self.sym_table.id(node.ID)['size']
-            else:
-                ID.size = self.sym_table.id(node.ID)['size']
+            # if node_type == DATA_TYPE.BS_SEQ_INT_VAL or node_type == DATA_TYPE.SEQ_INT_VAL:
+            ID.constraints = self.sym_table.id(node.ID)['constraints']
+            ID.size = self.sym_table.id(node.ID)['size']
         elif DATA_TYPE.is_int_val(node_type):
             ID.constraints = self.sym_table.id(node.ID)['constraints']
         if is_return is True and DATA_TYPE.is_seq_type(node_type):
@@ -637,7 +635,7 @@ class Semantic_analyser(object):
         elif (len(ir_indices) > 1 and DATA_TYPE.is_int_val(self.sym_table.id(node.ID)['type'])):
             raise SemanticException("Integer cannot be treated as having more than one dimension")
 
-    def build_seq_index_ir(self, node, ir_indices):
+    def build_seq_index_ir(self, node, ir_indices):        
         """builds node repreenting index select on an sequence value
 
         Args:
@@ -650,8 +648,9 @@ class Semantic_analyser(object):
             if len(ir_indices[dim_n]) > 1 or ir_indices[dim_n][0].node_type == DATA_TYPE.INDEX_RANGE:
                 raise SemanticException("Cannot use lists or ranges on sequences")
         if self.sym_table.dimension(node.ID) > len(ir_indices):
-            return Index_select(Name(node.ID, target_id['type'], size=self.sym_table.id(node.ID)['size'], constraints=target_id['constraints']), ir_indices)
-        elif self.sym_table.dimension(node.ID) == len(ir_indices):            
+            raise SemanticException("Cannot select multi-dimensional Sequence")
+            # return Index_select(Name(node.ID, target_id['type'], size=self.sym_table.id(node.ID)['size'], constraints=target_id['constraints']), ir_indices)
+        elif self.sym_table.dimension(node.ID) == len(ir_indices):
             if self.is_range(ir_indices[-1]):
                 return Index_select(Name(node.ID, target_id['type'], size=self.sym_table.id(node.ID)['size'],  constraints=target_id['constraints']), ir_indices, target_id['type'])
             else:
@@ -696,7 +695,7 @@ class Semantic_analyser(object):
         Args:
         operation: nodes making up operation"""
         if operation.type == DATA_TYPE.INT_VAL:
-                operation.constraints = self.largest_int_lit(operation.left.constraints, operation.right.constraints)
+            operation.constraints = self.largest_int_lit(operation.left.constraints, operation.right.constraints)
         elif operation.type == DATA_TYPE.BIT_VAL:
             operation.constraints = Int_literal("8")
         elif operation.type == DATA_TYPE.BS_INT_VAL:

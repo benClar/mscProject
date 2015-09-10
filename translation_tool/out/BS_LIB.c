@@ -265,37 +265,35 @@ void testing(){
 	sput_enter_suite("Testing Bit Array Shifts");
 	sput_run_test(shift_testing);
 	sput_enter_suite("Testing Bit Array Bitwise");
-	sput_run_test(bitwise_testing);
-	sput_enter_suite("Testing Bit-Slicing");
 	sput_run_test(bitslice_testing);
 	sput_finish_testing();
 }
 
-void bitwise_testing()	{
-	uint32_t op_1[5] = {1,1,1,1,1};
-	uint32_t op_2[5] = {1,0,1,0,1};
-	uint32_t test_1_tar[5];
-	bitslice_bitwise(test_1_tar, op_1, op_2, 5, "^");
-	sput_fail_unless(test_1_tar[0] == 0,"XOR Test");
-	sput_fail_unless(test_1_tar[1] == 1,"XOR Test");
-	sput_fail_unless(test_1_tar[2] == 0,"XOR Test");
-	sput_fail_unless(test_1_tar[3] == 1,"XOR Test");
-	sput_fail_unless(test_1_tar[4] == 0,"XOR Test");
-	uint32_t test_2_tar[5];
-	bitslice_bitwise(test_2_tar, op_1, op_2, 5, "&");
-	sput_fail_unless(test_2_tar[0] == 1,"AND Test");
-	sput_fail_unless(test_2_tar[1] == 0,"AND Test");
-	sput_fail_unless(test_2_tar[2] == 1,"AND Test");
-	sput_fail_unless(test_2_tar[3] == 0,"AND Test");
-	sput_fail_unless(test_2_tar[4] == 1,"AND Test");
-	uint32_t test_3_tar[5];
-	bitslice_bitwise(test_3_tar, op_1, op_2, 5, "|");
-	sput_fail_unless(test_3_tar[0] == 1,"OR Test");
-	sput_fail_unless(test_3_tar[1] == 1,"OR Test");
-	sput_fail_unless(test_3_tar[2] == 1,"OR Test");
-	sput_fail_unless(test_3_tar[3] == 1,"OR Test");
-	sput_fail_unless(test_3_tar[4] == 1,"OR Test");
-}
+// void bitwise_testing()	{
+// 	uint32_t op_1[5] = {1,1,1,1,1};
+// 	uint32_t op_2[5] = {1,0,1,0,1};
+// 	uint32_t test_1_tar[5];
+// 	bitslice_bitwise(test_1_tar, op_1, op_2, 5, "^");
+// 	sput_fail_unless(test_1_tar[0] == 0,"XOR Test");
+// 	sput_fail_unless(test_1_tar[1] == 1,"XOR Test");
+// 	sput_fail_unless(test_1_tar[2] == 0,"XOR Test");
+// 	sput_fail_unless(test_1_tar[3] == 1,"XOR Test");
+// 	sput_fail_unless(test_1_tar[4] == 0,"XOR Test");
+// 	uint32_t test_2_tar[5];
+// 	bitslice_bitwise(test_2_tar, op_1, op_2, 5, "&");
+// 	sput_fail_unless(test_2_tar[0] == 1,"AND Test");
+// 	sput_fail_unless(test_2_tar[1] == 0,"AND Test");
+// 	sput_fail_unless(test_2_tar[2] == 1,"AND Test");
+// 	sput_fail_unless(test_2_tar[3] == 0,"AND Test");
+// 	sput_fail_unless(test_2_tar[4] == 1,"AND Test");
+// 	uint32_t test_3_tar[5];
+// 	bitslice_bitwise(test_3_tar, op_1, op_2, 5, "|");
+// 	sput_fail_unless(test_3_tar[0] == 1,"OR Test");
+// 	sput_fail_unless(test_3_tar[1] == 1,"OR Test");
+// 	sput_fail_unless(test_3_tar[2] == 1,"OR Test");
+// 	sput_fail_unless(test_3_tar[3] == 1,"OR Test");
+// 	sput_fail_unless(test_3_tar[4] == 1,"OR Test");
+// }
 
 void shift_testing(){
 	uint32_t test_source[5] = {0,1,0,0,1};

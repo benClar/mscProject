@@ -3,6 +3,7 @@ from DATA_TYPE import DATA_TYPE
 class SemanticException(Exception):
     pass
 
+
 class ReadException(Exception):
     pass
 
@@ -10,11 +11,22 @@ class ReadException(Exception):
 class InternalException(Exception):
     pass
 
+
 class err_format():
 
     error = "\033[01;31m{0}\033[00m"
     var = "\033[01;33m{0}\033[00m"
     msg = '\033[01;41m{0}\033[00m'
+
+
+class Unimplemented_functionality_errors():
+
+    def functionality_err(node, error_message):
+        print(err_format.error.format("Error") + " Unimplemented functionality has been used in " + err_format.var.format(node.node_type))
+        print(err_format.msg.format(error_message))
+        print("This functionality is not required for the functionality aims of this project and is considered future work")
+
+
 class Semantic_analysis_errors():
 
     error_lookup = {DATA_TYPE.INT_DECL: lambda node, error_message: Semantic_analysis_errors.int_decl_error(node, error_message),

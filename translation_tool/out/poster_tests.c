@@ -5,7 +5,7 @@
 #include "poster_tests.h"
 
 int main()	{
-	// sbox_demo();
+	// sbox_demo();make
 	int_extraction();
 	// bs_bitwise_demo();
 }

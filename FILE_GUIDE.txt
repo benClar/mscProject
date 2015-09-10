@@ -1,0 +1,41 @@
+FILE GUIDE
+
+There are various directories included in this submission.  Their contents are as follows:
+
+translation_tool: Translation tool and tests.  See README contained within this file for instructions on how to run.
+    -in: DSL source code.  The files in this directory represent the currently supported functionality for the translation tool. 
+        (Includes DSL for this project's targeted programs)
+    -out: output directory for C produced by the translation tool.
+    -test_output: output directory for c tests
+        -runtime_checks: Testing for bounds checking stopping execution
+        -led_dsl: Generates and compiles LED and runs all test vectors through program
+        -lfsr_dsl: Generates and compiles LFSR and runs all test vectors through program
+        -present_dsl: Generates and compiles PRESENT and runs all test vectors through program
+        -prince_dsl: Generates and compiles PRINCE and runs all test vectors through program
+        -general_dsl: Testing for non-critical functionality
+
+data: Result data presented in report & tools created in python to analyse data.
+    -indiv_runs: data for analysis of individual runs (execution time of 1000 runs of ciphers.)
+        -opt: data relating to optimised versions of translation output
+        -hw: data relating to handwritten versions
+    -mean_runs: data used for analysis of cipher run times.  (Execution time of 1000000 runs of ciphers.)
+        -v1: data relating to unoptimised versions of translation output
+        -opt: data relating to optimised versions of translation output
+        -hw: data relating to handwritten versions
+
+ciphers: C source code for ciphers
+    -handwritten: handwritten versions of ciphers.  Includes correctness and performance evaluation suites
+        -prince : PRINCE cipher files
+        -lfsr : LFSR files
+        -led : LED cipher files
+        -present : PRESENT cipher files
+    -v1: Translation tool output of unoptimised ciphers + correctness and performance evaluation suites
+        -prince : PRINCE cipher files
+        -led : LED cipher files
+        -present : PRESENT cipher files
+    -opt: Translation tool output of optimised ciphers + correctness and performance evaluation suites (Output that translation tool currently generates)
+        -prince : PRINCE cipher files
+        -lfsr : LFSR files
+        -led : LED cipher files
+        -present : PRESENT cipher files
+    BS_LIB: library files with 'bit-slicing' functions
