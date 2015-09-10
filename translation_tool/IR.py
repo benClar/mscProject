@@ -225,7 +225,7 @@ class If_stmt(object):
         result = {'emit': "", 'result': ""}
         condition_result = self.condition.translate(sym_count)
         result['emit'] += condition_result['emit']
-        result['emit'] += "if(" + condition_result['result'] + ") { \n"
+        result['emit'] += "if" + condition_result['result'] + " { \n"
         result['emit'] += self.translate_body(sym_count)
         result['emit'] += "} \n"
         return result['emit']
@@ -324,7 +324,9 @@ class Cast(object):
         result = {'emit': "", 'result': ""}
         # if target.node_type
         if DATA_TYPE.is_op_type(target.node_type):
-            pass
+            op = target.translate(sym_count)
+            result['result'] += op['result']
+            result['emit'] += op['emit']
         elif target.node_type == DATA_TYPE.SEQ_VAL:
             Cast.bit_seq_val_to_int_val(result, target, sym_count)
         return result
@@ -993,7 +995,7 @@ class Set(object):
                     value_result = self.value.translate(sym_count)
                     result['emit'] += value_result['emit']
                     # raise ParseException(str(self.value.type) + " being assigned to a  " + str(self.target.type) + " : Cast needed")
-                if self.target.type == DATA_TYPE.INT_VAL or self.target.type == DATA_TYPE.BS_BIT_VAL or self.target.type == DATA_TYPE.BIT_VAL: 
+                if self.target.type == DATA_TYPE.INT_VAL or self.target.type == DATA_TYPE.BS_BIT_VAL or self.target.type == DATA_TYPE.BIT_VAL:
                     self.translate_integer_set(result, value_result, sym_count)
                 elif self.target.type == DATA_TYPE.BS_INT_VAL:
                     self.translate_bs_int_set(result, value_result, sym_count)
@@ -2122,8 +2124,11 @@ class Binary_operation(object):
 
     def seq_bit_bitwise(self, result, operand_1, operand_2, sym_count):
         """Translates bitwise operations on sequences of bits"""
-        result['result'] += operand_1['result'] + " " + self.operator + " " + operand_2['result']
+        result['result'] += "(" + operand_1['result'] + " " + self.operator + " " + operand_2['result'] + ")"
         return result
+
+    def translate_target_size(self, sym_count):
+        return self.constraints.translate(sym_count)
 
     def seq_bit_shift(self, result, operand_1, operand_2, sym_count):
         """Translates shift or rotate of a subset of bits of an int value"""
@@ -2137,7 +2142,7 @@ class Binary_operation(object):
         else:
             raise InternalException("Unsupported bit seq extraction on " + str(self.left.node_type))
         if self.operator == "<<":
-            result['emit'] += result['result'] + " = " + operand_1['result'] + " << " + operand_2['result'] + ";\n"
+            result['emit'] += result['result'] + " = " + "(" + operand_1['result'] + ")" + " << " + operand_2['result'] + ";\n"
         elif self.operator == ">>":
             result['emit'] += result['result'] + " = " + operand_1['result'] + " >> " + operand_2['result'] + ";\n"
         elif self.operator == ">>>" or self.operator == "<<<":
@@ -2149,15 +2154,15 @@ class Binary_operation(object):
 
     def int_bit_rotate(self, result, op_1, op_2, size):
         if self.operator == ">>>":
-            result['emit'] += result['result'] + " = " + "(" + op_1 + " >> " + op_2 + ") | (" + op_1\
-                + " << " + "(" + size + " - " + op_2 + "));\n"
+            result['emit'] += result['result'] + " = " + "(" + "(" + op_1 + ")" + " >> " + op_2 + ") | (" + "(" + op_1\
+                + ")" + " << " + "(" + str(size) + " - " + op_2 + "));\n"
         elif self.operator == "<<<":
-            result['emit'] += result['result'] + " = " + "(" + op_1 + " << " + op_2 + ") | (" + op_1\
-                + " >> " + "(" + size + " - " + op_2 + "));\n"
+            result['emit'] += result['result'] + " = " + "(" + "(" + op_1 + ")" + " << " + op_2 + ") | (" + "(" + op_1\
+                + ")" + " >> " + "(" + str(size) + " - " + op_2 + "));\n"
 
     def mask_shift(self, result, bit_size, sym_count):
         init = Target_factory.name(sym_count, "mask_loop_init")
-        result['emit'] += "uint32_t " + init + " = " + bit_size + ";\n"
+        result['emit'] += "uint32_t " + init + " = " + str(bit_size) + ";\n"
         result['emit'] += "for(; " + init + " < 32; " + init + "++) {\n"
         result['emit'] += result['result'] + " &= ~(0x1 << " + init + ");\n"
         result['emit'] += "}\n"
@@ -2313,7 +2318,7 @@ class Binary_operation(object):
         operand_2 = self.right.translate(sym_count)
         result['emit'] += operand_1['emit']
         result['emit'] += operand_2['emit']
-        result['result'] = operand_1['result'] + " " + self.operator + " " + operand_2['result']
+        result['result'] = "(" + operand_1['result'] + " " + self.operator + " " + operand_2['result'] + ")"
         return result
 
     def bs_bit_compute_operation(self, sym_count):

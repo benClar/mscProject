@@ -26,7 +26,7 @@ void  lfsr(uint32_t *temp_1_bs_return, uint32_t state[8]){
 uint32_t rndm_bits[32] = {0};
 uint8_t r = 0;
 r = 0;
-for(;r < 32;) { 
+for(;(r < 32);) { 
 uint32_t temp_3_call;
 temp_3_call = generate_bit(state);
 if(r >= 32){

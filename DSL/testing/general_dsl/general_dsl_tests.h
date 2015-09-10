@@ -22,3 +22,5 @@ void bit_seq_arith_test_17();
 void bs_seq_mult_test_18();
 void bs_bit_cast_test_19();
 void bit_seq_expr_bs_test_20();
+void bit_seq_expr_21();
+void bit_seq_expr_arith_test_22();

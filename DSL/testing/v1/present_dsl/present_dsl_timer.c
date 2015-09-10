@@ -6,16 +6,17 @@
 #include "present_dsl_timer.h"
 
 int main() {
-	// cipher_time();
-	pLayer_time();
-	generate_round_keys_time();
-	sBox_layer_time();
+	cipher_time();
+	// pLayer_time();
+	// generate_round_keys_time();
+	// sBox_layer_time();
 }
 
 void cipher_time(){
+	//100000 runs to generater inter-q. range and mean
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t key[80] = {0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -23,29 +24,20 @@ void cipher_time(){
 		start = mach_absolute_time();
 		enc(key, state);
 		end = mach_absolute_time();
-		result += (end - start);
+		printf("%lu\n", end - start);
 		for(int bit = 0; bit < 64; bit++)	{
 			state[bit] = 0;
 		}
 		for(int bit = 0; bit < 80; bit++)	{
 			key[bit] = 0xffffffff;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
-	printf("cipher time: %lu\n", result / 100000);
-	// printf("cipher time: %lu\n", (result / 100000) * info.numer / info.denom * info.numer / info.denom);
-	// printf("cipher high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("cipher low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void pLayer_time(){
+	//100000 runs of player to generate mean for this function
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -57,21 +49,14 @@ void pLayer_time(){
 		for(int bit = 0; bit < 64; bit++)	{
 			state[bit] = 0;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 	printf("pLayer time: %lu\n", result / 100000);
-	// printf("pLayer high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("pLayer low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void generate_round_keys_time()	{
+	//100000 runs of round_keys to generate mean for this function
 	uint32_t key[80] = {0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -84,21 +69,14 @@ void generate_round_keys_time()	{
 		for(int bit = 0; bit < 80; bit++)	{
 			key[bit] = 0xffffffff;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 	printf("generate_round_keys time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("generate_round_keys high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("generate_round_keys low: %lu\n", (low / 100000) * info.numer / info.denom);	
 }
 
 void sBox_layer_time()	{
+	//100000 runs of sbox to generate mean for this function
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 	
@@ -110,16 +88,8 @@ void sBox_layer_time()	{
 		for(int bit = 0; bit < 64; bit++)	{
 			state[bit] = 0;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 	printf("sbox_Layer time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("sbox_Layer high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("sbox_Layer low: %lu\n", (low / 100000) * info.numer / info.denom);	
 }
 
 

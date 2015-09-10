@@ -5,16 +5,16 @@
 
 #include "present_dsl.h"
 uint32_t present_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & B & A) | (~D & ~C & A) | (D & ~C & ~A) | (D & C & ~B & A) | (~D & C & ~B & ~A) | (D & B & ~A));
+return ((D & B & ~A) | (~D & ~C & A) | (D & ~C & ~A) | (~D & B & A) | (D & C & ~B & A) | (~D & C & ~B & ~A));
 }
 uint32_t present_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C & A) | (~D & B & ~A) | (D & ~C & ~A) | (D & ~B & A) | (~D & ~C & B));
+return ((D & ~B & A) | (D & ~C & ~A) | (~D & B & ~A) | (~C & B & ~A) | (~D & ~C & B) | (D & C & A));
 }
 uint32_t present_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~C & ~A) | (~C & B & ~A) | (D & C & ~B) | (~D & C & B & A) | (~C & ~B & A) | (D & ~B & A));
+return ((D & C & ~B) | (D & ~B & A) | (~D & ~C & ~A) | (~C & ~B & A) | (~D & C & B & A) | (~C & B & ~A));
 }
 uint32_t present_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & B & A) | (D & ~C & A) | (~D & C & ~A) | (D & ~C & B) | (~D & C & B) | (~D & ~B & ~A));
+return ((~D & ~B & ~A) | (D & ~C & A) | (~D & B & A) | (~D & C & ~A) | (~D & C & B) | (D & ~C & B));
 }
 void present(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -96,7 +96,7 @@ temp[62] = state[62];
 temp[63] = state[63];
 uint8_t bit = 0;
 bit = 0;
-for(;bit < 64;) { 
+for(;(bit < 64);) { 
 target_bit = ((16 * bit) % 63);
 if(bit == 63) { 
 target_bit = 63;
@@ -116,7 +116,7 @@ bit = (bit + 1);
 void generate_round_keys(uint32_t key[80], uint32_t round_keys[32][64]){ 
 uint8_t round = 0;
 round = 1;
-for(;round < 33;) { 
+for(;(round < 33);) { 
 uint32_t temp_5_rnge[(79 - 16) + 1];
 extract_bs_range(temp_5_rnge, key, 16, 79);
 if((round - 1) >= 32){
@@ -299,7 +299,7 @@ round = (round + 1);
 void sBox_layer(uint32_t state[64]){ 
 uint8_t i = 0;
 i = 0;
-for(;i < 16;) { 
+for(;(i < 16);) { 
 if((i * 4) >= 64){
 fprintf(stderr, "Index out of bounds for selection on state\n");
 exit(1);
@@ -341,7 +341,7 @@ void enc(uint32_t key[80], uint32_t state[64], uint32_t round_keys[32][64]){
 generate_round_keys(key, round_keys);
 uint8_t round = 0;
 round = 0;
-for(;round < 31;) { 
+for(;(round < 31);) { 
 state[0] = state[0] ^ round_keys[round][0];
 state[1] = state[1] ^ round_keys[round][1];
 state[2] = state[2] ^ round_keys[round][2];

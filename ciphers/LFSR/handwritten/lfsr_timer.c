@@ -8,7 +8,7 @@
 int main()	{
 	// cipher_constant_time();
 	program_time();
-	generate_bit_time();
+	// generate_bit_time();
 }
 
 void cipher_constant_time()	{
@@ -58,12 +58,12 @@ void program_time()	{
 	uint32_t output[32] = {0};
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end;
 	for(int run = 0; run < 100000; run++)	{
 		start = mach_absolute_time();
 		lfsr(output,state);
 		end = mach_absolute_time();
-		result += (end - start);
+		printf("%lu\n",(end - start));
 		state[0] = 0;
 		state[1] = 0xffffffff;
 		state[2] = 0;
@@ -75,16 +75,7 @@ void program_time()	{
 		for(int bit = 0; bit < 32; bit++)	{
 			output[bit] = 0;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
-	printf("lfsr: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("lfsr high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("lfsr low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void generate_bit_time()	{
@@ -92,7 +83,7 @@ void generate_bit_time()	{
 	uint32_t output[1] = {0};
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 
 	for(int run = 0; run < 100000; run++)	{
 		start = mach_absolute_time();
@@ -108,12 +99,6 @@ void generate_bit_time()	{
 		state[6] = 0;
 		state[7] = 0xffffffff;
 		output[0] = 0;
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 
 	printf("generate bit: %lu\n", (result / 100000) * info.numer / info.denom);

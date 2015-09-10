@@ -28,4 +28,6 @@ void int_to_seq_bit_cast();
 void  bs_bit_expr_cast(uint32_t *temp_49_bs_return);
 void bit_to_bs_bit_set();
 void  bit_seq_expr_to_bs(uint32_t *temp_60_bs_return);
+uint8_t  bit_seq_expr_rotate();
+uint8_t  bit_seq_expr_arith();
 

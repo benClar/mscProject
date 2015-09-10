@@ -1,12 +1,6 @@
 import sys
-from collections import OrderedDict
-
-def read(file_name):
-    vals = []
-    with open(file_name, "rU") as f:
-        for line in f:
-            vals.append(int(line))
-    return vals
+import Line_read
+"""divides a list of values into a given set of subgroups"""
 
 def group(groups, vals):
     grouped_vals = {}
@@ -18,6 +12,7 @@ def group(groups, vals):
                 grouped_vals[g].append(v)
                 break
     return grouped_vals
+
 
 def group_len(grouped_vals):
     sum_ = 0
@@ -31,5 +26,4 @@ def group_len(grouped_vals):
             print(key + " :" + str(value))
 
 if __name__ == '__main__':
-    group_len(group([10000, 15000, 20000, 25000, 30000], read(sys.argv[1])))
-    
+    group_len(group([10000, 15000, 20000, 25000, 30000], Line_read.read(sys.argv[1])))

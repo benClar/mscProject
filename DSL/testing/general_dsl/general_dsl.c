@@ -48,7 +48,7 @@ temp_2_extracted ^= (((a >> 1) & 0x1) << 1);
 temp_2_extracted ^= (((a >> 2) & 0x1) << 2);
 temp_2_extracted ^= (((a >> 3) & 0x1) << 3);
 uint32_t temp_3_bit_seq = 0x0;
-temp_3_bit_seq = temp_2_extracted << 1;
+temp_3_bit_seq = (temp_2_extracted) << 1;
 uint32_t temp_4_mask_loop_init = 4;
 for(; temp_4_mask_loop_init < 32; temp_4_mask_loop_init++) {
 temp_3_bit_seq &= ~(0x1 << temp_4_mask_loop_init);
@@ -84,7 +84,7 @@ temp_5_extracted ^= (((a >> 1) & 0x1) << 1);
 temp_5_extracted ^= (((a >> 2) & 0x1) << 2);
 temp_5_extracted ^= (((a >> 3) & 0x1) << 3);
 uint32_t temp_6_bit_seq = 0x0;
-temp_6_bit_seq = (temp_5_extracted << 3) | (temp_5_extracted >> (4 - 3));
+temp_6_bit_seq = ((temp_5_extracted) << 3) | ((temp_5_extracted) >> (4 - 3));
 uint32_t temp_7_mask_loop_init = 4;
 for(; temp_7_mask_loop_init < 32; temp_7_mask_loop_init++) {
 temp_6_bit_seq &= ~(0x1 << temp_7_mask_loop_init);
@@ -121,7 +121,7 @@ temp_8_extracted ^= (((a >> 2) & 0x1) << 2);
 temp_8_extracted ^= (((a >> 3) & 0x1) << 3);
 temp_8_extracted ^= (((a >> 4) & 0x1) << 4);
 uint32_t temp_9_bit_seq = 0x0;
-temp_9_bit_seq = (temp_8_extracted >> 3) | (temp_8_extracted << (5 - 3));
+temp_9_bit_seq = ((temp_8_extracted) >> 3) | ((temp_8_extracted) << (5 - 3));
 uint32_t temp_10_mask_loop_init = 5;
 for(; temp_10_mask_loop_init < 32; temp_10_mask_loop_init++) {
 temp_9_bit_seq &= ~(0x1 << temp_10_mask_loop_init);
@@ -163,7 +163,7 @@ for(;temp_12_int_rng_start < 4;temp_12_int_rng_start++, temp_14_target_bit++){
 temp_11_extracted |= ((a >> temp_12_int_rng_start)  << temp_14_target_bit);
 }
 uint32_t temp_15_bit_seq = 0x0;
-temp_15_bit_seq = (temp_11_extracted >> 3) | (temp_11_extracted << ((4 - 0) + 1 - 3));
+temp_15_bit_seq = ((temp_11_extracted) >> 3) | ((temp_11_extracted) << ((4 - 0) + 1 - 3));
 uint32_t temp_16_mask_loop_init = (4 - 0) + 1;
 for(; temp_16_mask_loop_init < 32; temp_16_mask_loop_init++) {
 temp_15_bit_seq &= ~(0x1 << temp_16_mask_loop_init);
@@ -245,7 +245,7 @@ temp_25_casted_bit_seq |= 0x1 << 0;
 temp_25_casted_bit_seq |= 0x1 << 1;
 temp_25_casted_bit_seq |= 0x1 << 3;
 uint32_t temp_26_bit_seq = 0x0;
-temp_26_bit_seq = (temp_25_casted_bit_seq << 1) | (temp_25_casted_bit_seq >> (4 - 1));
+temp_26_bit_seq = ((temp_25_casted_bit_seq) << 1) | ((temp_25_casted_bit_seq) >> (4 - 1));
 uint32_t temp_27_mask_loop_init = 4;
 for(; temp_27_mask_loop_init < 32; temp_27_mask_loop_init++) {
 temp_26_bit_seq &= ~(0x1 << temp_27_mask_loop_init);
@@ -369,10 +369,10 @@ a[1] |= (0x1 << 1);
 a[1] |= (0x1 << 0);
 uint8_t outer = 0;
 outer = 0;
-for(;outer < 2;) { 
+for(;(outer < 2);) { 
 uint8_t inner = 0;
 inner = 0;
-for(;inner < 2;) { 
+for(;(inner < 2);) { 
 if(outer >= 2){
 fprintf(stderr, "Index out of bounds for selection on a\n");
 exit(1);
@@ -634,7 +634,7 @@ uint8_t temp_58_casted_bit_seq = 0;
 temp_58_casted_bit_seq |= 0x1 << 1;
 temp_58_casted_bit_seq |= 0x1 << 2;
 uint32_t temp_59_cast_bs_seq[3];
-int_to_bitsliced(temp_59_cast_bs_seq, temp_57_casted_bit_seq ^ temp_58_casted_bit_seq, 3);
+int_to_bitsliced(temp_59_cast_bs_seq, (temp_57_casted_bit_seq ^ temp_58_casted_bit_seq), 3);
 a[0][1] = temp_59_cast_bs_seq[0];
 a[0][2] = temp_59_cast_bs_seq[1];
 a[0][3] = temp_59_cast_bs_seq[2];
@@ -646,5 +646,33 @@ temp_56_bs_return[4] = a[0][4];
 temp_56_bs_return[5] = a[0][5];
 temp_56_bs_return[6] = a[0][6];
 temp_56_bs_return[7] = a[0][7];
+}
+uint8_t  bit_seq_expr_rotate(){ 
+uint8_t a = 0;
+uint8_t temp_61_casted_bit_seq = 0;
+temp_61_casted_bit_seq |= 0x1 << 0;
+temp_61_casted_bit_seq |= 0x1 << 1;
+temp_61_casted_bit_seq |= 0x1 << 2;
+uint8_t temp_62_casted_bit_seq = 0;
+temp_62_casted_bit_seq |= 0x1 << 0;
+uint32_t temp_63_bit_seq = 0x0;
+temp_63_bit_seq = (((temp_61_casted_bit_seq ^ temp_62_casted_bit_seq)) << 2) | (((temp_61_casted_bit_seq ^ temp_62_casted_bit_seq)) >> (3 - 2));
+uint32_t temp_64_mask_loop_init = 3;
+for(; temp_64_mask_loop_init < 32; temp_64_mask_loop_init++) {
+temp_63_bit_seq &= ~(0x1 << temp_64_mask_loop_init);
+}
+a = temp_63_bit_seq;
+return a;
+}
+uint8_t  bit_seq_expr_arith(){ 
+uint8_t a = 0;
+uint8_t temp_67_casted_bit_seq = 0;
+temp_67_casted_bit_seq |= 0x1 << 0;
+temp_67_casted_bit_seq |= 0x1 << 1;
+temp_67_casted_bit_seq |= 0x1 << 2;
+uint8_t temp_68_casted_bit_seq = 0;
+temp_68_casted_bit_seq |= 0x1 << 0;
+a = ((temp_67_casted_bit_seq * temp_68_casted_bit_seq) * 2);
+return a;
 }
 

@@ -48,6 +48,10 @@ int main() {
 	sput_run_test(bs_bit_cast_test_19);
 	sput_enter_suite("bit seq operations tests");
 	sput_run_test(bit_seq_expr_bs_test_20);
+	sput_enter_suite("bit seq operations tests");
+	sput_run_test(bit_seq_expr_21);
+	sput_enter_suite("bit seq operations tests");
+	sput_run_test(bit_seq_expr_arith_test_22);
 	sput_finish_testing();
 	return sput_get_return_value();
 }
@@ -163,3 +167,10 @@ void bit_seq_expr_bs_test_20()	{
 	sput_fail_unless(output[3] == 0xffffffff, "Bit cast 20");
 }
 
+void bit_seq_expr_21()	{
+	sput_fail_unless(bit_seq_expr_rotate() == 3, "Bit seq expr 21");
+}
+
+void bit_seq_expr_arith_test_22()	{
+	sput_fail_unless(bit_seq_expr_arith() == 14, "Bit seq expr 21");
+}

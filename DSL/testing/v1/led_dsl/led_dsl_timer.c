@@ -15,6 +15,7 @@ int main() {
 }
 
 void cipher_time(){
+	//100000 runs to get the interquartile range and mean
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t key[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t MDS[16][4] = {{0}};
@@ -68,7 +69,7 @@ void cipher_time(){
 	bitslice(RC[29],0x2E,6);
 	bitslice(RC[30],0x1C,6);
 	bitslice(RC[31],0x38,6);
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -76,26 +77,18 @@ void cipher_time(){
 		start = mach_absolute_time();
 		enc(state, key, MDS, RC);
 		end = mach_absolute_time();
-		result += (end - start);
+		printf("%lu\n", (end - start));
 		for(int bit = 0; bit < 64; bit++)	{
 			state[bit] = 0;
 		}
 		for(int bit = 0; bit < 80; bit++)	{
 			key[bit] = 0xffffffff;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
-	printf("cipher time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("cipher high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("cipher low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void addConstants_time()	{
+	//100000 runs of addConstants to get mean for addConstants functions
 	uint32_t RC[32][6] = {{0}};
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	bitslice(RC[0],0x01,6);
@@ -130,7 +123,7 @@ void addConstants_time()	{
 	bitslice(RC[29],0x2E,6);
 	bitslice(RC[30],0x1C,6);
 	bitslice(RC[31],0x38,6);
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -142,21 +135,14 @@ void addConstants_time()	{
 		for(int bit = 0; bit < 64; bit++)	{
 			state[bit] = 0;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 	printf("addConstants time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("addConstants high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("addConstants low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void subCells_time()	{
+	//100000 runs of subcells to get mean time of this function
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -168,21 +154,14 @@ void subCells_time()	{
 		for(int bit = 0; bit < 64; bit++)	{
 			state[bit] = 0;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 	printf("Subcells time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("Subcells high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("Subcells low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void shift_row_time()	{
+	//100000 runs of shiftRow to get mean for gmMult function
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -194,19 +173,12 @@ void shift_row_time()	{
 		for(int bit = 0; bit < 64; bit++)	{
 			state[bit] = 0;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 	printf("shift_row time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("shift_row high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("shift_row low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void MixColumnSerial_time()	{
+	//100000 runs of mixColumnSerial to get mean for gmMult function
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t MDS[16][4] = {{0}};
 	bitslice(MDS[0],0x4,4);
@@ -225,7 +197,7 @@ void MixColumnSerial_time()	{
 	bitslice(MDS[13],0x2,4);
 	bitslice(MDS[14],0xF,4);
 	bitslice(MDS[15],0xB,4);
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -237,23 +209,16 @@ void MixColumnSerial_time()	{
 		for(int bit = 0; bit < 64; bit++)	{
 			state[bit] = 0;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 	printf("MixColumnSerial time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("MixColumnSerial high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("MixColumnSerial low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void gm_mult_time()	{
+	//100000 runs of gmMult to get mean for gmMult function
 	uint32_t op_1[4] = {1,0,1,0};
 	uint32_t op_2[4] = {0,0,1,0};
 	uint32_t output[4] = {0};
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 	
@@ -265,15 +230,7 @@ void gm_mult_time()	{
 		for(int bit = 0; bit < 4; bit++)	{
 			output[bit] = 0;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 	printf("gm mult time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("gm mult high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("gm mult low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 

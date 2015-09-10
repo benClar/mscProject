@@ -7,11 +7,11 @@
 
 int main() {
 	cipher_time();
-	mPrime_time();
-	sBox_layer_time();
-	shift_rows_time();
-	lastRounds_time();
-	firstRounds_time();
+	// mPrime_time();
+	// sBox_layer_time();
+	// shift_rows_time();
+	// lastRounds_time();
+	// firstRounds_time();
 }
 
 void cipher_time()	{
@@ -33,7 +33,7 @@ void cipher_time()	{
 	bitslice(RC[9],0x64a51195e0e3610d, 64);
 	bitslice(RC[10],0xd3b5a399ca0c2399, 64);
 	bitslice(RC[11],0xc0ac29b7c97c50dd, 64);
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -41,30 +41,20 @@ void cipher_time()	{
 		start = mach_absolute_time();
 		enc(RC, state, key_0, key_1);
 		end = mach_absolute_time();
-		result += (end - start);
+		printf("%lu\n",end-start);
 		for(bit = 0; bit < 64; bit++)	{
 			state[bit] = 0xffffffff;
 			key_0[bit] = 0;
 			key_1[bit] = 0;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
-	printf("cipher time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("cipher high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("cipher low: %lu\n", (low / 100000) * info.numer / info.denom);
-
 }
 
 void shift_rows_time()	{
 	uint32_t state[64] = {0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
 	uint32_t output[64] = {0};
 	int bit;
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -76,22 +66,14 @@ void shift_rows_time()	{
 		for(bit = 0; bit < 64; bit++)	{
 			state[bit] = 0xffffffff;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 	printf("shift_rows time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("shift_rows high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("shift_rows low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void sBox_layer_time()	{
 	uint32_t state[64] = {0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
 	int bit;
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -103,17 +85,8 @@ void sBox_layer_time()	{
 		for(bit = 0; bit < 64; bit++)	{
 			state[bit] = 0xffffffff;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 	printf("sBox_layer time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("sBox_layer high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("sBox_layer low: %lu\n", (low / 100000) * info.numer / info.denom);
-
 }
 
 void mPrime_time()	{
@@ -121,7 +94,7 @@ void mPrime_time()	{
 	int bit;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	for(int run = 0; run < 100000; run++)	{
 		start = mach_absolute_time();
 		mPrime(state);
@@ -130,16 +103,8 @@ void mPrime_time()	{
 		for(bit = 0; bit < 64; bit++)	{
 			state[bit] = 0xffffffff;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 	printf("mPrime time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("mPrime high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("mPrime low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void firstRounds_time()	{
@@ -160,7 +125,7 @@ void firstRounds_time()	{
 	bitslice(RC[9],0x64a51195e0e3610d, 64);
 	bitslice(RC[10],0xd3b5a399ca0c2399, 64);
 	bitslice(RC[11],0xc0ac29b7c97c50dd, 64);
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -174,17 +139,9 @@ void firstRounds_time()	{
 			key_0[bit] = 0;
 			key_1[bit] = 0;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 
 	printf("first_rounds time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("first_rounds high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("first_rounds low: %lu\n", (low / 100000) * info.numer / info.denom);
 }
 
 void lastRounds_time()	{
@@ -205,7 +162,7 @@ void lastRounds_time()	{
 	bitslice(RC[9],0x64a51195e0e3610d, 64);
 	bitslice(RC[10],0xd3b5a399ca0c2399, 64);
 	bitslice(RC[11],0xc0ac29b7c97c50dd, 64);
-	clock_t start, end, result = 0, high = 0, low = 0;
+	clock_t start, end, result = 0;
 	mach_timebase_info_data_t info;
 	mach_timebase_info(&info);
 
@@ -219,15 +176,7 @@ void lastRounds_time()	{
 			key_0[bit] = 0;
 			key_1[bit] = 0;
 		}
-		if (result > high)	{
-			high = result;
-		}
-		if (result < low)	{
-			low = result;
-		}
 	}
 
 	printf("last_rounds time: %lu\n", (result / 100000) * info.numer / info.denom);
-	// printf("last_rounds high: %lu\n", (high / 100000) * info.numer / info.denom);
-	// printf("last_rounds low: %lu\n", (low / 100000) * info.numer / info.denom);
 }

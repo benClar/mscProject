@@ -5,16 +5,16 @@
 
 #include "led_dsl.h"
 uint32_t led_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & B & A) | (~D & ~C & A) | (D & ~C & ~A) | (D & C & ~B & A) | (~D & C & ~B & ~A) | (D & B & ~A));
+return ((D & B & ~A) | (~D & ~C & A) | (D & ~C & ~A) | (~D & B & A) | (D & C & ~B & A) | (~D & C & ~B & ~A));
 }
 uint32_t led_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C & A) | (~D & B & ~A) | (D & ~C & ~A) | (D & ~B & A) | (~D & ~C & B));
+return ((D & ~B & A) | (D & ~C & ~A) | (~D & B & ~A) | (~C & B & ~A) | (~D & ~C & B) | (D & C & A));
 }
 uint32_t led_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~C & ~A) | (~C & B & ~A) | (D & C & ~B) | (~D & C & B & A) | (~C & ~B & A) | (D & ~B & A));
+return ((D & C & ~B) | (D & ~B & A) | (~D & ~C & ~A) | (~C & ~B & A) | (~D & C & B & A) | (~C & B & ~A));
 }
 uint32_t led_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & B & A) | (D & ~C & A) | (~D & C & ~A) | (D & ~C & B) | (~D & C & B) | (~D & ~B & ~A));
+return ((~D & ~B & ~A) | (D & ~C & A) | (~D & B & A) | (~D & C & ~A) | (~D & C & B) | (D & ~C & B));
 }
 void led(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -57,14 +57,14 @@ uint8_t bit = 0;
 bit = 0;
 uint8_t degree = 0;
 degree = 0;
-for(;degree < 4;) { 
+for(;(degree < 4);) { 
 f[0]= 0;
 t[0] = b_out[0] & 0xffffffff;
 t[1] = b_out[1] & 0x0;
 t[2] = b_out[2] & 0x0;
 t[3] = b_out[3] & 0x0;
 bit = 0;
-for(;bit < 4;) { 
+for(;(bit < 4);) { 
 if(bit >= 4){
 fprintf(stderr, "Index out of bounds for selection on t\n");
 exit(1);
@@ -73,7 +73,7 @@ f[0] = (f[0] | t[bit]);
 bit = (bit + 1);
 } 
 bit = 0;
-for(;bit < 4;) { 
+for(;(bit < 4);) { 
 if(bit >= 4){
 fprintf(stderr, "Index out of bounds for selection on a_out\n");
 exit(1);
@@ -97,7 +97,7 @@ a_out[1] = temp_5__bin[1];
 a_out[2] = temp_5__bin[2];
 a_out[3] = temp_5__bin[3];
 bit = 0;
-for(;bit < 4;) { 
+for(;(bit < 4);) { 
 if(bit >= 4){
 fprintf(stderr, "Index out of bounds for selection on a_out\n");
 exit(1);
@@ -130,7 +130,7 @@ void MixColumnSerial(uint32_t state[64], uint32_t MDS[16][4]){
 uint32_t column[4][4] = {{ 0 }};
 uint8_t col = 0;
 col = 0;
-for(;col < 4;) { 
+for(;(col < 4);) { 
 if((col * 4) >= 64){
 fprintf(stderr, "Index out of bounds for selection on state\n");
 exit(1);
@@ -205,7 +205,7 @@ column[3][2] = temp_62_rnge[2];
 column[3][3] = temp_62_rnge[3];
 uint8_t col_nibble = 0;
 col_nibble = 0;
-for(;col_nibble < 4;) { 
+for(;(col_nibble < 4);) { 
 uint32_t temp_69__bin[4] = {0};
 uint32_t temp_70__bin[4] = {0};
 uint32_t temp_71__bin[4] = {0};
@@ -326,7 +326,7 @@ void addConstants(uint32_t state[64], uint32_t constant[6]){
 uint32_t roundConstant[64] = {0};
 uint8_t row = 0;
 row = 0;
-for(;row < 4;) { 
+for(;(row < 4);) { 
 uint8_t  temp_124_extracted = 0;
 uint8_t temp_125_int_rng_start  = 0;
 uint8_t  temp_127_target_bit = 0;
@@ -354,7 +354,7 @@ uint8_t temp_144_rng_start = (row * 16);
 for(temp_138_init = 0; temp_138_init < temp_139_rnge_size; temp_138_init++, temp_144_rng_start++){
 roundConstant[temp_144_rng_start] = temp_128_cast_bs_seq[temp_138_init];
 }
-if(row == 0 || row == 2) { 
+if((row == 0) || (row == 2)) { 
 uint32_t  temp_145_extracted[3];
 temp_145_extracted[0] = constant[3];
 temp_145_extracted[1] = constant[4];
@@ -379,7 +379,7 @@ for(temp_154_init = 0; temp_154_init < temp_155_rnge_size; temp_154_init++, temp
 roundConstant[temp_162_rng_start] = temp_145_extracted[temp_154_init];
 }
 } 
-if(row == 1 || row == 3) { 
+if((row == 1) || (row == 3)) { 
 uint32_t  temp_163_extracted[3];
 temp_163_extracted[0] = constant[0];
 temp_163_extracted[1] = constant[1];
@@ -495,7 +495,7 @@ state[63] = state[63] ^ roundConstant[63];
 void subCells(uint32_t state[64]){ 
 uint8_t i = 0;
 i = 0;
-for(;i < 16;) { 
+for(;(i < 16);) { 
 if((i * 4) >= 64){
 fprintf(stderr, "Index out of bounds for selection on state\n");
 exit(1);
@@ -542,7 +542,7 @@ MixColumnSerial(state, MDS);
 void enc(uint32_t state[64], uint32_t key[64], uint32_t MDS[16][4], uint32_t RC[32][6]){ 
 uint8_t r = 0;
 r = 0;
-for(;r < 32;) { 
+for(;(r < 32);) { 
 if((r % 4) == 0) { 
 state[0] = state[0] ^ key[0];
 state[1] = state[1] ^ key[1];

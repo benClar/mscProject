@@ -5,16 +5,16 @@
 
 #include "prince_dsl.h"
 uint32_t prince_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~C & ~A) | (~D & B & ~A) | (C & B & ~A) | (~D & C & B) | (~C & ~B & A) | (D & ~B & A));
+return ((D & ~B & A) | (~D & B & ~A) | (~D & ~C & ~A) | (~C & ~B & A) | (C & B & ~A) | (~D & C & B));
 }
 uint32_t prince_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~C & ~B) | (~B & ~A) | (~D & ~C));
+return ((~C & ~B) | (~D & ~C) | (~B & ~A));
 }
 uint32_t prince_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
 return ((D & ~B) | (D & C) | (~B & A));
 }
 uint32_t prince_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~B) | (D & B & ~A) | (C & ~A));
+return ((D & B & ~A) | (~D & ~B) | (C & ~A));
 }
 void prince(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -28,16 +28,16 @@ input[2] = temp_0_sbox_out[2];
 input[3] = temp_0_sbox_out[3];
 }
 uint32_t prince_inv_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~C & ~A) | (C & B & A) | (~D & ~B) | (C & ~B & ~A));
+return ((C & B & A) | (~D & ~C & ~A) | (C & ~B & ~A) | (~D & ~B));
 }
 uint32_t prince_inv_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & ~B & ~A) | (~C & ~B) | (~D & ~C) | (D & ~B & A));
+return ((~C & ~B) | (~D & ~C) | (D & ~B & A) | (~D & ~B & ~A));
 }
 uint32_t prince_inv_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & ~B) | (~B & A) | (D & B & ~A));
+return ((D & B & ~A) | (C & ~B) | (~B & A));
 }
 uint32_t prince_inv_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((C & ~B & A) | (~D & C) | (~C & ~B & ~A) | (C & B & ~A));
+return ((C & ~B & A) | (C & B & ~A) | (~D & ~B & ~A) | (~C & ~B & ~A) | (~D & C));
 }
 void prince_inv(uint32_t input[4]){
 uint32_t temp_1_sbox_out[4];
@@ -538,7 +538,7 @@ state[63] = temp_15_call[15];
 void sBox_layer(uint32_t state[64]){ 
 uint8_t i = 0;
 i = 0;
-for(;i < 16;) { 
+for(;(i < 16);) { 
 if((i * 4) >= 64){
 fprintf(stderr, "Index out of bounds for selection on state\n");
 exit(1);
@@ -579,7 +579,7 @@ i = (i + 1);
 void sBox_layer_inv(uint32_t state[64]){ 
 uint8_t i = 0;
 i = 0;
-for(;i < 16;) { 
+for(;(i < 16);) { 
 if((i * 4) >= 64){
 fprintf(stderr, "Index out of bounds for selection on state\n");
 exit(1);
@@ -629,7 +629,7 @@ output[62] = temp_65_rnge[3];
 output[63] = temp_65_rnge[4];
 uint8_t nibble = 0;
 nibble = 1;
-for(;nibble < 16;) { 
+for(;(nibble < 16);) { 
 if(inverse == 0x1) { 
 target = ((target + 5) % 16);
 } 
@@ -739,7 +739,7 @@ state[63] = output[63];
 void first_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]){ 
 uint8_t r = 0;
 r = 1;
-for(;r < 6;) { 
+for(;(r < 6);) { 
 sBox_layer(state);
 mPrime(state);
 shift_rows(state, 0x0);
@@ -813,7 +813,7 @@ r = (r + 1);
 void last_rounds(uint32_t state[64], uint32_t key[64], uint32_t RC[11][64]){ 
 uint8_t r = 0;
 r = 6;
-for(;r < 11;) { 
+for(;(r < 11);) { 
 state[0] = (RC[r][0] ^ key[0]) ^ state[0];
 state[1] = (RC[r][1] ^ key[1]) ^ state[1];
 state[2] = (RC[r][2] ^ key[2]) ^ state[2];
