@@ -1,4 +1,7 @@
+from __future__ import print_function
 from DATA_TYPE import DATA_TYPE
+import sys
+
 
 class SemanticException(Exception):
     pass
@@ -22,9 +25,9 @@ class err_format():
 class Unimplemented_functionality_errors():
 
     def functionality_err(node, error_message):
-        print(err_format.error.format("Error") + " Unimplemented functionality has been used in " + err_format.var.format(node.node_type))
-        print(err_format.msg.format(error_message))
-        print("This functionality is not required for the functionality aims of this project and is considered future work")
+        print(err_format.error.format("Error") + " Unimplemented functionality has been used in " + err_format.var.format(node.node_type), file=sys.stderr)
+        print(err_format.msg.format(error_message), file=sys.stderr)
+        print("This functionality is not required for the functionality aims of this project and is considered future work", file=sys.stderr)
 
 
 class Semantic_analysis_errors():
@@ -43,11 +46,11 @@ class Semantic_analysis_errors():
                     DATA_TYPE.EXPR: lambda node, error_message: Semantic_analysis_errors.expr_error(node, error_message)}
 
     def int_decl_error(node, error_message):
-        print(err_format.error.format("Error") + " in declaration of Int variable " + err_format.var.format(node.ID) + ":")
+        print(err_format.error.format("Error") + " in declaration of Int variable " + err_format.var.format(node.ID) + ":", file=sys.stderr)
         print(err_format.msg.format(error_message))
 
     def bit_decl_error(node, error_message):
-        print(err_format.error.format("Error") + " in declaration of Bit variable " + err_format.var.format(node.ID) + ":")
+        print(err_format.error.format("Error") + " in declaration of Bit variable " + err_format.var.format(node.ID) + ":", file=sys.stderr)
         print(err_format.msg.format(error_message))
 
     def set_error(node, error_message):
@@ -60,30 +63,30 @@ class Semantic_analysis_errors():
             else:
                 target = "Cast"
 
-        print(err_format.error.format("Error") + " setting variable " + err_format.var.format(target) + ":")
-        print(err_format.msg.format(error_message))
+        print(err_format.error.format("Error") + " setting variable " + err_format.var.format(target) + ":", file=sys.stderr)
+        print(err_format.msg.format(error_message), file=sys.stderr)
 
     def func_decl_error(node, error_message):
-        print(err_format.error.format("Error") + " in declaration of function " + err_format.var.format(node.ID) + ":")
-        print(error_message)
+        print(err_format.error.format("Error") + " in declaration of function " + err_format.var.format(node.ID) + ":", file=sys.stderr)
+        print(error_message, file=sys.stderr)
 
     def if_stmt_error(node, error_message):
-        print(err_format.msg.format(error_message))
+        print(err_format.msg.format(error_message), file=sys.stderr)
 
     def for_loop_error(node, error_message):
-        print(err_format.msg.format(error_message))
+        print(err_format.msg.format(error_message), file=sys.stderr)
 
     def word_width_seq_decl_error(node, error_message):
-        print(err_format.error.format("Error") + " in declaration of Sequence " + err_format.var.format(node.ID) + ":")
-        print(err_format.msg.format(error_message))
+        print(err_format.error.format("Error") + " in declaration of Sequence " + err_format.var.format(node.ID) + ":", file=sys.stderr)
+        print(err_format.msg.format(error_message), file=sys.stderr)
 
     def bit_seq_decl_error(node, error_message):
-        print(err_format.error.format("Error") + " in declaration of Sequence " + err_format.var.format(node.ID) + ":")
-        print(err_format.msg.format(error_message))
+        print(err_format.error.format("Error") + " in declaration of Sequence " + err_format.var.format(node.ID) + ":", file=sys.stderr)
+        print(err_format.msg.format(error_message), file=sys.stderr)
 
     def expr_error(node, error_message):
         print(err_format.error.format("Error") + " in expression" + ":")
-        print(err_format.msg.format(error_message))
+        print(err_format.msg.format(error_message), file=sys.stderr)
 
     def semantic_err(node, error_message):
         Semantic_analysis_errors.error_lookup[node.node_type](node, error_message)

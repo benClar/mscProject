@@ -1391,7 +1391,10 @@ class Seq_decl(object):
         return result
 
     def translate_term(self, term):
-        """Parses quine mccluskey algorithm  output to produce boolean function for single term"""
+        """Parses quine mccluskey algorithm  output to produce boolean function for single term.
+
+        Args:
+            term: output from quine QuineMcCluskey"""
         result = ""
         for i, bit in enumerate(("D", "C", "B", "A")):
             if term[i] == "1":
@@ -1406,45 +1409,52 @@ class Seq_decl(object):
         return "(" + result + ")"
 
     def get_ones(self, bit):
+        """Returns values that are min-term for input bit.
+
+        Args:
+            bit: bit position to check"""
         ones = []
         for i, val in enumerate(self.value.value):
             if (int(val.translate()['result']) >> bit) & 0x1:
                 ones.append(i)
         return ones
 
-    def translate_bs_int_seq(self, sym_count):
-        result = {'emit': "", 'result': ""}
-        # target_result += self.translate_type() + self.ID.translate()["result"] + "[" + self.constraints.translate()['result'] + "]" + ";\n"
-        # result['emit'] += target_result['emit']
-        value_result = self.value.translate(sym_count)
-        # target_result = 
-        result['emit'] += value_result['emit']
-        if DATA_TYPE.needs_cast(self.ID.type, self.value.type):
-            if self.value.type == DATA_TYPE.SEQ_INT_VAL:
-                self.int_seq_to_bs_int_seq(sym_count, value_result['result'], value_result['res_size'])
-            else:
-                raise ParseException("Cannot assign " + str(self.value.type) + " to " + str(self.value.node_type))
+    # def translate_bs_int_seq(self, sym_count):
+    #     """Translates bitsliced integer sequence in declaration"""
+    #     result = {'emit': "", 'result': ""}
+    #     # target_result += self.translate_type() + self.ID.translate()["result"] + "[" + self.constraints.translate()['result'] + "]" + ";\n"
+    #     # result['emit'] += target_result['emit']
+    #     value_result = self.value.translate(sym_count)
+    #     # target_result = 
+    #     result['emit'] += value_result['emit']
+    #     if DATA_TYPE.needs_cast(self.ID.type, self.value.type):
+    #         if self.value.type == DATA_TYPE.SEQ_INT_VAL:
+    #             self.int_seq_to_bs_int_seq(sym_count, value_result['result'], value_result['res_size'])
+    #         else:
+    #             raise ParseException("Cannot assign " + str(self.value.type) + " to " + str(self.value.node_type))
 
-    def int_seq_to_bs_int_seq(self, sym_count, target, size):
-        result = {'emit': "", 'result': ""}
-        temp_target = Target_factory.name(sym_count, "bs_cast")
-        result['emit'] += Target_factory.type_decl_lookup[self.ID.type] + " " + temp_target + self.size_to_index(size) + "[" + self.constraints.value + "]" + ";\n"
-        select_elements = itertools.product(*map(range, size + [int(self.constraints.value)]))
-        print(list(select_elements))
+    # def int_seq_to_bs_int_seq(self, sym_count, target, size):
+    #     """Translates an integer sequence to a bit-slice """
+    #     result = {'emit': "", 'result': ""}
+    #     temp_target = Target_factory.name(sym_count, "bs_cast")
+    #     result['emit'] += Target_factory.type_decl_lookup[self.ID.type] + " " + temp_target + self.size_to_index(size) + "[" + self.constraints.value + "]" + ";\n"
+    #     select_elements = itertools.product(*map(range, size + [int(self.constraints.value)]))
+    #     print(list(select_elements))
 
-    def bitslice_int(self, target, value, size):
-        ret = ""
-        for bit in range(size):
-            ret += target + "[" + str(bit) + "]" + " = " + "(" + value + " >> " + str(bit) + ")" + ";\n"
-        return ret
+    # def bitslice_int(self, target, value, size):
+    #     ret = ""
+    #     for bit in range(size):
+    #         ret += target + "[" + str(bit) + "]" + " = " + "(" + value + " >> " + str(bit) + ")" + ";\n"
+    #     return ret
 
-    def size_to_index(self, size):
-        index = ""
-        for i in size:
-            index += "[" + str(i) + "]"
-        return index
+    # def size_to_index(self, size):
+    #     index = ""
+    #     for i in size:
+    #         index += "[" + str(i) + "]"
+    #     return index
 
     def translate_type(self):
+        """Translates into correct C type declaration"""
         if self.node_type == DATA_TYPE.BS_SEQ_INT_DECL:
             return "uint32_t "
         elif self.node_type == DATA_TYPE.SEQ_BIT_DECL:
@@ -1455,6 +1465,7 @@ class Seq_decl(object):
             return Target_factory.type_decl_lookup[self.constraints.translate()]
 
 class Seq_val(object):
+    """IR representation for sequence values"""
 
     def __init__(self, s_type=None, value=None):
         self._value = []
@@ -1473,9 +1484,6 @@ class Seq_val(object):
 
     @dim_s.setter
     def dim_s(self, value):
-        # if value > 1:
-        #     self._dim_s = value - 1
-        # else:
         self._dim_s = value 
 
     @property
@@ -1517,6 +1525,10 @@ class Seq_val(object):
         return result
 
     def translate(self, sym_count, target=None):
+        """Translate sequence value node
+
+        Args:
+            target: target that is to be set to value of sequence"""
         result = {'emit': "", 'result': "", 'res_size' : None}
         # if self.all_int_literal():
         #     return self.translate_int_literal_seq(sym_count, result)
@@ -1538,7 +1550,7 @@ class Seq_val(object):
             target = Target_factory.name(sym_count, "seq_val")
             result['result'] = target
             result['emit'] += "uint64_t " + target
-            seq_dimension = self.dim_s
+            # seq_dimension = self.dim_s
             self.get_seq_size(self.value)
             self.indiv_size.reverse()
             result['res_size'] = self.indiv_size
@@ -1547,11 +1559,8 @@ class Seq_val(object):
             result['emit'] += ";\n"
             self.set_seq_val_to_target(sym_count, result, result['res_size'], target)     
         else:
-            self.set_int_val_target(result, sym_count, target)
-        return result
-
-    def set_int_val_target(self, result, sym_count, target):
-        self.set_seq_val_to_target(sym_count, result, target['res_size'], target['result'])
+            self.set_seq_val_to_target(sym_count, result, target['res_size'], target['result'])
+        return result        
 
     def set_seq_val_to_target(self, sym_count, result, size, target):
         """Sets the current sequence value to a target array.
@@ -1602,6 +1611,7 @@ class Seq_val(object):
         return result
 
     def get_val(self, target, index):
+        """Returns value at sequence index provided"""
         if len(index) == 1:
             try:
                 return target[index[0]]
@@ -1625,50 +1635,54 @@ class Seq_val(object):
         self.indiv_size.append(index + 1)
 
     def list_to_index(self, index_sel):
+        """translates list of values to sequence index"""
         index_str = ""
         for ele in index_sel:
             index_str += "[" + str(ele) + "]"
         return index_str
 
 
-    def get_value(self, seq_value, dimension):
-        if len(dimension) == 1:
-            return seq_value[dimension[0]]
-        else:
-            current_dim = dimension.pop(0)
-            return self.get_value(seq_value[current_dim], dimension)
+    # def get_value(self, seq_value, dimension):
+    #     """ """
+    #     if len(dimension) == 1:
+    #         return seq_value[dimension[0]]
+    #     else:
+    #         current_dim = dimension.pop(0)
+    #         return self.get_value(seq_value[current_dim], dimension)
 
-    def translate_seq_size(self):
-        dimensions = []
-        size = 0
-        if self.value[0].node_type == DATA_TYPE.SEQ_VAL:
-            dimensions += self.value[0].translate_seq_size()
-        for ele in self.value:
-            size += 1
-        dimensions = [size] + dimensions
-        return dimensions
+    # def translate_seq_size(self):
+    #     dimensions = []
+    #     size = 0
+    #     if self.value[0].node_type == DATA_TYPE.SEQ_VAL:
+    #         dimensions += self.value[0].translate_seq_size()
+    #     for ele in self.value:
+    #         size += 1
+    #     dimensions = [size] + dimensions
+    #     return dimensions
 
 
 
     def translate_type(self):
         Target_factory.type_decl_lookup[self.get_constraints()]
 
-    def get_constraints(self):
-        biggest = 0
-        for ele in self.value:
-            ele_width = int(ele.value).bit_length()
-            if ele_width > biggest:
-                biggest = ele_width
-        return Target_factory.round_up_constraints(biggest)
+    # def get_constraints(self):
+    #     biggest = 0
+    #     for ele in self.value:
+    #         ele_width = int(ele.value).bit_length()
+    #         if ele_width > biggest:
+    #             biggest = ele_width
+    #     return Target_factory.round_up_constraints(biggest)
 
-    def all_int_literal(self):
-        for ele in self.value:
-            if ele.node_type is not DATA_TYPE.INT_LITERAL:
-                return False
-        return True
+    # def all_int_literal(self):
+
+    #     for ele in self.value:
+    #         if ele.node_type is not DATA_TYPE.INT_LITERAL:
+    #             return False
+    #     return True
 
 
 class Bit_decl(object):
+    """Stores bit declaration"""
 
     def __init__(self, var_id, bit_type, value=None):
         self._ID = var_id
@@ -1696,6 +1710,7 @@ class Bit_decl(object):
         return self._ID
 
     def translate_type(self):
+        """Tranlsates type for representation in C"""
         if self.node_type == DATA_TYPE.BS_BIT_DECL:
             return "uint32_t "
         elif self.node_type == DATA_TYPE.BIT_DECL:
@@ -1704,9 +1719,14 @@ class Bit_decl(object):
             raise InternalException("Unknown Bit Val Type")
 
     def translate(self, sym_count, function_param=False):
+        """Translates bit declaration node.
+
+        Args:
+            sym_count: count of temp vars in program.
+            function_param: Set to true if declaraton is to be translated as a function parameter"""
         result = {'emit': "", 'result': ""}
-        value = self.translate_value(sym_count)
-        result['emit'] += value['emit']
+        # value = self.translate_value(sym_count)
+        # result['emit'] += value['emit']
         if self.node_type == DATA_TYPE.BS_BIT_DECL:
             if function_param is False:
                 result['emit'] += self.translate_type() + self.ID.translate()['result'] + " = 0;\n"
@@ -1722,20 +1742,22 @@ class Bit_decl(object):
             result['emit'] += set_result
         return result['emit']
 
-    def translate_value(self, sym_count):
-        result = {'emit': "", 'result': ""}
-        if self.value is None:
-            result['result'] = "0"
-        else:
-            val_result = self.value.translate(sym_count)
-            result['emit'] += val_result['emit']
-            result['result'] += val_result['result']
-        return result
+    # def translate_value(self, sym_count):
+    #     """Translates value of declaration"""
+    #     result = {'emit': "", 'result': ""}
+    #     if self.value is None:
+    #         result['result'] = "0"
+    #     else:
+    #         val_result = self.value.translate(sym_count)
+    #         result['emit'] += val_result['emit']
+    #         result['result'] += val_result['result']
+    #     return result
     # def translate_as_parameter(self):
     #     return "bool " + self.ID.translate()
 
 
 class Int_decl(object):
+    """IR representation of integer declaration"""
 
     type_decl_lookup = {"8": "uint8_t ",
                         "16": "uint16_t ",
@@ -1774,6 +1796,11 @@ class Int_decl(object):
         return self._value
 
     def translate(self, sym_count, func_param=False):
+        """Translates integer declaration
+
+        Args:
+            sym_count: count of temp vars in program.
+            func_param: Set to true if int declaration is a function parameter"""
         result = {'emit': "", 'result': ""}
         if self.node_type == DATA_TYPE.BS_INT_DECL:
             if func_param == False:
@@ -1787,10 +1814,6 @@ class Int_decl(object):
                 result['emit'] += self.translate_type() + self.ID.translate()["result"] + ";\n"
         if self.value is not None:
             result['emit'] += self.body.translate(sym_count)
-            #     value_result = self.value.translate(sym_count)
-            #     result['emit'] += value_result['emit']
-            #     assignment_result = self.assign_int_val(value_result)
-            #     result['emit'] += assignment_result['emit']
         return result['emit']
 
     def translate_type(self):
@@ -1811,6 +1834,7 @@ class Int_decl(object):
 
 
 class Int_literal(object):
+    """IR representation of integer literal value"""
 
     def __init__(self, value=None, constraints=None):
         self.value = value
@@ -1823,6 +1847,7 @@ class Int_literal(object):
         return self._constraints
 
     def translate(self, sym_count=None):
+        """Translate integer literal"""
         result = {}
         # target = Target_factory.name(sym_count)
         # result["emit"] = self.translate_type(target) + " = " + self.value + ";\n"
@@ -1836,13 +1861,14 @@ class Int_literal(object):
 
 
 class Bit_literal(object):
-
+    """Translation of bit literal value"""
     def __init__(self, value):
         self.value = value
         self.type = DATA_TYPE.BIT_VAL
         self.node_type = DATA_TYPE.BIT_LITERAL
 
     def translate(self, sym_count=None):
+        """Translates bit value"""
         result = {'emit': "", 'result': ""}
         if self.value == "True":
             result['result'] = "0x1"
@@ -1854,7 +1880,7 @@ class Bit_literal(object):
 
 
 class Name(object):
-
+    """IR of ID"""
     def __init__(self, name, id_type, size=None, constraints=None):
         self._name = name
         self._type = id_type
@@ -1893,6 +1919,7 @@ class Name(object):
         return result
 
     def dimension(self, dim):
+        """returns translated dimension information about ID"""
         if self.type == DATA_TYPE.INT_VAL or self.type == DATA_TYPE.BS_INT_VAL:
             return self.constraints.translate()['result']
         elif self.type == DATA_TYPE.SEQ_INT_VAL or self.type == DATA_TYPE.BS_SEQ_INT_VAL:
