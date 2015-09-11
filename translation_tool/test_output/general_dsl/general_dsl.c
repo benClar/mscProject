@@ -675,4 +675,32 @@ temp_68_casted_bit_seq |= 0x1 << 0;
 a = ((temp_67_casted_bit_seq * temp_68_casted_bit_seq) * 2);
 return a;
 }
+uint8_t  ret_bit(){ 
+return 0x1;
+}
+void get_bit(){ 
+uint8_t a = 0;
+uint8_t temp_69_bit_call= 0;
+temp_69_bit_call = ret_bit();
+a = temp_69_bit_call;
+}
+uint8_t  ret_int(){ 
+return 10;
+}
+void get_int(){ 
+uint8_t a = 0;
+uint8_t temp_70_int_call= 0;
+temp_70_int_call = ret_int();
+a = temp_70_int_call;
+}
+uint8_t  ret_int_in_seq(uint8_t  a[10][10]){ 
+return a[0][0];
+}
+void get_int_1(){ 
+uint8_t  b[10][10] = {{ 0 }};
+uint8_t a = 0;
+uint8_t temp_71_int_call= 0;
+temp_71_int_call = ret_int_in_seq(b);
+a = temp_71_int_call;
+}
 

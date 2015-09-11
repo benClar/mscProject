@@ -341,6 +341,9 @@ class Semantic_analyser(object):
         if ret.type != func_decl.return_type:
             raise SemanticException("Function " + str(func_decl.ID.name) + " returns " + str(ret.type) +
                                     ". requires return value " + str(func_decl.return_type))
+        if DATA_TYPE.is_seq_type(func_decl.return_type):
+            if len(func_decl.return_value.size) != len(ret.target.size):
+                raise SemanticException("Returning " + str(ret.type) + ("[]" * len(ret.target.size)) + " : expecting " + str(func_decl.return_type) + ("[]" * len(func_decl.return_value.size)))
         return ret
 
     def analyse_bit_cnst_seq(self, node):
@@ -355,6 +358,8 @@ class Semantic_analyser(object):
                 decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, constraints=self.expr_type_is(node.bit_constraints))
             else:
                 decl = Seq_decl(node.node_type, self.analyse_array_size(node), node.ID, self.expr_type_is(node.value), self.expr_type_is(node.bit_constraints))
+                if decl.value.node_type != DATA_TYPE.SEQ_VAL:
+                    raise SemanticException("Cannot use " + str(decl.value.node_type) + " for " + str(decl.ID.type) + " declaration value: must be literal sequence value" )
                 # decl.value.dim_s = self.seq_expr_dimension(decl.value)
                 if DATA_TYPE.is_seq_type(decl.value.node_type) and decl.value.dim_s != len(decl.size):
                     # Checking Dimensions match
@@ -636,7 +641,7 @@ class Semantic_analyser(object):
             raise SemanticException("Integer cannot be treated as having more than one dimension")
 
     def build_seq_index_ir(self, node, ir_indices):        
-        """builds node repreenting index select on an sequence value
+        """builds node representing index select on an sequence value
 
         Args:
         node: syntax tree node that represents operation
@@ -1102,6 +1107,8 @@ class Semantic_analyser(object):
                         correct = False
             if func_decl.return_type != DATA_TYPE.VOID and ret_pres is False:
                 raise SemanticException("Function " + str(func_decl.ID.name) + " requires return value " + str(func_decl.return_type))
+            # if DATA_TYPE.is_seq_type(func_decl.return_type):
+            #     raise SemanticException("Cannot return sequences from functons: these are passed by reference""")
             self.sym_table.leave_scope()
             if correct is True:
                 return func_decl
@@ -1111,7 +1118,7 @@ class Semantic_analyser(object):
             return False
 
     def AST_func_param_to_IR(self, old_decl):
-        """Converts AST param node to equivilent IR node"""
+        """Converts AST param node to equivalent IR node"""
         decl = None
         if old_decl.node_type == DATA_TYPE.INT_DECL or old_decl.node_type == DATA_TYPE.BS_INT_DECL:
             decl = Int_decl(old_decl.node_type, self.expr_type_is(old_decl.bit_constraints), Name(old_decl.ID, DATA_TYPE.decl_to_value(old_decl.node_type)))

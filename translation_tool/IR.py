@@ -29,20 +29,20 @@ class IR(object):
     def translate(self):
         """Iterates through all IR nodes and stores their code emissions"""
         result = {'main': "", 'header': ""}
-        try:
-            for node in self.IR:
-                node_res = node.translate(self.sym_count)
-                if 'emit' in node_res:
-                    result['main'] += node_res['emit']
-                else:
-                    result['main'] += node_res
-                if node.node_type == DATA_TYPE.FUNC_DECL:
-                    result['header'] += node.translate_header(self.sym_count) + ";\n"
-                elif node.node_type == DATA_TYPE.SBOX_DECL:
-                    result['header'] += node.translate_header(self.sym_count)
-            return result
-        except Exception as details:
-            Unimplemented_functionality_errors.functionality_err(node, details)
+        # try:
+        for node in self.IR:
+            node_res = node.translate(self.sym_count)
+            if 'emit' in node_res:
+                result['main'] += node_res['emit']
+            else:
+                result['main'] += node_res
+            if node.node_type == DATA_TYPE.FUNC_DECL:
+                result['header'] += node.translate_header(self.sym_count) + ";\n"
+            elif node.node_type == DATA_TYPE.SBOX_DECL:
+                result['header'] += node.translate_header(self.sym_count)
+        return result
+        # except Exception as details:
+        #     Unimplemented_functionality_errors.functionality_err(node, details)
 
 
 class Function_decl(object):
@@ -1462,7 +1462,7 @@ class Seq_decl(object):
         else:
             if self.constraints.translate()['result'] not in Target_factory.type_decl_lookup:
                 raise SemanticException("Custom sized integers not implemented")
-            return Target_factory.type_decl_lookup[self.constraints.translate()]
+            return Target_factory.type_decl_lookup[self.constraints.translate()['result']]
 
 class Seq_val(object):
     """IR representation for sequence values"""
@@ -1880,7 +1880,7 @@ class Bit_literal(object):
 
 
 class Name(object):
-    """IR of ID"""
+    """IR node for IDs"""
     def __init__(self, name, id_type, size=None, constraints=None):
         self._name = name
         self._type = id_type
@@ -1890,18 +1890,22 @@ class Name(object):
 
     @property
     def size(self):
+        """Dimension size if ID is a sequence"""
         return self._size
 
     @property
     def constraints(self):
+        """Bit width of ID"""
         return self._constraints
 
     @property
     def name(self):
+        """Name of ID"""
         return self._name
 
     @property
     def type(self):
+        """Type of ID"""
         return self._type
 
     @constraints.setter
@@ -1913,6 +1917,7 @@ class Name(object):
         self._size = value
 
     def translate(self, sym_count=None):
+        """Translates name"""
         result = {}
         result["emit"] = ""
         result["result"] = self.name
@@ -1957,6 +1962,7 @@ class Name(object):
 
 
 class Call(object):
+    """IR representation for function calls"""
 
     def __init__(self, f_id, return_type, size, constraints, return_value):
         self._f_id = Name(f_id, return_type, size, constraints)
@@ -1965,22 +1971,27 @@ class Call(object):
         self.node_type = DATA_TYPE.FUNCTION_CALL
 
     def add_parameter(self, p):
+        """Adds a parameter to the function call"""
         self.parameters.append(p)
 
     @property
     def parameters(self):
+        """Accessor for all function call parameters"""
         return self._parameters
 
     @property
     def type(self):
+        """Return type of funtion call"""
         return self.f_id.type
 
     @property
     def f_id(self):
+        """ID of function call"""
         return self._f_id
 
     @property
     def constraints(self):
+        """Bit width of function call return value"""
         return self._return_value.constraints
 
     @property
@@ -1988,14 +1999,15 @@ class Call(object):
         return self._return_value.size
 
     def translate(self, sym_count, value=None):
+        """Translates function call"""
         result = {'emit': "", 'result': ""}
         function_result = self.call_temp_target(sym_count)
         result['emit'] += function_result['emit']
         params = []
-        if self.f_id.type == DATA_TYPE.BIT_VAL or self.f_id.type == DATA_TYPE.BS_BIT_VAL:
+        if self.f_id.type == DATA_TYPE.BIT_VAL or self.f_id.type == DATA_TYPE.BS_BIT_VAL or self.f_id.type == DATA_TYPE.INT_VAL:
             result['emit'] += function_result['result'] + " = "
         for p in self.parameters:
-            #Perform declarations required of parametrs
+            # Perform declarations required of parametrs
             if p.type != DATA_TYPE.SBOX_DECL:
                 param_result = p.translate(sym_count)
                 result['emit'] += param_result['emit']
@@ -2012,19 +2024,28 @@ class Call(object):
         return result
 
     def call_temp_target(self, sym_count):
+        result = {'emit': "", 'result': ""}
         """Create Temporary target for function result"""
         if self.f_id.type == DATA_TYPE.BS_INT_VAL:
             return Target_factory.make_bs_target(Target_factory.name(sym_count, "call"), self.f_id.constraints)
         elif self.f_id.type == DATA_TYPE.VOID:
-            return {'emit': "", 'result': ""}
+            return result
         elif self.f_id.type == DATA_TYPE.BS_BIT_VAL:
             return Target_factory.make_bit_target(Target_factory.name(sym_count, "call"), DATA_TYPE.BS_BIT_VAL)
+        elif self.f_id.type == DATA_TYPE.INT_VAL:
+            result['result'] += Target_factory.name(sym_count, "int_call")
+            result['emit'] += Target_factory.type_decl_lookup[Target_factory.round_up_constraints(int(self.constraints.value))] + result['result'] + "= 0;\n"
+            return result
+        elif self.f_id.type == DATA_TYPE.BIT_VAL:
+            result['result'] += Target_factory.name(sym_count, "bit_call")
+            result['emit'] += "uint8_t " + result['result'] + "= 0;\n"
+            return result
         else:
             raise ParseException("Unsupported function call type " + str(self.f_id.type))
 
 
 class Target_factory(object):
-
+    """Helper functions for assisting with creating temporary variables"""
     type_decl_lookup = {"8": "uint8_t ",
                         "16": "uint16_t ",
                         "32": "uint32_t ",
@@ -2034,12 +2055,14 @@ class Target_factory(object):
                         DATA_TYPE.SEQ_BS_BIT_VAL: "uint32_t"}
 
     def name(sym_count, append=""):
+        """Generates a name for temporary variable"""
         # name =  "__" + "temp" + "_" + ''.join(random.choice('0123456789ABCDEF') for i in range(4)) + "_" + str(sym_count.count)
         name = "temp" + "_" + str(sym_count.count) + "_" + append
         sym_count.count += 1
         return name
 
     def round_up_constraints(constraint):
+        """Rounds up bit width to usable width"""
         if constraint <= 8:
             return "8"
         if constraint <= 16:
@@ -2052,6 +2075,7 @@ class Target_factory(object):
             raise ParseException("Constaint to big : " + str(constraint))
 
     def make_bit_target(name, bit_type):
+        """Creates a temporary target for a bit type"""
         result = {'emit':"", 'result':""}
         result['result'] = name
         if bit_type == DATA_TYPE.BS_BIT_VAL:
@@ -2061,6 +2085,7 @@ class Target_factory(object):
         return result
 
     def make_bs_target(name, constraints):
+        """Creates a temporary target for a Bitsliced int type"""
         result = {'emit': "", 'result': "", 'res_size' : constraints.translate()["result"]}
         result['result'] = name
         result['emit'] += Target_factory.type_decl_lookup[DATA_TYPE.BS_INT_VAL] + " " + result['result'] + "[" + result['res_size'] + "]" + ";\n"
@@ -2068,6 +2093,7 @@ class Target_factory(object):
 
 
 class For_loop(object):
+    """Stores for loop"""
 
     def __init__(self):
         self._initializer = []
@@ -2097,6 +2123,7 @@ class For_loop(object):
         return self._body
 
     def translate(self, sym_count):
+        """Translates node to C"""
         result = {'emit': "", 'result': ""}
         init_result = self.translate_initializer(sym_count)
         term_result = self.translate_terminator(sym_count)
@@ -2111,6 +2138,7 @@ class For_loop(object):
         return result['emit']
 
     def translate_initializer(self, sym_count):
+        """Translates initializer"""
         result = {'emit': "", 'result': ""}
         for_loop = ""
         for stmt in self.initializer:
@@ -2119,6 +2147,7 @@ class For_loop(object):
         return result
 
     def translate_body(self, sym_count):
+        """Translates staments in body of node"""
         ret = ""
         for stmt in self.body:
             try:
@@ -2128,12 +2157,14 @@ class For_loop(object):
         return ret
 
     def translate_increment(self, sym_count):
+        """translates increment of loop"""
         result = {'emit': "", 'result': ""}
         for expr in self.increment:
             result['emit'] += expr.translate(sym_count)
         return result
 
     def translate_terminator(self, sym_count):
+        """translates terminator of loop"""
         result = {'emit': "", 'result': ""}
         if len(self.increment) > 1:
             raise ParseException("Internal Errror: Several stmts in increment in for loop.")
@@ -2144,6 +2175,7 @@ class For_loop(object):
 
 
 class Binary_operation(object):
+    """IR of expressions"""
 
     operations_lookup = {DATA_TYPE.INT_VAL: lambda self, sym_count, target = None: self.int_int_operation(sym_count, target),
                          DATA_TYPE.BIT_VAL: lambda self, sym_count, target = None: self.int_int_operation(sym_count, target),

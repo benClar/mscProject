@@ -30,4 +30,10 @@ void bit_to_bs_bit_set();
 void  bit_seq_expr_to_bs(uint32_t *temp_60_bs_return);
 uint8_t  bit_seq_expr_rotate();
 uint8_t  bit_seq_expr_arith();
+uint8_t  ret_bit();
+void get_bit();
+uint8_t  ret_int();
+void get_int();
+uint8_t  ret_int_in_seq(uint8_t  a[10][10]);
+void get_int_1();
 

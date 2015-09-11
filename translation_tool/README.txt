@@ -16,3 +16,8 @@ To run tests:
 
 install nose: https://nose.readthedocs.org/en/latest/
 nosetests -v -s Test_suites.py
+
+This project has chosen to 'self-document' its delivered functionality
+through demonstration in its test suites and supplied test files, and
+of course the in detail description of the targetted programs in the 
+report.
