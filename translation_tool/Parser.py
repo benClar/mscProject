@@ -12,7 +12,7 @@ import sys
 ParserElement.enablePackrat()
 
 class Parser(object):
-    
+    """Lexical and Syntax analysis"""
     @property
     def semantic_analyser(self):
         return self._AST.semantic_analyser
@@ -271,17 +271,8 @@ class Parser(object):
         return [res, True]
 
     def parse(self, data_in):
+        """Prod parsing entry point"""
         self.grammar.parseString(data_in)
-        if self.semantic_analyser.analyse(self.AST, True) == True:
+        if self.semantic_analyser.analyse(self.AST, True) is True:
             return self.semantic_analyser.IR.translate()
 
-
-# if __name__ == "__main__":
-#     suite = unittest.TestLoader().loadTestsFromTestCase(TestASTTree)
-#     unittest.TextTestRunner(verbosity=0).run(suite)
-#     suite = unittest.TestLoader().loadTestsFromTestCase(TestParser)
-#     unittest.TextTestRunner(verbosity=0).run(suite)
-#     suite = unittest.TestLoader().loadTestsFromTestCase(TestSemanticAnalysisTree)
-#     unittest.TextTestRunner(verbosity=0).run(suite)
-#     suite = unittest.TestLoader().loadTestsFromTestCase(test_IR_generation)
-#     unittest.TextTestRunner(verbosity=0).run(suite)

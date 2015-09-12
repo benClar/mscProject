@@ -12,7 +12,7 @@ translation_tool: Translation tool and tests.  See README contained within this 
         -lfsr_dsl: Generates and compiles LFSR and runs all test vectors through program
         -present_dsl: Generates and compiles PRESENT and runs all test vectors through program
         -prince_dsl: Generates and compiles PRINCE and runs all test vectors through program
-        -general_dsl: Testing for non-critical functionality
+        -general_dsl: Generates and compiles non-critical functionality
 
 data: Result data presented in report & tools created in python to analyse data.
     -indiv_runs: data for analysis of individual runs (execution time of 1000 runs of ciphers.)

@@ -117,9 +117,9 @@ void int_to_seq_bit_cast()    {
     a = b + b;
     }
 @Int(8) bs_bit_expr_cast()  {
-@Int(8) a;
-a[0] = (True ^ False) ^ False;
-return a;
+    @Int(8) a;
+    a[0] = (True ^ False) ^ False;
+    return a;
 }
 void bit_to_bs_bit_set()  {
     @Int(8) a;
@@ -138,4 +138,23 @@ Int(8) bit_seq_expr_rotate(){
 Int(8) bit_seq_expr_arith(){
     Int(8) a = ([True, True, True] * [False, False, True]) * 2;
     return a;
+}
+Bit ret_bit(){
+    return True;
+}
+void get_bit() {
+    Bit a = ret_bit();
+}
+Int(8) ret_int(){
+    return 10;
+}
+void get_int() {
+    Int(8) a = ret_int();
+}
+Int(8) ret_int_in_seq(Int(8)[10][10] a){
+    return a[0][0];
+}
+void get_int_1() {
+    Int(8)[10][10] b;
+    Int(8) a = ret_int_in_seq(b);
 }

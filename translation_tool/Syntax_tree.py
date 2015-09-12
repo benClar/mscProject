@@ -5,6 +5,7 @@ from Semantic_analyser import Semantic_analyser
 
 
 class Syntax_tree(object):
+    """Turns list of parsed grammar production to syntax nodes"""
 
     ID = 0  # Bit DECL
     BIT_DECL_CONTENT = 2
@@ -126,30 +127,36 @@ class Syntax_tree(object):
         self.add_target({'parent': new_for, 'target': new_for.initializer})
 
     def for_terminator(self, tokens):
+        """Adds terminator as target for next parsed tokens"""
         curr = self.remove_target()['parent']
         self.add_target({'parent': curr, 'target': curr.terminator})
 
     def for_increment(self, tokens):
+        """Adds increment as target for next parsed tokens"""
         curr = self.remove_target()['parent']
         self.add_target({'parent': curr, 'target': curr.increment})
 
     def for_body(self, tokens):
+        """Adds for body as target for next parsed tokens"""
         curr = self.remove_target()['parent']
         self.add_target({'parent': curr, 'target': curr.body})
 
     def end_for(self, tokens):
+        """Removes for loop as target"""
         self.remove_target()
 
     def terminator_expr(self, tokens):
+        """parses terminator expression"""
         token = tokens[0]
         self.add_statement(Expr_syn_node(token))
 
-    def terminator(self, tokens):
-        if len(tokens) > 0:
-            token = tokens[0]
-            self.add_statement(Expr_syn_node(token))
+    # def terminator(self, tokens):
+    #     if len(tokens) > 0:
+    #         token = tokens[0]
+    #         self.add_statement(Expr_syn_node(token))
 
     def bit_constrained_seq_decl(self, token):
+        """Builds syntax node for sequence declarations that have bit widths set"""
         seq_decl_type = None
         # print(token.dump())
         if token['type'] == "@Int":
@@ -167,12 +174,14 @@ class Syntax_tree(object):
             self.add_statement(Seq_decl_syn_node(seq_decl_type, token['ID'][1][0], token[Syntax_tree.INT_SEQ_SIZE], constraints=token[Syntax_tree.INT_SEQ_CNST]))
 
     def bit_seq_decl(self, token):
+        """Builds syntax node for bit sequence declaration"""
         if 'value' in token:
             self.add_statement(Seq_decl_syn_node(DATA_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token[Syntax_tree.BIT_SEQ_SIZE], token[Syntax_tree.BIT_SEQ_VALUE]))
         else:
             self.add_statement(Seq_decl_syn_node(DATA_TYPE.SEQ_BIT_DECL, token['ID'][1][0], token[Syntax_tree.BIT_SEQ_SIZE]))
 
     def id_set(self, tokens):
+        """Builds syntax node for ID set"""
         token = tokens[0]
         # print(token)
         if token[0][0] == "index_select":
@@ -185,6 +194,7 @@ class Syntax_tree(object):
             self.add_statement(ID_set_syn_node(ID_syn_node(token[Syntax_tree.ID]), token[Syntax_tree.ID_SET_VALUE]))
 
     def function_start(self, tokens):
+        """Adds function as the target for parsed tokens"""
         new_func = function_declaration_syn_node()
         self.add_statement(new_func)
         self.add_target({'parent': new_func, 'target': new_func.stmts})
@@ -193,6 +203,8 @@ class Syntax_tree(object):
 
 
     def function_decl(self, tokens):
+        """Builds syntax node for parsed function and adds it to the
+        function table"""
         token = tokens[0]
         params = []
         for p in token['func_param']:
@@ -216,12 +228,19 @@ class Syntax_tree(object):
 
 
     def add_to_function_table(self, node):
+        """Adds function to function table"""
         self.semantic_analyser.sym_table.add_function(node.ID)
-        self.add_to_function_table_op(self.semantic_analyser.sym_table.add_function_return, node.return_value, node.ID)
+        self.add_to_function_table_op(self.semantic_analyser.sym_table.add_function_return, node.return_value, node.ID)  # Adds function return type to function table
         for p in node.parameters:
-           self.add_to_function_table_op(self.semantic_analyser.sym_table.add_function_parameter, p, node.ID)
+           self.add_to_function_table_op(self.semantic_analyser.sym_table.add_function_parameter, p, node.ID)  # adds parameter information to function table
 
     def add_to_function_table_op(self, function_table_op, var, ID):
+        """Executes function for function table.
+
+        Args:
+            function_table_op: function to execute.
+            var: node to add
+            id: id of function"""
         if var == DATA_TYPE.VOID:
             function_table_op(ID, DATA_TYPE.VOID)
         elif var.node_type == DATA_TYPE.INT_DECL:
@@ -244,6 +263,7 @@ class Syntax_tree(object):
             raise ParseException("Internal Error: Unrecognised var type for f table op " + str(var.node_type))
 
     def param_type(self, param):
+        """converts string type of param to correct type representation"""
         if param[0] == "@Int":
             if self.is_sequence(param):
                 return DATA_TYPE.BS_SEQ_INT_DECL
@@ -266,6 +286,7 @@ class Syntax_tree(object):
                 raise ParseException("Sbox type must be sequence of integers")
 
     def return_type(self, param):
+        """Converts string representation of return type to syntax node"""
         if param[0] == "@Int":
             if self.is_sequence(param):
                 return Seq_decl_syn_node(DATA_TYPE.BS_SEQ_INT_DECL, None, size=param[2], constraints=param[1])
@@ -289,7 +310,7 @@ class Syntax_tree(object):
                 return Bit_decl_syn_node(None, DATA_TYPE.BS_BIT_DECL)
         elif param[0] == "void":
             return DATA_TYPE.VOID
-        else: 
+        else:
             raise ParseException("Internal error: Unknown return type")
 
     def is_sequence(self, param):
@@ -298,26 +319,32 @@ class Syntax_tree(object):
         return False
 
     def return_stmt(self, tokens):
+        """builds syntax node for return statement"""
         token = tokens[0]
         self.add_statement(return_stmt_syn_node(token[1]))
 
     def if_cond(self, tokens):
+        """Adds if condition to target node"""
         self.add_statement(Expr_syn_node(tokens))
 
     def begin_if(self, tokens):
+        """Sets if node as target for parsed tokens"""
         new_if = if_stmt_syn_node()
         self.add_statement(new_if)
         self.add_target({'parent': new_if, 'target': new_if.condition})
 
     def if_body_st(self, tokens):
+        """Adds if body as target for parsed tokens """
         curr_node = self.remove_target()['parent']
         self.add_target({'parent': curr_node, 'target': curr_node.body})
 
     def if_body_end(self, tokens):
+        """removes if node as target"""
         self.remove_target()
 
 
 class if_stmt_syn_node(object):
+    """syntax node representing if statements"""
 
     node_type = DATA_TYPE.IF_STMT
 
@@ -338,21 +365,8 @@ class if_stmt_syn_node(object):
         self._condition = value
 
 
-# class stmt_syn_node(object):
-
-#     node_type = None
-
-    
-
-# class decl_syn_node(object):
-
-#     node_type = None
-
-# class operand_syn_node(object):
-
-#     node_type = None
-
 class return_stmt_syn_node(object):
+    """Syntax node representing return statements"""
 
     node_type = DATA_TYPE.RETURN_STMT
 
@@ -365,6 +379,7 @@ class return_stmt_syn_node(object):
 
 
 class function_declaration_syn_node(object):
+    """Syntax node representing function declaration"""
 
     node_type = DATA_TYPE.FUNC_DECL
 
@@ -405,7 +420,9 @@ class function_declaration_syn_node(object):
     def parameters(self, value):
         self._parameters = value
 
+
 class for_loop_syn_node(object):
+    """syntax node representing for loop"""
 
     node_type = DATA_TYPE.FOR_LOOP
 
@@ -433,6 +450,7 @@ class for_loop_syn_node(object):
 
 
 class ID_set_syn_node(object):
+    """Syntax node representing set operation"""
 
     node_type = DATA_TYPE.ID_SET
 
@@ -444,16 +462,6 @@ class ID_set_syn_node(object):
     def value(self):
         return self._value
 
-    # @property
-    # def ID(self):
-    #     # print(self._ID)
-    #     if self._ID.node_type == DATA_TYPE.ID:
-    #         return self._ID.ID
-    #     elif self._ID.node_type == DATA_TYPE.EXPR:
-    #         return self._ID
-    #     else:
-    #         raise ParseException("Internal Error: Unknown ID type")
-
     @property
     def target(self):
         return self._target
@@ -461,12 +469,9 @@ class ID_set_syn_node(object):
     def set_type(self):
         return self.target.node_type
 
-    # @property
-    # def elements(self):
-    #     return self._elements
-
 
 class Seq_decl_syn_node(object):
+    """Syntax node representing sequence declarations"""
 
     def __init__(self, seq_decl_type, seq_id, size, value=None, constraints=None):
         self.node_type = seq_decl_type
@@ -502,6 +507,7 @@ class Seq_decl_syn_node(object):
 
 
 class Int_decl_syn_node(object):
+    """Syntax node representing int declaration"""
 
     def __init__(self, decl_type, ID, bit_constraints, expr=None):
         self.node_type = decl_type
@@ -532,6 +538,7 @@ class Int_decl_syn_node(object):
 
 
 class Bit_decl_syn_node(object):
+    """Syntax node representing bit declaration"""
 
     def __init__(self, ID, bit_type, value=None):
 
@@ -555,6 +562,7 @@ class Bit_decl_syn_node(object):
 
 
 class Expr_syn_node(object):
+    """syntax node representing expressions"""
 
     CONTENT = 1
     OPERAND_ID = 0
@@ -611,11 +619,9 @@ class Expr_syn_node(object):
         self._ret_value = value
 
     def eval(self, expr):
-        # print("EXPR")
-        # print(expr)
+        """Evaluates passed in expression, recursively creating
+        more expression nodes if necessary"""
         for i in expr:
-            # print("TOKEN")
-            # print(i)
             if self.is_operand(i[0]):
                 self.add_operand(i)
             elif self.is_operator(i):
@@ -624,13 +630,14 @@ class Expr_syn_node(object):
                 self.expressions.append(Expr_syn_node(i))
 
     def is_operand(self, token):
+        """Returns true if operand"""
         try:
             return token in Expr_syn_node.operand_lookup
         except TypeError:
             return False
 
     def add_operand(self, token):
-
+        """Creates node for operand"""
         operand_type = Expr_syn_node.operand_lookup[token[Expr_syn_node.OPERAND_ID]]
         if operand_type == DATA_TYPE.INT_VAL:
             self.expressions.append(Int_literal_syn_node(token[Expr_syn_node.CONTENT][0]))
@@ -667,6 +674,7 @@ class Expr_syn_node(object):
             sys.exit(1)
 
     def is_operator(self, token):
+        """returns true is token is operator"""
         # print(token)
         try:
             return token in Expr_syn_node.op_lookup
@@ -674,9 +682,11 @@ class Expr_syn_node(object):
             return False
 
     def add_operator(self, token):
+        """Adds operator"""
         self.expressions.append(Operator_syn_node(token, self.op_type(token)))
 
     def op_type(self, token):
+        """Identfies operator"""
         return Expr_syn_node.op_lookup[token]
 
     @property
@@ -684,10 +694,12 @@ class Expr_syn_node(object):
         return self._expressions
 
     def add_expr(self, expr):
+        """Adds an expression to expression node"""
         self.expressions.append(expr)
 
 
 class Seq_range_syn_node(object):
+    """Syntax node for range notation"""
 
     node_type = DATA_TYPE.INDEX_RANGE
 
@@ -705,6 +717,7 @@ class Seq_range_syn_node(object):
 
 
 class seq_value_syn_node(object):
+    """syntax node for sequence value"""
 
     node_type = DATA_TYPE.SEQ_VAL
 
@@ -735,6 +748,7 @@ class seq_value_syn_node(object):
 
 
 class Func_call_syn_node(object):
+    """Syntax node for function call"""
 
     node_type = DATA_TYPE.FUNCTION_CALL
 
@@ -757,6 +771,7 @@ class Func_call_syn_node(object):
 
 
 class Operator_syn_node(object):
+    """Syntax node representing operator"""
 
     def __init__(self, op, op_type):
         self._operator = op
@@ -776,6 +791,7 @@ class Operator_syn_node(object):
 
 
 class Int_literal_syn_node(object):
+    """Syntax node representing integer literals"""
 
     node_type = DATA_TYPE.INT_VAL
 
@@ -791,6 +807,7 @@ class Int_literal_syn_node(object):
 
 
 class Bit_literal_syn_node(object):
+    """Syntax node representing bit literals"""
 
     node_type = DATA_TYPE.BIT_VAL
 
@@ -803,6 +820,7 @@ class Bit_literal_syn_node(object):
 
 
 class index_select_syn_node(object):
+    """Syntax node represnting index select operations"""
 
     node_type = DATA_TYPE.INDEX_SELECT
 
@@ -831,6 +849,7 @@ class index_select_syn_node(object):
 
 
 class Cast_type_syn_node(object):
+    """Syntax node representing explicit casts operations"""
 
     def __init__(self, operation):
         self._target_type = None
@@ -876,6 +895,7 @@ class Cast_type_syn_node(object):
 
 
 class cast_syn_node(object):
+    """Syntax node holding cast operation and target"""
 
     node_type = DATA_TYPE.CAST
 
@@ -893,6 +913,7 @@ class cast_syn_node(object):
 
 
 class ID_syn_node(object):
+    """Syntax node representing IDs"""
 
     node_type = DATA_TYPE.ID
 

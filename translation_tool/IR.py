@@ -29,20 +29,21 @@ class IR(object):
     def translate(self):
         """Iterates through all IR nodes and stores their code emissions"""
         result = {'main': "", 'header': ""}
-        # try:
-        for node in self.IR:
-            node_res = node.translate(self.sym_count)
-            if 'emit' in node_res:
-                result['main'] += node_res['emit']
-            else:
-                result['main'] += node_res
-            if node.node_type == DATA_TYPE.FUNC_DECL:
-                result['header'] += node.translate_header(self.sym_count) + ";\n"
-            elif node.node_type == DATA_TYPE.SBOX_DECL:
-                result['header'] += node.translate_header(self.sym_count)
-        return result
-        # except Exception as details:
-        #     Unimplemented_functionality_errors.functionality_err(node, details)
+        try:
+            for node in self.IR:
+                node_res = node.translate(self.sym_count)
+                if 'emit' in node_res:
+                    result['main'] += node_res['emit']
+                else:
+                    result['main'] += node_res
+                if node.node_type == DATA_TYPE.FUNC_DECL:
+                    result['header'] += node.translate_header(self.sym_count) + ";\n"
+                elif node.node_type == DATA_TYPE.SBOX_DECL:
+                    result['header'] += node.translate_header(self.sym_count)
+            return result
+        except Exception as details:
+            print(node.ID.name)
+            Unimplemented_functionality_errors.functionality_err(node, details)
 
 
 class Function_decl(object):
@@ -2177,12 +2178,12 @@ class For_loop(object):
 class Binary_operation(object):
     """IR of expressions"""
 
-    operations_lookup = {DATA_TYPE.INT_VAL: lambda self, sym_count, target = None: self.int_int_operation(sym_count, target),
-                         DATA_TYPE.BIT_VAL: lambda self, sym_count, target = None: self.int_int_operation(sym_count, target),
-                         DATA_TYPE.BS_BIT_VAL: lambda self, sym_count, target = None: self.bs_bit_operation(sym_count, target),
-                         DATA_TYPE.BS_INT_VAL: lambda self, sym_count, target = None: self.bs_int_operation(sym_count, target),
-                         DATA_TYPE.SEQ_BS_BIT_VAL: lambda self, sym_count, target = None: self.bs_int_operation(sym_count, target),
-                         DATA_TYPE.SEQ_BIT_VAL: lambda self, sym_count, target = None: self.seq_bit_val_operation(sym_count, target)}
+    operations_lookup = {DATA_TYPE.INT_VAL: lambda self, sym_count = None: self.int_int_operation(sym_count),
+                         DATA_TYPE.BIT_VAL: lambda self, sym_count = None: self.int_int_operation(sym_count),
+                         DATA_TYPE.BS_BIT_VAL: lambda self, sym_count = None: self.bs_bit_operation(sym_count),
+                         DATA_TYPE.BS_INT_VAL: lambda self, sym_count = None: self.bs_int_operation(sym_count),
+                         DATA_TYPE.SEQ_BS_BIT_VAL: lambda self, sym_count = None: self.bs_int_operation(sym_count),
+                         DATA_TYPE.SEQ_BIT_VAL: lambda self, sym_count = None: self.seq_bit_val_operation(sym_count)}
 
     bs_op_lookup = {">>>": "rotate_left(",
                     "<<<": "rotate_right(",
@@ -2218,14 +2219,17 @@ class Binary_operation(object):
 
     @type.setter
     def type(self, value):
+        """Result type of expression"""
         self._type = value
 
     @property
     def right(self):
+        """Righthand side of expression"""
         return self._right
 
     @property
     def left(self):
+        """Lefthandside of expression"""
         return self._left
 
     @left.setter
@@ -2240,7 +2244,8 @@ class Binary_operation(object):
     def type(self, value):
         self._type = value
 
-    def seq_bit_val_operation(self, sym_count, target=None):
+    def seq_bit_val_operation(self, sym_count):
+        """Expressions with sequences of bits"""
         result = {'emit': "", 'result': ""}
         operand_1 = self.left.translate(sym_count)
         operand_2 = self.right.translate(sym_count)
@@ -2284,6 +2289,7 @@ class Binary_operation(object):
         return result
 
     def int_bit_rotate(self, result, op_1, op_2, size):
+        """Rotate bits in int value"""
         if self.operator == ">>>":
             result['emit'] += result['result'] + " = " + "(" + "(" + op_1 + ")" + " >> " + op_2 + ") | (" + "(" + op_1\
                 + ")" + " << " + "(" + str(size) + " - " + op_2 + "));\n"
@@ -2292,13 +2298,15 @@ class Binary_operation(object):
                 + ")" + " >> " + "(" + str(size) + " - " + op_2 + "));\n"
 
     def mask_shift(self, result, bit_size, sym_count):
+        """Masks out bits  after shit as per size of bit sequence"""
         init = Target_factory.name(sym_count, "mask_loop_init")
         result['emit'] += "uint32_t " + init + " = " + str(bit_size) + ";\n"
         result['emit'] += "for(; " + init + " < 32; " + init + "++) {\n"
         result['emit'] += result['result'] + " &= ~(0x1 << " + init + ");\n"
         result['emit'] += "}\n"
 
-    def bs_int_operation(self, sym_count, target=None):
+    def bs_int_operation(self, sym_count):
+        """Expressions on bit-sliced ints """
         if self.node_type == DATA_TYPE.SHIFT_OP:
             return self.bs_operation(sym_count, self.bs_op_lookup[self.operator])
         if self.node_type == DATA_TYPE.BITWISE_OP:
@@ -2310,10 +2318,13 @@ class Binary_operation(object):
             raise ParseException("unrecognised bs int operation type" + str(self.node_type))
 
     def can_be_optimised(self):
+        """Returns true if expression does not need to use intermediate values"""
         if self.operand_can_be_optimised(self.left) and self.operand_can_be_optimised(self.right):
             return True
 
     def operand_can_be_optimised(self, op):
+        """Recursively checks all nested expression nodes to see if they can all be 
+        represented without intermediate values"""
         if op is None:
             return True
         elif op.node_type == DATA_TYPE.SHIFT_OP:
@@ -2326,17 +2337,18 @@ class Binary_operation(object):
             return True
         return False
 
-    def bitslice_bitwise(self, sym_count, target=None):
-        result = {'emit': "", 'result': ""}
-        if target is not None:
-            left = self.left.translate(sym_count)
-            right = self.right.translate(sym_count)
-            if self.left.node_type == DATA_TYPE.ID and self.right.node_type == DATA_TYPE.ID:
-                result['result'] = self.left.translate(sym_count)['result'] + " " 
+    # def bitslice_bitwise(self, sym_count, target=None):
+    #     result = {'emit': "", 'result': ""}
+    #     if target is not None:
+    #         left = self.left.translate(sym_count)
+    #         right = self.right.translate(sym_count)
+    #         if self.left.node_type == DATA_TYPE.ID and self.right.node_type == DATA_TYPE.ID:
+    #             result['result'] = self.left.translate(sym_count)['result'] + " " 
 
         raise ParseException("bitsliced bitwise")
 
     def bs_operation(self, sym_count, function):
+        """Expressions on bit-sliced integer"""
         result = {'emit': "", 'result': "", 'res_size_1': None, 'res_size_2': None}
         temp_target = self.target_decl(sym_count)
         result['emit'] += temp_target['emit']
@@ -2368,6 +2380,7 @@ class Binary_operation(object):
         return result
 
     def get_bs_res_size(self, oper_1, oper_2):
+        """Returns the correct bit width for current bit-sliced expression"""
         if self.node_type == DATA_TYPE.SHIFT_OP:
             if 'res_size' in oper_1:
                 return oper_1['res_size']
@@ -2378,7 +2391,8 @@ class Binary_operation(object):
         elif self.node_type == DATA_TYPE.ARITH_OP:
             return self.constraints.translate()['result']
 
-    def int_int_operation(self, sym_count, target=None):
+    def int_int_operation(self, sym_count):
+        """Entry point for standsrd integr operations"""
         if self.node_type == DATA_TYPE.COMP_OP:
             return self.int_compare_operation(sym_count)
         elif self.node_type == DATA_TYPE.LOG_OP:
@@ -2386,7 +2400,8 @@ class Binary_operation(object):
         else:
             return self.int_compute_operation(sym_count)
 
-    def bs_bit_operation(self, sym_count, target=None):
+    def bs_bit_operation(self, sym_count):
+        """Operations for bit-sliced bits"""
         if self.node_type == DATA_TYPE.COMP_OP:
             return self.int_compare_operation(sym_count)
         elif self.node_type == DATA_TYPE.LOG_OP:
@@ -2428,12 +2443,14 @@ class Binary_operation(object):
         return result
 
     def get_operand_for_cast(self):
+        """returns operand required for cast"""
         if self.left.type != self.type:
             return self.left
         elif self.right.type != self.type:
             return self.right
 
     def needs_cast(self, op_1, op_2):
+        """Returns true if expression needs cast"""
         if self.node_type == DATA_TYPE.BITWISE_OP:
             return DATA_TYPE.bitwise_op_needs_cast(op_1, op_2)
         elif self.node_type == DATA_TYPE.SHIFT_OP:
@@ -2441,9 +2458,10 @@ class Binary_operation(object):
         elif self.node_type == DATA_TYPE.ARITH_OP:
             return DATA_TYPE.arith_op_needs_cast(op_1, op_2)
         else:
-            raise ParseException("op type may need cast")
+            raise ParseException("Unimplemented cast required for " + str(self.node_type))
 
     def int_compare_operation(self, sym_count):
+        """translate comparison of two standard integers"""
         result = {'emit': "", 'result': ""}
         operand_1 = self.left.translate(sym_count)
         operand_2 = self.right.translate(sym_count)
@@ -2453,6 +2471,7 @@ class Binary_operation(object):
         return result
 
     def bs_bit_compute_operation(self, sym_count):
+        """Bit-sliced bit operations translation """
         result = {'emit': "", 'result': ""}
         operand_1 = self.left.translate(sym_count)
         operand_2 = self.right.translate(sym_count)
@@ -2472,6 +2491,7 @@ class Binary_operation(object):
         return result
 
     def int_compute_operation(self, sym_count):
+        """Standard integer operation translation"""
         result = {'emit': "", 'result': "", 'res_size_1': None, 'res_size_2': None}
         temp_target = self.target_decl(sym_count)
         operand_1 = self.left.translate(sym_count)
@@ -2506,12 +2526,14 @@ class Binary_operation(object):
             return ""
 
     def get_size(self, result):
+        """Returns required size of result"""
         if result['res_size_1'] is not None:
             return result['res_size_1']
         if result['res_size_2'] is not None:
             return result['res_size_2']
 
     def target_decl(self, sym_count, res= None):
+        """helper function for creating intermediate variables"""
         result = {'emit': "", 'result': "", 'res_size': None}
         if self.type == DATA_TYPE.INT_VAL:
             result['result'] += Target_factory.name(sym_count) + "_bin"
@@ -2542,6 +2564,12 @@ class Binary_operation(object):
         return result
 
     def optimised_bitwise_bitslice(self, target, sym_count, size):
+        """carries out wordlong bitslice bitwise operations
+        with a series of single XORS accross required bits
+
+        Args:
+            target: target variable for result
+            size: number of bits that are to be XORed"""
         result = {'emit': "", 'result': ""}
         assert self.type == DATA_TYPE.BS_INT_VAL, "Optimised bitsliced bitwise"
         for bit in range(0, int(size)):
@@ -2550,9 +2578,12 @@ class Binary_operation(object):
 
 
     def get_optimised(self, result, operand, bit, sym_count):
+        """returns required operand for an optimised bitsliced XOR"""
         if operand.node_type == DATA_TYPE.ID:
             return operand.translate()['result'] + "[" + str(bit) + "]"
         elif operand.node_type == DATA_TYPE.INT_LITERAL:
+            #  If operand is standard int literal, needs to be made
+            #  into bit-sliced slice
             if((int(operand.translate()['result']) >> bit) & 0x1) == 0x1:
                 return "0xffffffff"
             else:
@@ -2568,15 +2599,18 @@ class Binary_operation(object):
             raise InternalException("Unexpected operand for optimised operation " + str(operand.node_type))
 
     def optimised_translate(self, target, sym_count, size):
+        """Translated optimised XOR for bitsliced bitwise operations"""
         if self.node_type == DATA_TYPE.BITWISE_OP:
             return self.optimised_bitwise_bitslice(target, sym_count, size)
         else:
             raise InternalException("Unsupported optimization")
 
-    def translate(self, sym_count, target=None):
-        return Binary_operation.operations_lookup[self.type](self, sym_count, target)
+    def translate(self, sym_count):
+        return Binary_operation.operations_lookup[self.type](self, sym_count)
+
 
 class Cast_operation(object):
+    """Stores cast target and cast type"""
 
     def __init__(self, c_type, constraints, size):
         self._type = c_type
