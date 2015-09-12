@@ -23,6 +23,7 @@ class err_format():
 
 
 class Unimplemented_functionality_errors():
+    """Error messages for unimplemented back-end functionality"""
 
     def functionality_err(node, error_message):
         print(err_format.error.format("Error") + " Unimplemented functionality has been used in " + err_format.var.format(node.node_type), file=sys.stderr)
@@ -31,6 +32,7 @@ class Unimplemented_functionality_errors():
 
 
 class Semantic_analysis_errors():
+    """Error messages displayed for semantic errors by user"""
 
     error_lookup = {DATA_TYPE.INT_DECL: lambda node, error_message: Semantic_analysis_errors.int_decl_error(node, error_message),
                     DATA_TYPE.BIT_DECL: lambda node, error_message: Semantic_analysis_errors.bit_decl_error(node, error_message),

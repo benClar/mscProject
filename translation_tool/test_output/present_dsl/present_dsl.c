@@ -5,16 +5,16 @@
 
 #include "present_dsl.h"
 uint32_t present_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & C & ~B & ~A) | (D & ~C & ~A) | (~D & ~C & A) | (D & C & ~B & A) | (D & B & ~A) | (~D & B & A));
+return ((D & ~C & ~A) | (~D & ~C & A) | (~D & B & A) | (D & C & ~B & A) | (D & B & ~A) | (~D & C & ~B & ~A));
 }
 uint32_t present_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C & A) | (D & ~B & A) | (~D & B & ~A) | (~D & ~C & B) | (D & ~C & ~A));
+return ((D & C & A) | (D & ~C & ~A) | (~D & B & ~A) | (~D & ~C & B) | (D & ~B & A));
 }
 uint32_t present_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~C & ~B & A) | (~C & B & ~A) | (~D & C & B & A) | (~D & ~C & ~B) | (D & C & ~B) | (D & ~B & A));
+return ((~C & ~B & A) | (D & ~B & A) | (D & C & ~B) | (~D & ~C & ~B) | (~D & C & B & A) | (~C & B & ~A));
 }
 uint32_t present_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~C & B) | (~C & B & A) | (D & ~C & A) | (~D & C & B) | (~D & C & ~A) | (~D & ~B & ~A));
+return ((~D & C & B) | (~D & C & ~A) | (D & ~C & A) | (~D & ~B & ~A) | (D & ~C & B) | (~C & B & A));
 }
 void present(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -287,7 +287,7 @@ temp_13_extracted |= ((round >> temp_14_int_rng_start)  << temp_16_target_bit);
 }
 uint32_t temp_17_casted_bs[(19 - 15) + 1];
 int_to_bitsliced(temp_17_casted_bs, temp_13_extracted, (19 - 15) + 1);
-XOR(temp_11__bin, temp_12_rnge, temp_17_casted_bs, 80);
+XOR(temp_11__bin, temp_12_rnge, temp_17_casted_bs, (19 - 15) + 1);
 key[15] = temp_11__bin[0];
 key[16] = temp_11__bin[1];
 key[17] = temp_11__bin[2];

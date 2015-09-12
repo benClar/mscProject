@@ -708,4 +708,45 @@ uint8_t temp_71_int_call= 0;
 temp_71_int_call = ret_int_in_seq(b);
 a = temp_71_int_call;
 }
+void  bs_seq_bit_expr_mult(uint32_t *temp_72_bs_return){ 
+uint32_t a[8] = {0};
+a[0]= 0xffffffff;
+a[1]= 0;
+a[2]= 0;
+a[3]= 0;
+a[4]= 0;
+a[5]= 0;
+a[6]= 0;
+a[7]= 0;
+uint8_t b = 0;
+uint32_t temp_73__bin[3] = {0};
+uint32_t temp_74__bin[3] = {0};
+uint32_t  temp_75_extracted[3];
+temp_75_extracted[0] = a[0];
+temp_75_extracted[1] = a[1];
+temp_75_extracted[2] = a[2];
+uint8_t  temp_76_extracted = 0;
+temp_76_extracted ^= (((b >> 0) & 0x1) << 0);
+temp_76_extracted ^= (((b >> 1) & 0x1) << 1);
+temp_76_extracted ^= (((b >> 2) & 0x1) << 2);
+uint32_t temp_77_casted_bs[3];
+int_to_bitsliced(temp_77_casted_bs, temp_76_extracted, 3);
+XOR(temp_74__bin, temp_75_extracted, temp_77_casted_bs, 3);
+uint32_t temp_78_casted_bs[3];
+temp_78_casted_bs[0]= 0;
+temp_78_casted_bs[1]= 0xffffffff;
+temp_78_casted_bs[2]= 0xffffffff;
+bitslice_mult(temp_73__bin, temp_74__bin, temp_78_casted_bs, 3);
+a[0] = temp_73__bin[0];
+a[1] = temp_73__bin[1];
+a[2] = temp_73__bin[2];
+temp_72_bs_return[0] = a[0];
+temp_72_bs_return[1] = a[1];
+temp_72_bs_return[2] = a[2];
+temp_72_bs_return[3] = a[3];
+temp_72_bs_return[4] = a[4];
+temp_72_bs_return[5] = a[5];
+temp_72_bs_return[6] = a[6];
+temp_72_bs_return[7] = a[7];
+}
 

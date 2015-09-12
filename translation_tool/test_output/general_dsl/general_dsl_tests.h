@@ -24,3 +24,4 @@ void bs_bit_cast_test_19();
 void bit_seq_expr_bs_test_20();
 void bit_seq_expr_21();
 void bit_seq_expr_arith_test_22();
+void bs_bit_mult_23();

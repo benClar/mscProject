@@ -266,8 +266,8 @@ class Semantic_analyser(object):
         Args:
         Seq_value: sequence value to check.
         dimension: current dimension depth"""
-        if DATA_TYPE.is_op_type(seq_value.node_type):
-            print(seq_value.size)
+        # if DATA_TYPE.is_op_type(seq_value.node_type):
+        #     print(seq_value.size)
         dimension += 1
         if DATA_TYPE.is_seq_type(seq_value.value[0].type) is True:
             dimension = self.seq_value_dimension(seq_value.value[0], dimension)
@@ -693,12 +693,19 @@ class Semantic_analyser(object):
                 seq_val = operation.left
             elif operation.right.type == DATA_TYPE.SEQ_BS_BIT_VAL:
                 seq_val = operation.right
-            assert seq_val.node_type == DATA_TYPE.INDEX_SELECT, "Assuming this type comes from index select operation"
-            if seq_val.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE:
-                operation.size = {'start': seq_val.indices[-1][-1].start, 'finish': seq_val.indices[-1][-1].finish}
-                operation.constraints = self.get_operator_of_type(operation.left, operation.right, DATA_TYPE.SEQ_BS_BIT_VAL).constraints
+            if DATA_TYPE.is_op_type(seq_val.node_type):
+                operation.size = seq_val.size
+                operation.constraints = seq_val.constraints
             else:
-               raise InternalException("sequence of bitsliced values with unknown size " + str(seq_val.node_type))
+                assert seq_val.node_type == DATA_TYPE.INDEX_SELECT, "Assuming this type comes from index select operation"
+                if seq_val.indices[-1][-1].node_type == DATA_TYPE.INDEX_RANGE:
+                    operation.size = {'start': seq_val.indices[-1][-1].start, 'finish': seq_val.indices[-1][-1].finish}
+                    operation.constraints = self.get_operator_of_type(operation.left, operation.right, DATA_TYPE.SEQ_BS_BIT_VAL).constraints
+                else:
+                    operation.size = str(len(seq_val.indices[-1]))
+                    operation.constraints = self.get_operator_of_type(operation.left, operation.right, DATA_TYPE.SEQ_BS_BIT_VAL).constraints
+            # else:
+            #    raise InternalException("sequence of bitsliced values with unknown size " + str(seq_val.node_type))
         else:
             raise InternalException("Unknown size of binary operation " + str(operation.type))
 
@@ -1025,6 +1032,8 @@ class Semantic_analyser(object):
         """returns the result type of an arithmetic expression"""
         if expression['OPERAND_0'] == DATA_TYPE.BS_INT_VAL or expression['OPERAND_2'] == DATA_TYPE.BS_INT_VAL:
             return DATA_TYPE.BS_INT_VAL
+        elif expression['OPERAND_0'] == DATA_TYPE.SEQ_BS_BIT_VAL or expression['OPERAND_2'] == DATA_TYPE.SEQ_BS_BIT_VAL:
+            return DATA_TYPE.SEQ_BS_BIT_VAL
         else:
             return DATA_TYPE.INT_VAL
 

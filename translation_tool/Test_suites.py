@@ -916,13 +916,11 @@ class test_translation(unittest.TestCase):
 
     # def test_demo_code(self):
     #     par = Parser()
-    #     par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8)[2][2] bs_seq_set(@Int(8)[2][2] a){\
+    #     par.analyse_tree_test(par.parse_test_AST_semantic("@Int(8) bs_seq_bit_expr_mult() {\
+    #                                                             @Int(8) a = 1;\
+    #                                                             Int(8) b;\
+    #                                                             a[0,1,2] = ((a ^ b) * a * a * a) ^ b;\
     #                                                             return a;\
-    #                                                         }\
-    #                                                         void test() {\
-    #                                                         @Int(8)[2][2] a;\
-    #                                                         @Int(8)[2][2] b;\
-    #                                                         b = bs_seq_set(a);\
     #                                                         }\
     #                                                     "))
     #     print(par.semantic_analyser.IR.translate()['main'])
@@ -1127,6 +1125,12 @@ class test_translation(unittest.TestCase):
                                                                         void get_int_1() {\
                                                                             Int(8)[10][10] b;\
                                                                             Int(8) a = ret_int_in_seq(b);\
+                                                                        }\
+                                                                        @Int(8) bs_seq_bit_expr_mult() {\
+                                                                            @Int(8) a = 1;\
+                                                                            Int(8) b;\
+                                                                            a[0,1,2] = (a[0,1,2] ^ b[0,1,2]) * 6;\
+                                                                            return a;\
                                                                         }\
                                                                     ")), True)
         if Data_reader.write_test("general_dsl", "general_dsl", par.semantic_analyser.IR.translate()) is True:

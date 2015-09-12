@@ -29,21 +29,21 @@ class IR(object):
     def translate(self):
         """Iterates through all IR nodes and stores their code emissions"""
         result = {'main': "", 'header': ""}
-        try:
-            for node in self.IR:
-                node_res = node.translate(self.sym_count)
-                if 'emit' in node_res:
-                    result['main'] += node_res['emit']
-                else:
-                    result['main'] += node_res
-                if node.node_type == DATA_TYPE.FUNC_DECL:
-                    result['header'] += node.translate_header(self.sym_count) + ";\n"
-                elif node.node_type == DATA_TYPE.SBOX_DECL:
-                    result['header'] += node.translate_header(self.sym_count)
-            return result
-        except Exception as details:
-            print(node.ID.name)
-            Unimplemented_functionality_errors.functionality_err(node, details)
+        # try:
+        for node in self.IR:
+            node_res = node.translate(self.sym_count)
+            if 'emit' in node_res:
+                result['main'] += node_res['emit']
+            else:
+                result['main'] += node_res
+            if node.node_type == DATA_TYPE.FUNC_DECL:
+                result['header'] += node.translate_header(self.sym_count) + ";\n"
+            elif node.node_type == DATA_TYPE.SBOX_DECL:
+                result['header'] += node.translate_header(self.sym_count)
+        return result
+        # except Exception as details:
+        #     print(node.ID.name)
+        #     Unimplemented_functionality_errors.functionality_err(node, details)
 
 
 class Function_decl(object):
@@ -2374,13 +2374,22 @@ class Binary_operation(object):
                     operand_1['result'] = cast['result']
                 elif self.right.type != self.type:
                     operand_2['result'] = cast['result']
-        operation_size = self.get_bs_res_size(operand_1, operand_2)
+        operation_size = self.unpack_size(self.get_bs_res_size(operand_1, operand_2), result)
         result['emit'] += function + temp_target['result'] + ", " + operand_1['result'] + ", " + operand_2['result']\
             + ", " + operation_size + ");\n"
         return result
 
     def get_bs_res_size(self, oper_1, oper_2):
         """Returns the correct bit width for current bit-sliced expression"""
+        if self.type == DATA_TYPE.BS_INT_VAL:
+            return self.bitsliced_int_res_size(oper_1, oper_2)
+        elif self.type == DATA_TYPE.SEQ_BS_BIT_VAL:
+            return self.bs_seq_bit_res_size(oper_1, oper_2)
+        else:
+            raise InternalException("Unknown bitsliced val size")
+
+    def bitsliced_int_res_size(self, oper_1, oper_2):
+        """returns size of result for bit-sliced int operation"""
         if self.node_type == DATA_TYPE.SHIFT_OP:
             if 'res_size' in oper_1:
                 return oper_1['res_size']
@@ -2390,6 +2399,39 @@ class Binary_operation(object):
             return self.constraints.translate()['result']
         elif self.node_type == DATA_TYPE.ARITH_OP:
             return self.constraints.translate()['result']
+        else:
+            raise InternalException("unimplemented bitsliced expr")
+
+    def bs_seq_bit_res_size(self, oper_1, oper_2):
+        """returns size of result for bitsliced bit operation"""
+        if self.node_type == DATA_TYPE.SHIFT_OP:
+            if 'res_size' in oper_1:
+                return oper_1['res_size']
+            else:
+                return self.size
+        elif self.node_type == DATA_TYPE.BITWISE_OP:
+            return self.size
+        elif self.node_type == DATA_TYPE.ARITH_OP:
+            return self.size
+        else:
+            raise InternalException("unimplemented bitsliced expr")
+
+    def unpack_size(self, output, result):
+        """Unpacks size information for bit-sliced integer expressions to deal with
+        various forms that this can come in
+
+        Args:
+            output: output produced for size of result
+            result: storage for code"""
+        if 'start' in output:
+            start_size = output['start'].translate()
+            result['emit'] += start_size['emit']
+            end_size = output['finish'].translate()
+            result['emit'] += end_size['emit']
+            return "(" + end_size['result'] + " - " + start_size['result'] + ")" + " + 1"
+        else:
+            return output
+
 
     def int_int_operation(self, sym_count):
         """Entry point for standsrd integr operations"""
@@ -2409,6 +2451,10 @@ class Binary_operation(object):
         else:
             return self.bs_bit_compute_operation(sym_count)
 
+    def bit_length(inp):
+        """returns bit length of an integer literal"""
+        return str(len(str(bin(int(inp)))[2:]))
+
     def implicit_cast(self, sym_count, target, size=None):
         """Casts operand to correct value
 
@@ -2422,6 +2468,13 @@ class Binary_operation(object):
                 cast_res = Cast.int_to_bs_cast(sym_count, target, size)
                 result['result'] = cast_res['result']
                 result['emit'] = cast_res['emit']
+            elif operand_for_cast.type == DATA_TYPE.INT_VAL:
+                if operand_for_cast.node_type == DATA_TYPE.INT_LITERAL:
+                    cast = Cast.bitslice_literal(sym_count, operand_for_cast.translate()['result'], Binary_operation.bit_length(operand_for_cast.translate()['result']))
+                    result['result'] = cast['result']
+                    result['emit'] = cast['emit']
+                else:
+                    raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
             else:
                 raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
         elif self.type == DATA_TYPE.BS_INT_VAL:
@@ -2549,19 +2602,27 @@ class Binary_operation(object):
             result['emit'] += "uint32_t" + " " + result['result'] + "[" + self.constraints.translate(sym_count)['result'] + "]" + " = {0};\n"
             result['res_size'] = self.constraints.translate(sym_count)['result']
         elif self.type == DATA_TYPE.SEQ_BS_BIT_VAL:
-            result['result'] += Target_factory.name(sym_count) + "_bin"
-            start_size = self.size['start'].translate()
-            result['emit'] += start_size['emit']
-            end_size = self.size['finish'].translate()
-            result['emit'] += end_size['emit']
-            result['res_size'] = "(" + end_size['result'] + " - " + start_size['result'] + ")" + " + 1"
-            result['emit'] += "uint32_t" + " " + result['result'] + "[" + result['res_size'] + "]" + " = {0};\n"
+            self.size_of_seq_bit_res(sym_count, result)
         elif self.type == DATA_TYPE.SEQ_BIT_VAL:
             res['result'] += Target_factory.name(sym_count, "bit_seq")
             res['emit'] += "uint32_t " + res['result'] + " = 0x0;\n"
         else:
             raise ParseException("Need Type declaration " + str(self.type))
         return result
+
+    def size_of_seq_bit_res(self, sym_count, result):
+        """Returns size of sequence of bit expression"""
+        result['result'] += Target_factory.name(sym_count) + "_bin"
+        if 'start' in self.size:
+            start_size = self.size['start'].translate()
+            result['emit'] += start_size['emit']
+            end_size = self.size['finish'].translate()
+            result['emit'] += end_size['emit']
+            result['res_size'] = "(" + end_size['result'] + " - " + start_size['result'] + ")" + " + 1"
+            result['emit'] += "uint32_t" + " " + result['result'] + "[" + result['res_size'] + "]" + " = {0};\n"
+        else:
+            result['res_size'] = self.size
+            result['emit'] += "uint32_t" + " " + result['result'] + "[" + result['res_size'] + "]" + " = {0};\n"   
 
     def optimised_bitwise_bitslice(self, target, sym_count, size):
         """carries out wordlong bitslice bitwise operations
