@@ -5,16 +5,16 @@
 
 #include "present_dsl.h"
 uint32_t present_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~C & ~A) | (~D & ~C & A) | (~D & B & A) | (D & C & ~B & A) | (D & B & ~A) | (~D & C & ~B & ~A));
+return ((D & B & ~A) | (D & ~C & ~A) | (~D & ~C & A) | (~D & C & ~B & ~A) | (~D & B & A) | (D & C & ~B & A));
 }
 uint32_t present_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C & A) | (D & ~C & ~A) | (~D & B & ~A) | (~D & ~C & B) | (D & ~B & A));
+return ((D & ~C & ~A) | (D & ~B & A) | (D & C & A) | (~D & ~C & B) | (~D & B & ~A));
 }
 uint32_t present_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~C & ~B & A) | (D & ~B & A) | (D & C & ~B) | (~D & ~C & ~B) | (~D & C & B & A) | (~C & B & ~A));
+return ((D & ~B & A) | (~D & C & B & A) | (~C & ~B & A) | (~D & ~C & ~B) | (~C & B & ~A) | (D & C & ~B));
 }
 uint32_t present_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & C & B) | (~D & C & ~A) | (D & ~C & A) | (~D & ~B & ~A) | (D & ~C & B) | (~C & B & A));
+return ((~D & C & ~A) | (~D & ~B & ~A) | (~D & C & B) | (D & ~C & B) | (D & ~C & A) | (~D & B & A));
 }
 void present(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -281,13 +281,13 @@ uint32_t temp_12_rnge[(19 - 15) + 1];
 extract_bs_range(temp_12_rnge, key, 15, 19);
 uint8_t  temp_13_extracted = 0;
 uint8_t temp_14_int_rng_start  = 0;
-uint8_t  temp_16_target_bit = 0;
-for(;temp_14_int_rng_start < 5;temp_14_int_rng_start++, temp_16_target_bit++){
-temp_13_extracted |= ((round >> temp_14_int_rng_start)  << temp_16_target_bit);
+uint8_t  temp_15_target_bit = 0;
+for(;temp_14_int_rng_start < 5;temp_14_int_rng_start++, temp_15_target_bit++){
+temp_13_extracted |= ((round >> temp_14_int_rng_start)  << temp_15_target_bit);
 }
-uint32_t temp_17_casted_bs[(19 - 15) + 1];
-int_to_bitsliced(temp_17_casted_bs, temp_13_extracted, (19 - 15) + 1);
-XOR(temp_11__bin, temp_12_rnge, temp_17_casted_bs, (19 - 15) + 1);
+uint32_t temp_16_casted_bs[(19 - 15) + 1];
+int_to_bitsliced(temp_16_casted_bs, temp_13_extracted, (19 - 15) + 1);
+XOR(temp_11__bin, temp_12_rnge, temp_16_casted_bs, (19 - 15) + 1);
 key[15] = temp_11__bin[0];
 key[16] = temp_11__bin[1];
 key[17] = temp_11__bin[2];
@@ -312,9 +312,9 @@ if((i * 4) > ((i * 4) + 3)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
 exit(1);
 }
-uint32_t temp_25_rnge[(((i * 4) + 3) - (i * 4)) + 1];
-extract_bs_range(temp_25_rnge, state, (i * 4), ((i * 4) + 3));
-present(temp_25_rnge);
+uint32_t temp_24_rnge[(((i * 4) + 3) - (i * 4)) + 1];
+extract_bs_range(temp_24_rnge, state, (i * 4), ((i * 4) + 3));
+present(temp_24_rnge);
 if((i * 4) >= 64){
 fprintf(stderr, "Index out of bounds for selection on state\n");
 exit(1);
@@ -327,12 +327,12 @@ if((i * 4) > ((i * 4) + 3)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
 exit(1);
 }
-uint8_t temp_35_init = 0;
-uint32_t temp_36_rnge_size = 0;
-temp_36_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
-uint8_t temp_41_rng_start = (i * 4);
-for(temp_35_init = 0; temp_35_init < temp_36_rnge_size; temp_35_init++, temp_41_rng_start++){
-state[temp_41_rng_start] = temp_25_rnge[temp_35_init];
+uint8_t temp_34_init = 0;
+uint32_t temp_35_rnge_size = 0;
+temp_35_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
+uint8_t temp_40_rng_start = (i * 4);
+for(temp_34_init = 0; temp_34_init < temp_35_rnge_size; temp_34_init++, temp_40_rng_start++){
+state[temp_40_rng_start] = temp_24_rnge[temp_34_init];
 }
 i = (i + 1);
 } 

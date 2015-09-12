@@ -5,16 +5,16 @@
 
 #include "led_dsl.h"
 uint32_t led_0(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & ~C & ~A) | (~D & ~C & A) | (~D & B & A) | (D & C & ~B & A) | (D & B & ~A) | (~D & C & ~B & ~A));
+return ((D & B & ~A) | (D & ~C & ~A) | (~D & ~C & A) | (~D & C & ~B & ~A) | (~D & B & A) | (D & C & ~B & A));
 }
 uint32_t led_1(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((D & C & A) | (D & ~C & ~A) | (~D & B & ~A) | (~D & ~C & B) | (D & ~B & A));
+return ((D & ~C & ~A) | (D & ~B & A) | (D & C & A) | (~D & ~C & B) | (~D & B & ~A));
 }
 uint32_t led_2(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~C & ~B & A) | (D & ~B & A) | (D & C & ~B) | (~D & ~C & ~B) | (~D & C & B & A) | (~C & B & ~A));
+return ((D & ~B & A) | (~D & C & B & A) | (~C & ~B & A) | (~D & ~C & ~B) | (~C & B & ~A) | (D & C & ~B));
 }
 uint32_t led_3(uint32_t A, uint32_t B, uint32_t C, uint32_t D) {
-return ((~D & C & B) | (~D & C & ~A) | (D & ~C & A) | (~D & ~B & ~A) | (D & ~C & B) | (~C & B & A));
+return ((~D & C & ~A) | (~D & ~B & ~A) | (~D & C & B) | (D & ~C & B) | (D & ~C & A) | (~D & B & A));
 }
 void led(uint32_t input[4]){
 uint32_t temp_0_sbox_out[4];
@@ -329,12 +329,12 @@ row = 0;
 for(;(row < 4);) { 
 uint8_t  temp_124_extracted = 0;
 uint8_t temp_125_int_rng_start  = 0;
-uint8_t  temp_127_target_bit = 0;
-for(;temp_125_int_rng_start < 3;temp_125_int_rng_start++, temp_127_target_bit++){
-temp_124_extracted |= ((row >> temp_125_int_rng_start)  << temp_127_target_bit);
+uint8_t  temp_126_target_bit = 0;
+for(;temp_125_int_rng_start < 3;temp_125_int_rng_start++, temp_126_target_bit++){
+temp_124_extracted |= ((row >> temp_125_int_rng_start)  << temp_126_target_bit);
 }
-uint32_t temp_128_cast_bs_seq[(((row * 16) + 3) - (row * 16)) + 1];
-int_to_bitsliced(temp_128_cast_bs_seq, temp_124_extracted, (((row * 16) + 3) - (row * 16)) + 1);
+uint32_t temp_127_cast_bs_seq[(((row * 16) + 3) - (row * 16)) + 1];
+int_to_bitsliced(temp_127_cast_bs_seq, temp_124_extracted, (((row * 16) + 3) - (row * 16)) + 1);
 if((row * 16) >= 64){
 fprintf(stderr, "Index out of bounds for selection on roundConstant\n");
 exit(1);
@@ -347,18 +347,18 @@ if((row * 16) > ((row * 16) + 3)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on roundConstant \n");
 exit(1);
 }
-uint8_t temp_138_init = 0;
-uint32_t temp_139_rnge_size = 0;
-temp_139_rnge_size = (((row * 16) + 3)-(row * 16)) + 1;
-uint8_t temp_144_rng_start = (row * 16);
-for(temp_138_init = 0; temp_138_init < temp_139_rnge_size; temp_138_init++, temp_144_rng_start++){
-roundConstant[temp_144_rng_start] = temp_128_cast_bs_seq[temp_138_init];
+uint8_t temp_137_init = 0;
+uint32_t temp_138_rnge_size = 0;
+temp_138_rnge_size = (((row * 16) + 3)-(row * 16)) + 1;
+uint8_t temp_143_rng_start = (row * 16);
+for(temp_137_init = 0; temp_137_init < temp_138_rnge_size; temp_137_init++, temp_143_rng_start++){
+roundConstant[temp_143_rng_start] = temp_127_cast_bs_seq[temp_137_init];
 }
 if((row == 0) || (row == 2)) { 
-uint32_t  temp_145_extracted[3];
-temp_145_extracted[0] = constant[3];
-temp_145_extracted[1] = constant[4];
-temp_145_extracted[2] = constant[5];
+uint32_t  temp_144_extracted[3];
+temp_144_extracted[0] = constant[3];
+temp_144_extracted[1] = constant[4];
+temp_144_extracted[2] = constant[5];
 if(((row * 16) + 4) >= 64){
 fprintf(stderr, "Index out of bounds for selection on roundConstant\n");
 exit(1);
@@ -371,19 +371,19 @@ if(((row * 16) + 4) > ((row * 16) + 6)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on roundConstant \n");
 exit(1);
 }
-uint8_t temp_154_init = 0;
-uint32_t temp_155_rnge_size = 0;
-temp_155_rnge_size = (((row * 16) + 6)-((row * 16) + 4)) + 1;
-uint8_t temp_162_rng_start = ((row * 16) + 4);
-for(temp_154_init = 0; temp_154_init < temp_155_rnge_size; temp_154_init++, temp_162_rng_start++){
-roundConstant[temp_162_rng_start] = temp_145_extracted[temp_154_init];
+uint8_t temp_153_init = 0;
+uint32_t temp_154_rnge_size = 0;
+temp_154_rnge_size = (((row * 16) + 6)-((row * 16) + 4)) + 1;
+uint8_t temp_161_rng_start = ((row * 16) + 4);
+for(temp_153_init = 0; temp_153_init < temp_154_rnge_size; temp_153_init++, temp_161_rng_start++){
+roundConstant[temp_161_rng_start] = temp_144_extracted[temp_153_init];
 }
 } 
 if((row == 1) || (row == 3)) { 
-uint32_t  temp_163_extracted[3];
-temp_163_extracted[0] = constant[0];
-temp_163_extracted[1] = constant[1];
-temp_163_extracted[2] = constant[2];
+uint32_t  temp_162_extracted[3];
+temp_162_extracted[0] = constant[0];
+temp_162_extracted[1] = constant[1];
+temp_162_extracted[2] = constant[2];
 if(((row * 16) + 4) >= 64){
 fprintf(stderr, "Index out of bounds for selection on roundConstant\n");
 exit(1);
@@ -396,16 +396,16 @@ if(((row * 16) + 4) > ((row * 16) + 6)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on roundConstant \n");
 exit(1);
 }
-uint8_t temp_172_init = 0;
-uint32_t temp_173_rnge_size = 0;
-temp_173_rnge_size = (((row * 16) + 6)-((row * 16) + 4)) + 1;
-uint8_t temp_180_rng_start = ((row * 16) + 4);
-for(temp_172_init = 0; temp_172_init < temp_173_rnge_size; temp_172_init++, temp_180_rng_start++){
-roundConstant[temp_180_rng_start] = temp_163_extracted[temp_172_init];
+uint8_t temp_171_init = 0;
+uint32_t temp_172_rnge_size = 0;
+temp_172_rnge_size = (((row * 16) + 6)-((row * 16) + 4)) + 1;
+uint8_t temp_179_rng_start = ((row * 16) + 4);
+for(temp_171_init = 0; temp_171_init < temp_172_rnge_size; temp_171_init++, temp_179_rng_start++){
+roundConstant[temp_179_rng_start] = temp_162_extracted[temp_171_init];
 }
 } 
-uint32_t temp_181_cast_bs_seq[(((row * 16) + 15) - ((row * 16) + 8)) + 1];
-int_to_bitsliced(temp_181_cast_bs_seq, 0, (((row * 16) + 15) - ((row * 16) + 8)) + 1);
+uint32_t temp_180_cast_bs_seq[(((row * 16) + 15) - ((row * 16) + 8)) + 1];
+int_to_bitsliced(temp_180_cast_bs_seq, 0, (((row * 16) + 15) - ((row * 16) + 8)) + 1);
 if(((row * 16) + 8) >= 64){
 fprintf(stderr, "Index out of bounds for selection on roundConstant\n");
 exit(1);
@@ -418,12 +418,12 @@ if(((row * 16) + 8) > ((row * 16) + 15)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on roundConstant \n");
 exit(1);
 }
-uint8_t temp_194_init = 0;
-uint32_t temp_195_rnge_size = 0;
-temp_195_rnge_size = (((row * 16) + 15)-((row * 16) + 8)) + 1;
-uint8_t temp_202_rng_start = ((row * 16) + 8);
-for(temp_194_init = 0; temp_194_init < temp_195_rnge_size; temp_194_init++, temp_202_rng_start++){
-roundConstant[temp_202_rng_start] = temp_181_cast_bs_seq[temp_194_init];
+uint8_t temp_193_init = 0;
+uint32_t temp_194_rnge_size = 0;
+temp_194_rnge_size = (((row * 16) + 15)-((row * 16) + 8)) + 1;
+uint8_t temp_201_rng_start = ((row * 16) + 8);
+for(temp_193_init = 0; temp_193_init < temp_194_rnge_size; temp_193_init++, temp_201_rng_start++){
+roundConstant[temp_201_rng_start] = temp_180_cast_bs_seq[temp_193_init];
 }
 row = (row + 1);
 } 
@@ -508,9 +508,9 @@ if((i * 4) > ((i * 4) + 3)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
 exit(1);
 }
-uint32_t temp_210_rnge[(((i * 4) + 3) - (i * 4)) + 1];
-extract_bs_range(temp_210_rnge, state, (i * 4), ((i * 4) + 3));
-led(temp_210_rnge);
+uint32_t temp_209_rnge[(((i * 4) + 3) - (i * 4)) + 1];
+extract_bs_range(temp_209_rnge, state, (i * 4), ((i * 4) + 3));
+led(temp_209_rnge);
 if((i * 4) >= 64){
 fprintf(stderr, "Index out of bounds for selection on state\n");
 exit(1);
@@ -523,12 +523,12 @@ if((i * 4) > ((i * 4) + 3)){
 fprintf(stderr, "Start of range cannot be larger than end for index select on state \n");
 exit(1);
 }
-uint8_t temp_220_init = 0;
-uint32_t temp_221_rnge_size = 0;
-temp_221_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
-uint8_t temp_226_rng_start = (i * 4);
-for(temp_220_init = 0; temp_220_init < temp_221_rnge_size; temp_220_init++, temp_226_rng_start++){
-state[temp_226_rng_start] = temp_210_rnge[temp_220_init];
+uint8_t temp_219_init = 0;
+uint32_t temp_220_rnge_size = 0;
+temp_220_rnge_size = (((i * 4) + 3)-(i * 4)) + 1;
+uint8_t temp_225_rng_start = (i * 4);
+for(temp_219_init = 0; temp_219_init < temp_220_rnge_size; temp_219_init++, temp_225_rng_start++){
+state[temp_225_rng_start] = temp_209_rnge[temp_219_init];
 }
 i = (i + 1);
 } 

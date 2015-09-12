@@ -799,7 +799,7 @@ class Index_select(object):
         result['emit'] += selection_dim['emit']
         if self.is_range():
             start_range_target = Target_factory.name(sym_count, "int_rng_start")
-            end_range_target = Target_factory.name(sym_count, "int_rng_start")
+            # end_range_target = Target_factory.name(sym_count, "int_rng_start")
             start_val = self.indices[-1][-1].start.translate()
             end_val = self.indices[-1][-1].finish.translate()
             result['emit'] += start_val['emit']
@@ -835,7 +835,7 @@ class Index_select(object):
 
     def extract_bs_int_val(self, target, sym_count):
         """Extract entire bitsliced int from a sequence of bs ints.
-        
+
         Args:
             target: target for extraction   
             sym_count: count of temp vars in program."""
@@ -1097,7 +1097,7 @@ class Set(object):
         if self.target.type == DATA_TYPE.BS_BIT_VAL:
             return Cast.bit_to_bs_bit(self.value, sym_count)
         else:
-           raise ParseException("Unsupported cast to bs bit of " + str(self.target.type)) 
+            raise ParseException("Unsupported cast to bs bit of " + str(self.target.type)) 
 
     def implicit_cast_to_bs_bits(self, sym_count):
         """Cast to bit-sliced range"""
@@ -1465,6 +1465,7 @@ class Seq_decl(object):
                 raise SemanticException("Custom sized integers not implemented")
             return Target_factory.type_decl_lookup[self.constraints.translate()['result']]
 
+
 class Seq_val(object):
     """IR representation for sequence values"""
 
@@ -1530,7 +1531,7 @@ class Seq_val(object):
 
         Args:
             target: target that is to be set to value of sequence"""
-        result = {'emit': "", 'result': "", 'res_size' : None}
+        result = {'emit': "", 'result': "", 'res_size': None}
         # if self.all_int_literal():
         #     return self.translate_int_literal_seq(sym_count, result)
         if self.type == DATA_TYPE.SEQ_BIT_VAL:
@@ -1608,7 +1609,7 @@ class Seq_val(object):
                     index_str += "[" + str(element) + "]"
             element_res = self.get_val(self.value, list(index)).translate(sym_count)
             result['emit'] += element_res['emit']
-            result['emit'] += target + index_str + " |= " + "(" + element_res['result'] + " << " + str(size[-1] - index[-1] - 1) + ");\n"  
+            result['emit'] += target + index_str + " |= " + "(" + element_res['result'] + " << " + str(size[-1] - index[-1] - 1) + ");\n"
         return result
 
     def get_val(self, target, index):
@@ -1804,12 +1805,12 @@ class Int_decl(object):
             func_param: Set to true if int declaration is a function parameter"""
         result = {'emit': "", 'result': ""}
         if self.node_type == DATA_TYPE.BS_INT_DECL:
-            if func_param == False:
+            if func_param is False:
                 result['emit'] += self.translate_type() + self.ID.translate()["result"] + "[" + self.constraints.translate()['result'] + "]" + " = {0};\n"
             else:
                 result['emit'] += self.translate_type() + self.ID.translate()["result"] + "[" + self.constraints.translate()['result'] + "]" + ";\n"
         elif self.node_type == DATA_TYPE.INT_DECL:
-            if func_param == False:
+            if func_param is False:
                 result['emit'] += self.translate_type() + self.ID.translate()["result"] + " = 0;\n"
             else:
                 result['emit'] += self.translate_type() + self.ID.translate()["result"] + ";\n"
@@ -2474,7 +2475,9 @@ class Binary_operation(object):
                     result['result'] = cast['result']
                     result['emit'] = cast['emit']
                 else:
-                    raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
+                    cast_res = Cast.int_to_bs_cast(sym_count, target, size)
+                    result['result'] = cast_res['result']
+                    result['emit'] = cast_res['emit']
             else:
                 raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
         elif self.type == DATA_TYPE.BS_INT_VAL:

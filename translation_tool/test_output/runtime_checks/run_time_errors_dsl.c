@@ -107,9 +107,9 @@ exit(1);
 }
 uint8_t  temp_2_extracted = 0;
 uint8_t temp_3_int_rng_start  = a;
-uint8_t  temp_5_target_bit = 0;
-for(;temp_3_int_rng_start < b;temp_3_int_rng_start++, temp_5_target_bit++){
-temp_2_extracted |= ((a >> temp_3_int_rng_start)  << temp_5_target_bit);
+uint8_t  temp_4_target_bit = 0;
+for(;temp_3_int_rng_start < b;temp_3_int_rng_start++, temp_4_target_bit++){
+temp_2_extracted |= ((a >> temp_3_int_rng_start)  << temp_4_target_bit);
 }
 if(((temp_2_extracted >> 0) & 0x1) == 0 ){
 b &= ~(0x1 <<0);
@@ -142,11 +142,11 @@ uint8_t a = 0;
 a = 0;
 uint8_t b = 0;
 b = 10;
-uint8_t  temp_6_extracted = 0;
-uint8_t temp_7_int_rng_start  = 0;
-uint8_t  temp_9_target_bit = 0;
-for(;temp_7_int_rng_start < 3;temp_7_int_rng_start++, temp_9_target_bit++){
-temp_6_extracted |= ((a >> temp_7_int_rng_start)  << temp_9_target_bit);
+uint8_t  temp_5_extracted = 0;
+uint8_t temp_6_int_rng_start  = 0;
+uint8_t  temp_7_target_bit = 0;
+for(;temp_6_int_rng_start < 3;temp_6_int_rng_start++, temp_7_target_bit++){
+temp_5_extracted |= ((a >> temp_6_int_rng_start)  << temp_7_target_bit);
 }
 if(a >= 8){
 fprintf(stderr, "Index out of bounds for selection on b\n");
@@ -160,15 +160,15 @@ if(a > b){
 fprintf(stderr, "Start of range cannot be larger than end for index select on b \n");
 exit(1);
 }
-uint32_t temp_10_rnge_size = 0;
-temp_10_rnge_size = (b-a) + 1;
-uint32_t temp_12_curr_bit;
-uint32_t temp_11_rng_start;
-for(temp_12_curr_bit = a, temp_11_rng_start = 0; temp_11_rng_start < temp_10_rnge_size; temp_11_rng_start++, temp_12_curr_bit++) {
-if(((temp_6_extracted >> temp_11_rng_start) & 0x1) == 0 ){
-b &= ~(0x1 <<temp_12_curr_bit);
-} else if (((temp_6_extracted >> temp_11_rng_start) & 0x1) == 1 ){
-b |= (0x1 << temp_12_curr_bit);
+uint32_t temp_8_rnge_size = 0;
+temp_8_rnge_size = (b-a) + 1;
+uint32_t temp_10_curr_bit;
+uint32_t temp_9_rng_start;
+for(temp_10_curr_bit = a, temp_9_rng_start = 0; temp_9_rng_start < temp_8_rnge_size; temp_9_rng_start++, temp_10_curr_bit++) {
+if(((temp_5_extracted >> temp_9_rng_start) & 0x1) == 0 ){
+b &= ~(0x1 <<temp_10_curr_bit);
+} else if (((temp_5_extracted >> temp_9_rng_start) & 0x1) == 1 ){
+b |= (0x1 << temp_10_curr_bit);
 }
 }
 }
@@ -178,25 +178,25 @@ a = 0;
 uint8_t b = 0;
 b = 10;
 uint8_t  c[10] = { 0 };
-uint8_t  temp_13_extracted = 0;
-uint8_t temp_14_int_rng_start  = 0;
-uint8_t  temp_16_target_bit = 0;
-for(;temp_14_int_rng_start < 3;temp_14_int_rng_start++, temp_16_target_bit++){
-temp_13_extracted |= ((a >> temp_14_int_rng_start)  << temp_16_target_bit);
+uint8_t  temp_11_extracted = 0;
+uint8_t temp_12_int_rng_start  = 0;
+uint8_t  temp_13_target_bit = 0;
+for(;temp_12_int_rng_start < 3;temp_12_int_rng_start++, temp_13_target_bit++){
+temp_11_extracted |= ((a >> temp_12_int_rng_start)  << temp_13_target_bit);
 }
 if(b >= 10){
 fprintf(stderr, "Index out of bounds for selection on c\n");
 exit(1);
 }
-uint32_t temp_17_rnge_size = 0;
-temp_17_rnge_size = (3-0) + 1;
-uint32_t temp_19_curr_bit;
-uint32_t temp_18_rng_start;
-for(temp_19_curr_bit = 0, temp_18_rng_start = 0; temp_18_rng_start < temp_17_rnge_size; temp_18_rng_start++, temp_19_curr_bit++) {
-if(((temp_13_extracted >> temp_18_rng_start) & 0x1) == 0 ){
-c[b] &= ~(0x1 <<temp_19_curr_bit);
-} else if (((temp_13_extracted >> temp_18_rng_start) & 0x1) == 1 ){
-c[b] |= (0x1 << temp_19_curr_bit);
+uint32_t temp_14_rnge_size = 0;
+temp_14_rnge_size = (3-0) + 1;
+uint32_t temp_16_curr_bit;
+uint32_t temp_15_rng_start;
+for(temp_16_curr_bit = 0, temp_15_rng_start = 0; temp_15_rng_start < temp_14_rnge_size; temp_15_rng_start++, temp_16_curr_bit++) {
+if(((temp_11_extracted >> temp_15_rng_start) & 0x1) == 0 ){
+c[b] &= ~(0x1 <<temp_16_curr_bit);
+} else if (((temp_11_extracted >> temp_15_rng_start) & 0x1) == 1 ){
+c[b] |= (0x1 << temp_16_curr_bit);
 }
 }
 }
@@ -206,15 +206,15 @@ a = 0;
 uint8_t b = 0;
 b = 10;
 uint8_t  c[10][10] = {{ 0 }};
-uint8_t  temp_20_extracted = 0;
-temp_20_extracted = (a >> 0) & 0x1;
+uint8_t  temp_17_extracted = 0;
+temp_17_extracted = (a >> 0) & 0x1;
 if(b >= 8){
 fprintf(stderr, "Index out of bounds for selection on c\n");
 exit(1);
 }
-if(temp_20_extracted) {
+if(temp_17_extracted) {
 c[8][8] ^= (0x1 << b);
-} else if(temp_20_extracted) {
+} else if(temp_17_extracted) {
 c[8][8] &= ~(0x1 << b);
 }
 }
