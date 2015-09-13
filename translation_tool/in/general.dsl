@@ -79,7 +79,7 @@ Int(8) int_index_set_13()    {
 }
 void seq_bit_extraction(Bit[2][2] input){
     Bit[2][2] a = [[True, False], [True, True]];
-    for(Int(8) outer = 0; outer < 2; outer = outer + 1)    {
+    for(Int(8) outer = 0, Int(8)[2][2] f = [[1,2],[1,2]]; outer < 2; outer = outer + 1)    {
         for(Int(8) inner = 0; inner < 2; inner = inner + 1)    {
             input[outer][inner] = a[outer][inner];
         }
@@ -157,4 +157,10 @@ Int(8) ret_int_in_seq(Int(8)[10][10] a){
 void get_int_1() {
     Int(8)[10][10] b;
     Int(8) a = ret_int_in_seq(b);
+}
+@Int(8) bs_seq_bit_expr_mult() {
+    @Int(8) a = 1;
+    Int(8) b;
+    a[0,1,2] = (a[0,1,2] ^ b[0,1,2]) * 6;
+    return a;
 }

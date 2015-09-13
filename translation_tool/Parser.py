@@ -2,14 +2,10 @@ from pyparsing import Literal, Word, nums, ParseException, Forward, alphas,\
     Suppress, Group, ZeroOrMore, Keyword, alphanums, NotAny, CharsNotIn, \
     OneOrMore, Optional, delimitedList, StringEnd, oneOf, srange, Combine, \
     infixNotation, opAssoc, White, ParserElement, operatorPrecedence, ParseResults
-import unittest
-from nose.tools import assert_equals
-from Semantic_analyser import Semantic_analyser
 from Syntax_tree import *
-import traceback
-import sys
 
 ParserElement.enablePackrat()
+
 
 class Parser(object):
     """Lexical and Syntax analysis"""

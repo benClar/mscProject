@@ -29,21 +29,21 @@ class IR(object):
     def translate(self):
         """Iterates through all IR nodes and stores their code emissions"""
         result = {'main': "", 'header': ""}
-        # try:
-        for node in self.IR:
-            node_res = node.translate(self.sym_count)
-            if 'emit' in node_res:
-                result['main'] += node_res['emit']
-            else:
-                result['main'] += node_res
-            if node.node_type == DATA_TYPE.FUNC_DECL:
-                result['header'] += node.translate_header(self.sym_count) + ";\n"
-            elif node.node_type == DATA_TYPE.SBOX_DECL:
-                result['header'] += node.translate_header(self.sym_count)
-        return result
-        # except Exception as details:
-        #     print(node.ID.name)
-        #     Unimplemented_functionality_errors.functionality_err(node, details)
+        try:
+            for node in self.IR:
+                node_res = node.translate(self.sym_count)
+                if 'emit' in node_res:
+                    result['main'] += node_res['emit']
+                else:
+                    result['main'] += node_res
+                if node.node_type == DATA_TYPE.FUNC_DECL:
+                    result['header'] += node.translate_header(self.sym_count) + ";\n"
+                elif node.node_type == DATA_TYPE.SBOX_DECL:
+                    result['header'] += node.translate_header(self.sym_count)
+            return result
+        except Exception as details:
+            print(node.ID.name)
+            Unimplemented_functionality_errors.functionality_err(node, details)
 
 
 class Function_decl(object):
