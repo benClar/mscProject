@@ -5,6 +5,9 @@
 
 #include "prince_dsl_tests.h"
 
+/* Data stored in little-endian fashion : 0th bit = 0th element i.e. produced cipher texts are 'backwards'.
+https://eprint.iacr.org/2012/529.pdf */
+
 int main() {
 	sput_start_testing();
 	sput_enter_suite("Prince Test 1");
@@ -20,6 +23,10 @@ int main() {
 }
 
 void prince_test_1()	{
+	// cipher Text: 0x604AE6CA03C20ADA
+	// plaintext: 0xffffffffffffffff
+	// k0:0x0000000000000000
+	// k1: 0x0000000000000000
 	uint32_t exp_res[64] = {0,1,0,1,1,0,1,1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,1,0,1,0,0,1,1,0,1,1,0,0,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,0,1,1,0};
 	uint32_t state[64] = {0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
 	uint32_t key_0[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -46,10 +53,13 @@ void prince_test_1()	{
 			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"prince Test 1");
 		}
 	}
-	// rprint(exp_res,64);
 }
 
 void prince_test_2()	{
+	// cipher Text: 0x818665AA0D02DFDA
+	// plaintext: 0x0000000000000000
+	// k0:0x0000000000000000
+	// k1: 0x0000000000000000
 	uint32_t exp_res[64] = {0,1,0,1,1,0,1,1,1,1,1,1,1,0,1,1,0,1,0,0,0,0,0,0,1,0,1,1,0,0,0,0,0,1,0,1,0,1,0,1,1,0,1,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0,0,0,0,0,1};
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t key_0[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -78,6 +88,10 @@ void prince_test_2()	{
 }
 
 void prince_test_3(){
+	// cipher Text: 0x9FB51935FC3DF524
+	// plaintext: 0x0000000000000000
+	// k0:0xffffffffffffffff
+	// k1: 0x0000000000000000
 	uint32_t exp_res[64] = {0,0,1,0,0,1,0,0,1,0,1,0,1,1,1,1,1,0,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,0,0,1,0,0,1,1,0,0,0,1,0,1,0,1,1,0,1,1,1,1,1,1,0,0,1};
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t key_0[64] = {0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
@@ -103,10 +117,13 @@ void prince_test_3(){
 			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"Prince Test 3");
 		}
 	}
-	// rprint(exp_res,64);
 }
 
 void prince_test_4(){
+	// cipher Text: 0x78A54CBE737BB7EF
+	// plaintext: 0x0000000000000000
+	// k0:0x0000000000000000
+	// k1: 0xffffffffffffffff
 	uint32_t exp_res[64] = {1,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,0,1,1,0,0,1,1,1,0,0,1,1,1,1,1,0,1,0,0,1,1,0,0,1,0,1,0,1,0,0,1,0,1,0,0,0,1,1,1,1,0};
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t key_0[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -131,6 +148,5 @@ void prince_test_4(){
 		for(bit = 0; bit < 64; bit++)	{
 			sput_fail_unless(((state[bit] >> slice) & 0x1) == exp_res[bit],"Prince Test 4");
 		}
-		// printf("\n");
 	}
 }

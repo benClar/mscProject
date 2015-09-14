@@ -749,4 +749,45 @@ temp_71_bs_return[5] = a[5];
 temp_71_bs_return[6] = a[6];
 temp_71_bs_return[7] = a[7];
 }
+void  bs_seq_bit_expr_mult_2(uint32_t *temp_79_bs_return){ 
+uint32_t a[8] = {0};
+a[0]= 0;
+a[1]= 0xffffffff;
+a[2]= 0;
+a[3]= 0;
+a[4]= 0;
+a[5]= 0;
+a[6]= 0;
+a[7]= 0;
+uint32_t b[8] = {0};
+b[0]= 0;
+b[1]= 0xffffffff;
+b[2]= 0;
+b[3]= 0;
+b[4]= 0;
+b[5]= 0;
+b[6]= 0;
+b[7]= 0;
+uint32_t temp_80__bin[8] = {0};
+uint8_t temp_81_casted_bit_seq = 0;
+temp_81_casted_bit_seq |= 0x1 << 0;
+temp_81_casted_bit_seq |= 0x1 << 2;
+uint8_t temp_82_casted_bit_seq = 0;
+temp_82_casted_bit_seq |= 0x1 << 0;
+uint32_t temp_83_casted_bs[8];
+int_to_bitsliced(temp_83_casted_bs, (temp_81_casted_bit_seq ^ temp_82_casted_bit_seq), 8);
+bitslice_mult(temp_80__bin, temp_83_casted_bs, b, 8);
+a[0] = temp_80__bin[0];
+a[1] = temp_80__bin[1];
+a[2] = temp_80__bin[2];
+a[3] = temp_80__bin[3];
+temp_79_bs_return[0] = a[0];
+temp_79_bs_return[1] = a[1];
+temp_79_bs_return[2] = a[2];
+temp_79_bs_return[3] = a[3];
+temp_79_bs_return[4] = a[4];
+temp_79_bs_return[5] = a[5];
+temp_79_bs_return[6] = a[6];
+temp_79_bs_return[7] = a[7];
+}
 

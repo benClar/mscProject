@@ -29,21 +29,21 @@ class IR(object):
     def translate(self):
         """Iterates through all IR nodes and stores their code emissions"""
         result = {'main': "", 'header': ""}
-        try:
-            for node in self.IR:
-                node_res = node.translate(self.sym_count)
-                if 'emit' in node_res:
-                    result['main'] += node_res['emit']
-                else:
-                    result['main'] += node_res
-                if node.node_type == DATA_TYPE.FUNC_DECL:
-                    result['header'] += node.translate_header(self.sym_count) + ";\n"
-                elif node.node_type == DATA_TYPE.SBOX_DECL:
-                    result['header'] += node.translate_header(self.sym_count)
-            return result
-        except Exception as details:
-            print(node.ID.name)
-            Unimplemented_functionality_errors.functionality_err(node, details)
+        # try:
+        for node in self.IR:
+            node_res = node.translate(self.sym_count)
+            if 'emit' in node_res:
+                result['main'] += node_res['emit']
+            else:
+                result['main'] += node_res
+            if node.node_type == DATA_TYPE.FUNC_DECL:
+                result['header'] += node.translate_header(self.sym_count) + ";\n"
+            elif node.node_type == DATA_TYPE.SBOX_DECL:
+                result['header'] += node.translate_header(self.sym_count)
+        return result
+        # except Exception as details:
+        #     print(node.ID.name)
+        #     Unimplemented_functionality_errors.functionality_err(node, details)
 
 
 class Function_decl(object):
@@ -2481,12 +2481,7 @@ class Binary_operation(object):
             else:
                 raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
         elif self.type == DATA_TYPE.BS_INT_VAL:
-            if operand_for_cast.type == DATA_TYPE.INT_VAL:
-                cast_res = Cast.int_to_bs_cast(sym_count, target, size)
-                result['result'] = cast_res['result']
-                result['emit'] = cast_res['emit']
-            else:
-                raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
+            self.implicit_cast_to_bs(operand_for_cast, result, sym_count, target, size)
         elif self.type == DATA_TYPE.BS_BIT_VAL:
             if operand_for_cast.type == DATA_TYPE.BIT_VAL:
                 cast_res = Cast.bit_to_bs_bit(operand_for_cast, sym_count)
@@ -2497,6 +2492,22 @@ class Binary_operation(object):
         else:
             raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
         return result
+
+    def implicit_cast_to_bs(self, operand_for_cast, result, sym_count, target, size):
+        """Casts operation result to bit-sliced int"""
+        assert size is not None
+        if operand_for_cast.type == DATA_TYPE.INT_VAL:
+            cast_res = Cast.int_to_bs_cast(sym_count, target, size)
+            result['result'] = cast_res['result']
+            result['emit'] = cast_res['emit']
+        elif operand_for_cast.type == DATA_TYPE.SEQ_BS_BIT_VAL:
+            raise ParseException("Implicit cast of sequence of bit-sliced integers has not been implemented in this operation")
+        elif operand_for_cast.type == DATA_TYPE.SEQ_BIT_VAL:
+            cast_res = Cast.int_to_bs_cast(sym_count, target, size)
+            result['result'] = cast_res['result']
+            result['emit'] = cast_res['emit']
+        else:
+            raise ParseException("Unsupported implicit cast type required " + str(operand_for_cast.type) + " to " + str(self.type))
 
     def get_operand_for_cast(self):
         """returns operand required for cast"""

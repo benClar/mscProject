@@ -2,9 +2,14 @@ FILE GUIDE
 
 There are various directories included in this submission.  Their contents are as follows:
 
+####################
+###Implementation###
+####################
 translation_tool: Translation tool and tests.  See README contained within this file for instructions on how to run.
+	-README.txt: explanation of how to use tool and run tests
     -in: DSL source code.  The files in this directory represent the currently supported functionality for the translation tool. 
         (Includes DSL for this project's targeted programs)
+		-README.txt: Explanation of demo DSL code provided & functionality that is represented
     -out: output directory for C produced by the translation tool.
     -test_output: output directory for c tests
         -runtime_checks: Testing for bounds checking stopping execution
@@ -14,6 +19,9 @@ translation_tool: Translation tool and tests.  See README contained within this 
         -prince_dsl: Generates and compiles PRINCE and runs all test vectors through program
         -general_dsl: Generates and compiles non-critical functionality
 
+####################
+####Result Data#####
+####################
 data: Result data presented in report & tools created in python to analyse data.
     -indiv_runs: data for analysis of individual runs (execution time of 1000 runs of ciphers.)
         -opt: data relating to optimised versions of translation output
@@ -23,7 +31,12 @@ data: Result data presented in report & tools created in python to analyse data.
         -opt: data relating to optimised versions of translation output
         -hw: data relating to handwritten versions
 
-ciphers: C source code for ciphers
+####################
+#######Output#######
+####################
+ciphers: C source code for ciphers (Handwritten and Translated)
+	-README.txt: Explanation of using performance / correctness suites provided with each cipher and the
+	 way that data is held (endianess)
     -handwritten: handwritten versions of ciphers.  Includes correctness and performance evaluation suites
         -prince : PRINCE cipher files
         -lfsr : LFSR files

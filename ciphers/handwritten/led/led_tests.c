@@ -5,6 +5,9 @@
 
 #include "led_tests.h"
 
+/*data stored in big-endian fashion 0-th bit = last element
+https://docs.google.com/viewer?a=v&pid=sites&srcid=ZGVmYXVsdGRvbWFpbnxsZWRibG9ja2NpcGhlcnxneDoxYmQ4ODY1MGY1MDhlNjk2 */
+
 int main() {
 	sput_start_testing();
 	sput_enter_suite("LED Test 1");
@@ -17,6 +20,9 @@ int main() {
 
 
 void led_test_1()	{
+	//ciphertext: EFBBBD6D368B8999
+	//key:0x0000000000000000
+	//plaintext: 0x0000000000000000
 	uint32_t exp_res[64] = {1,1,1,0,1,1,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,1,0,1,0,1,1,0,1,1,0,1,0,0,1,1,0,1,1,0,1,0,0,0,1,0,1,1,1,0,0,0,1,0,0,1,1,0,0,1,1,0,0,1};
 	uint32_t state[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint32_t key[64] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -86,6 +92,9 @@ void led_test_1()	{
 }
 
 void led_test_2()	{
+	//ciphertext: FDD6FB8945F81456
+	//key: 0x123456789abcdef
+	//plaintext: 0x123456789abcdef
 	uint32_t exp_res[64] = {1,1,1,1,1,1,0,1,1,1,0,1,0,1,1,0,1,1,1,1,1,0,1,1,1,0,0,1,1,0,0,0,0,1,0,0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,0,1,0,1,0,0,0,1,0,1,0,1,1,0};
 	uint32_t state[64] = {0,0,0,0,0,0,0,0xffffffff,0,0,0xffffffff,0,0,0,0xffffffff,0xffffffff,0,0xffffffff,0,0,0,0xffffffff,0,0xffffffff,0,0xffffffff,0xffffffff,0,0,0xffffffff,0xffffffff,0xffffffff, 0xffffffff,0,0,0, 0xffffffff,0,0,0xffffffff,0xffffffff,0,0xffffffff,0,0xffffffff,0,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0,0,0xffffffff,0xffffffff,0,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0,0xffffffff,0xffffffff,0xffffffff,0xffffffff};
 	uint32_t key[64] =   {0,0,0,0,0,0,0,0xffffffff,0,0,0xffffffff,0,0,0,0xffffffff,0xffffffff,0,0xffffffff,0,0,0,0xffffffff,0,0xffffffff,0,0xffffffff,0xffffffff,0,0,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0,0,0,0xffffffff,0,0,0xffffffff,0xffffffff,0,0xffffffff,0,0xffffffff,0,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0,0,0xffffffff,0xffffffff,0,0xffffffff,0xffffffff,0xffffffff,0xffffffff,0,0xffffffff,0xffffffff,0xffffffff,0xffffffff};

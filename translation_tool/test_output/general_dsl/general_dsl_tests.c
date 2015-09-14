@@ -54,6 +54,8 @@ int main() {
 	sput_run_test(bit_seq_expr_arith_test_22);
 	sput_enter_suite("bit seq operations tests");
 	sput_run_test(bs_bit_mult_23);
+	sput_enter_suite("bit seq operations tests");
+	sput_run_test(bs_bit_mul_24);
 	sput_finish_testing();
 	return sput_get_return_value();
 }
@@ -188,4 +190,18 @@ void bs_bit_mult_23()	{
 	sput_fail_unless(output[5] == 0x0, "bs bit expr 23");
 	sput_fail_unless(output[6] == 0x0, "bs bit expr 23");
 	sput_fail_unless(output[7] == 0x0, "bs bit expr 23");
+}
+
+void bs_bit_mul_24()	{
+	uint32_t output[8] = {0};
+	bs_seq_bit_expr_mult_2(output);
+	sput_fail_unless(output[0] == 0x0, "bs bit expr 23");
+	sput_fail_unless(output[1] == 0x0, "bs bit expr 23");
+	sput_fail_unless(output[2] == 0x0, "bs bit expr 23");
+	sput_fail_unless(output[3] == 0xffffffff, "bs bit expr 23");
+	sput_fail_unless(output[4] == 0x0, "bs bit expr 23");
+	sput_fail_unless(output[5] == 0x0, "bs bit expr 23");
+	sput_fail_unless(output[6] == 0x0, "bs bit expr 23");
+	sput_fail_unless(output[7] == 0x0, "bs bit expr 23");
+
 }

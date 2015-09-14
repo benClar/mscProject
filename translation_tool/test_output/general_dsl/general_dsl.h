@@ -37,4 +37,5 @@ void get_int();
 uint8_t  ret_int_in_seq(uint8_t  a[10][10]);
 void get_int_1();
 void  bs_seq_bit_expr_mult(uint32_t *temp_78_bs_return);
+void  bs_seq_bit_expr_mult_2(uint32_t *temp_84_bs_return);
 
